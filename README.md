@@ -13,7 +13,7 @@ UNICENS is a source code library written in C. It is a platform independent
 library that can be integrated into a bare-metal/mainloop-architecture as well as 
 into any operating system.
 <br><br>
-UNICENS allows to startup and configure a MOST(R) Network from one central node.
+UNICENS allows to startup and configure a MOST&reg; Network from one central node.
 This means that only one node within the network must run UNICENS. It is able
 to configure the shared ethernet bandwidth and establishes the dedicated audio and 
 video channels without the necessity of an application interaction.
@@ -31,7 +31,7 @@ without needing a dedicated ECU that hosts an application. E.g., UNICENS hosted
 on the central node may modify codec specific values of a microphone node without ECU.
 <br><br>
 <p align="center">
-<img src="https://c1.staticflickr.com/5/4247/34717065806_08347db3b4_z.jpg">
+<img src="https://c1.staticflickr.com/5/4247/34717065806_08347db3b4_b.jpg">
 </p>
 
 Please find further information on [www.microchip.com](http://www.microchip.com/design-centers/automotive/most/unicens).
