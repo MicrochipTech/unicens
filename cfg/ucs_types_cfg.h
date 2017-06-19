@@ -63,7 +63,9 @@ extern "C"
 
 /* Definition of boolean type, typically defined in <stdbool.h> */
 #ifndef __cplusplus
-   typedef uint8_t bool;            /* parasoft-suppress  MISRA2004-20_2 "Boolean data type not available on this system" */
+   #ifndef bool
+       typedef uint8_t bool;            /* parasoft-suppress  MISRA2004-20_2 "Boolean data type not available on this system" */
+   #endif
 #endif
 
 /*------------------------------------------------------------------------------------------------*/
@@ -85,7 +87,7 @@ extern "C"
 #endif
 
 #ifdef __cplusplus
-}           /* extern "C" */
+};           /* extern "C" */
 #endif
 
 #endif      /* #ifndef UCS_TYPES_H */
