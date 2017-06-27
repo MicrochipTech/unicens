@@ -15,7 +15,7 @@ into any operating system.
 <br><br>
 UNICENS allows to startup and configure a MOST&reg; Network from one central node.
 This means that only one node within the network must run UNICENS. It is able
-to configure the shared ethernet bandwidth and establishes the dedicated audio and 
+to configure the shared Ethernet bandwidth and establishes the dedicated audio and 
 video channels without the necessity of an application interaction.
 The result is, that applications residing on the network nodes can communicate
 in a transparent way without having to care about the details *how* network related 
