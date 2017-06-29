@@ -49,7 +49,7 @@ This GitHub repository is used to publish UNICENS. Please be aware that UNICENS
 is not actively developed on GitHub.  
 
 ## Contribution, Maintenance and Support
-Please do not send pull requests to the “master” branch. A UNICENS released version has a specific “maintenance” branch dedicated to fixes and improvements. In addition, feel free to post issues or send your bug reports, feature and support requests to [support-ais-de@microchip.com](mailto:support-ais-de@microchip.com).
+Please do not send pull requests to the “master” branch. A UNICENS released version has a specific “maintenance” branch dedicated to fixes and improvements. In addition, feel free to post [issues](https://github.com/MicrochipTech/unicens/issues) or send your bug reports, feature and support requests to [support-ais-de@microchip.com](mailto:support-ais-de@microchip.com).
 
 ## License
 UNICENS source code is released under the [BSD License](https://github.com/MicrochipTech/unicens/blob/master/LICENSE).
