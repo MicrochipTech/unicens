@@ -42,6 +42,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifndef __cplusplus
+#   if __STDC_VERSION__ >= 199901L
+#       include <stdbool.h>
+#   endif
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -63,7 +69,9 @@ extern "C"
 
 /* Definition of boolean type, typically defined in <stdbool.h> */
 #ifndef __cplusplus
-   typedef uint8_t bool;            /* parasoft-suppress  MISRA2004-20_2 "Boolean data type not available on this system" */
+#   if __STDC_VERSION__ < 199901L
+        typedef uint8_t bool;            /* parasoft-suppress  MISRA2004-20_2 "Boolean data type not available on this system" */
+#   endif
 #endif
 
 /*------------------------------------------------------------------------------------------------*/
