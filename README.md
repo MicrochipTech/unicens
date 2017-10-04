@@ -41,6 +41,7 @@ Please download the related version and find the documentation in `/doc/ucs.html
 You can find the latest documentation [here](https://rawgit.com/MicrochipTech/unicens/master/doc/html/index.html).
 
 ## Related Projects
+* [UNICENS Linux Daemon](https://github.com/MicrochipTech/unicens-linux-daemon)
 * [MOST Linux Driver](https://github.com/microchip-ais/linux)
 * [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://github.com/iotbzh/unicens2-binding)
 
