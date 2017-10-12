@@ -44,6 +44,7 @@ You can find the latest documentation [here](https://rawgit.com/MicrochipTech/un
 * [UNICENS Linux Daemon](https://github.com/MicrochipTech/unicens-linux-daemon)
 * [MOST Linux Driver](https://github.com/microchip-ais/linux)
 * [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://github.com/iotbzh/unicens2-binding)
+* [UNICENS Schema](https://unicens.github.io/)
 
 ## UNICENS on GitHub
 This GitHub repository is used to publish UNICENS. Please be aware that UNICENS 
