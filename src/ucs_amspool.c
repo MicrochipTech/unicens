@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -45,6 +45,8 @@
 #include "ucs_misc.h"
 #include "ucs_trace.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 /*------------------------------------------------------------------------------------------------*/
 /* Internal macros                                                                                */
 /*------------------------------------------------------------------------------------------------*/
@@ -59,7 +61,7 @@ static void Amsp_FreeTxObj(void *self, Ucs_AmsTx_Msg_t* msg_ptr);
 /*------------------------------------------------------------------------------------------------*/
 /* Initialization                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Constructor of application message pool class 
+/*! \brief  Constructor of application message pool class
  *  \param  self                The instance
  *  \param  mem_allocator_ptr   Reference to memory allocator
  *  \param ucs_user_ptr User reference that needs to be passed in every callback function
@@ -100,9 +102,9 @@ void Amsp_Cleanup(CAmsMsgPool *self)
     }
 }
 
-/*! \brief  Assigns an observer which is invoked as soon as memory dedicated to a Tx message is 
- *          freed.The data_ptr of the update callback function is not used (always \c NULL). 
- *          See \ref Obs_UpdateCb_t. 
+/*! \brief  Assigns an observer which is invoked as soon as memory dedicated to a Tx message is
+ *          freed.The data_ptr of the update callback function is not used (always \c NULL).
+ *          See \ref Obs_UpdateCb_t.
  *  \param  self            The instance
  *  \param  observer_ptr    The observer
  */
@@ -111,9 +113,9 @@ void Amsp_AssignTxFreedObs(CAmsMsgPool *self, CObserver *observer_ptr)
     (void)Sub_AddObserver(&self->tx_freed_subject, observer_ptr);
 }
 
-/*! \brief  Assigns an observer which is invoked as soon as memory dedicated to a Tx message is 
- *          freed.The data_ptr of the update callback function is not used (always \c NULL). 
- *          See \ref Obs_UpdateCb_t. 
+/*! \brief  Assigns an observer which is invoked as soon as memory dedicated to a Tx message is
+ *          freed.The data_ptr of the update callback function is not used (always \c NULL).
+ *          See \ref Obs_UpdateCb_t.
  *  \param  self            The instance
  *  \param  observer_ptr    The observer
  */
@@ -127,7 +129,7 @@ void Amsp_AssignRxFreedObs(CAmsMsgPool *self, CObserver *observer_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Allocates an internal Tx message object (without payload)
  *  \param  self        The instance
- *  \param  payload_sz  The required payload size in bytes 
+ *  \param  payload_sz  The required payload size in bytes
  *  \return Reference to the Tx message object if the allocation succeeds. Otherwise \c NULL.
  */
 Ucs_AmsTx_Msg_t* Amsp_AllocTxObj(CAmsMsgPool *self, uint16_t payload_sz)
@@ -190,7 +192,7 @@ static void Amsp_FreeTxObj(void *self, Ucs_AmsTx_Msg_t* msg_ptr)
     TR_INFO((self_->ucs_user_ptr, "[AMSP]", "Freeing TxObject: msg_ptr=0x%p, info_ptr=0x%p", 2U, msg_ptr, obj_ptr->info_ptr));
     self_->allocator_ptr->free_fptr(self_->allocator_ptr->inst_ptr, msg_ptr, AMS_MU_TX_OBJECT, obj_ptr->info_ptr);
 
-    if (self_->tx_notify_freed)
+    if (self_->tx_notify_freed != false)
     {
         Sub_Notify(&self_->tx_freed_subject, NULL);
         self_->tx_notify_freed = false;
@@ -220,7 +222,7 @@ Ucs_AmsRx_Msg_t* Amsp_AllocRxObj(CAmsMsgPool *self, uint16_t payload_sz)
 
         if (payload_sz != 0U)
         {
-            if (!Amsp_AllocRxPayload(self, payload_sz, msg_ptr))
+            if (Amsp_AllocRxPayload(self, payload_sz, msg_ptr) == false)
             {
                 Amsp_FreeRxObj(self, msg_ptr);  /* payload allocation has failed - release message object */
                 msg_ptr = NULL;
@@ -254,7 +256,7 @@ Ucs_AmsRx_Msg_t* Amsp_AllocRxRsvd(CAmsMsgPool *self)
     return msg_ptr;
 }
 
-/*! \brief  Allocates payload for an internal Rx message object 
+/*! \brief  Allocates payload for an internal Rx message object
  *  \param  self        The instance
  *  \param  payload_sz  Payload size in bytes
  *  \param  msg_ptr     Reference to the internal Rx message object
@@ -279,10 +281,10 @@ bool Amsp_AllocRxPayload(CAmsMsgPool *self, uint16_t payload_sz, Ucs_AmsRx_Msg_t
     return success;
 }
 
-/*! \brief      Frees an internal Rx message object 
+/*! \brief      Frees an internal Rx message object
  *  \param      self        The instance
  *  \param      msg_ptr     Reference to the internal Rx message object
- *  \details    Payload that is assigned to the message object has to be freed 
+ *  \details    Payload that is assigned to the message object has to be freed
  *              separately by using Amsp_FreeRxPayload().
  */
 void Amsp_FreeRxObj(CAmsMsgPool *self, Ucs_AmsRx_Msg_t* msg_ptr)
@@ -298,21 +300,21 @@ void Amsp_FreeRxObj(CAmsMsgPool *self, Ucs_AmsRx_Msg_t* msg_ptr)
             Amsp_Cleanup(self);                                                     /* from any queue after Amsp_Cleanup() */
         }
     }
-    else 
-    { 
+    else
+    {
         Amsg_IntMsgRx_t *obj_ptr = INT_RX(msg_ptr);
         TR_INFO((self->ucs_user_ptr, "[AMSP]", "Freeing RxObject: msg_ptr=0x%p, info_ptr=0x%p", 2U, msg_ptr, obj_ptr->info_ptr));
         self->allocator_ptr->free_fptr(self->allocator_ptr->inst_ptr, msg_ptr, AMS_MU_RX_OBJECT, obj_ptr->info_ptr);
     }
 
-    if (self->rx_notify_freed)
+    if (self->rx_notify_freed != false)
     {
         Sub_Notify(&self->rx_freed_subject, NULL);
         self->rx_notify_freed = false;
     }
 }
 
-/*! \brief  Frees payload that is associated with an internal Rx message object 
+/*! \brief  Frees payload that is associated with an internal Rx message object
  *  \param  self        The instance
  *  \param  msg_ptr     Reference to the internal Rx message object
  */
@@ -332,6 +334,8 @@ void Amsp_FreeRxPayload(CAmsMsgPool *self, Ucs_AmsRx_Msg_t* msg_ptr)
         Amsg_RxHandleSetMemory(msg_ptr, NULL, 0U, NULL);
     }
 }
+
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

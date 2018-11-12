@@ -129,40 +129,6 @@ P.AlphaIndent {
 	text-transform: none;
 	font-family: "Arial";
 }
-P.Anchor {
-	display: block;
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 4.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
-P.AnchorTop {
-	display: block;
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 4.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 P.AppEquation {
 	display: block;
 	text-align: left;
@@ -545,7 +511,7 @@ H1.CellBody, H2.CellBody, H3.CellBody, H4.CellBody, H5.CellBody, H6.CellBody {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 2.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -588,23 +554,6 @@ P.CellBodyCenter {
 	text-transform: none;
 	font-family: "Arial";
 }
-P.CellBodyCentered {
-	display: block;
-	text-align: center;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 P.CellBodyLeft {
 	display: block;
 	text-align: left;
@@ -613,7 +562,7 @@ P.CellBodyLeft {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 8.500000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -683,6 +632,23 @@ P.CellHeading {
 	margin-left: 0.000000pt;
 	font-size: 9.000000pt;
 	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: "Arial";
+}
+P.CellHeading-ChipSpec {
+	display: block;
+	text-align: center;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
@@ -894,6 +860,23 @@ LI.E-Bullet1 {
 	text-transform: none;
 	font-family: "Arial";
 }
+P.E-Bullet1-Ind {
+	display: block;
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 2.000000pt;
+	margin-bottom: 2.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 9.000000pt;
+	font-size: 10.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: "Arial";
+}
 LI.E-Bullet2 {
 	display: block;
 	text-align: left;
@@ -1030,6 +1013,23 @@ LI.E-CellBodyLeft-Comp-Bullet {
 	text-transform: none;
 	font-family: "Courier New";
 }
+P.E-CellBodyLeft-Ind {
+	display: block;
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: "Arial";
+}
 P.E-CellBodyLeftIndent {
 	display: block;
 	text-align: left;
@@ -1091,6 +1091,23 @@ P.E-CellHeading {
 	margin-left: 0.000000pt;
 	font-size: 9.000000pt;
 	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: "Arial";
+}
+P.E-CellHeading-VarName {
+	display: block;
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
@@ -1540,6 +1557,23 @@ LI.E-TableTitleDS-AppLOT {
 	text-transform: none;
 	font-family: "Arial";
 }
+P.E-TableTitleDS-Indent {
+	display: block;
+	text-align: left;
+	text-indent: -72.000000pt;
+	margin-top: 12.000000pt;
+	margin-bottom: 1.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 81.000000pt;
+	font-size: 10.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: uppercase;
+	font-family: "Arial";
+}
 LI.E-TableTitleDSLOT {
 	display: block;
 	text-align: left;
@@ -1781,11 +1815,11 @@ P.FooterFirst {
 P.Footnote {
 	display: block;
 	text-align: justify;
-	text-indent: -10.800003pt;
+	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 18.000000pt;
-	margin-left: 21.599991pt;
+	margin-left: 18.000000pt;
 	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
@@ -2003,11 +2037,11 @@ P.Indent {
 	display: block;
 	text-align: justify;
 	text-indent: 0.000000pt;
-	margin-top: 3.000000pt;
-	margin-bottom: 3.000000pt;
+	margin-top: 4.000000pt;
+	margin-bottom: 4.000000pt;
 	margin-right: 9.000000pt;
 	margin-left: 18.000000pt;
-	font-size: 8.500000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -2273,13 +2307,13 @@ P.Microchip {
 }
 P.Note {
 	display: block;
-	text-align: justify;
-	text-indent: -37.799988pt;
+	text-align: left;
+	text-indent: -36.000000pt;
 	margin-top: 4.000000pt;
 	margin-bottom: 4.000000pt;
 	margin-right: 0.000000pt;
-	margin-left: 46.799988pt;
-	font-size: 9.000000pt;
+	margin-left: 45.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -2458,21 +2492,21 @@ H1.Region, H2.Region, H3.Region, H4.Region, H5.Region, H6.Region {
 	text-transform: uppercase;
 	font-family: "Arial";
 }
-P.Register {
+P.Region2 {
 	display: block;
 	text-align: left;
-	text-indent: -72.000000pt;
-	margin-top: 12.000000pt;
-	margin-bottom: 6.000000pt;
+	text-indent: 0.000000pt;
+	margin-top: 2.000000pt;
+	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
-	margin-left: 72.000000pt;
-	font-size: 9.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
-	text-transform: none;
+	text-transform: uppercase;
 	font-family: "Arial";
 }
 P.RegisterAN {
@@ -2654,6 +2688,23 @@ P.SubjectIOM {
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
 	font-size: 10.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: "Arial";
+}
+P.Table-Cell-Centered {
+	display: block;
+	text-align: center;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 2.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -2866,23 +2917,6 @@ H1.Title, H2.Title, H3.Title, H4.Title, H5.Title, H6.Title {
 	text-transform: none;
 	font-family: "Times New Roman";
 }
-P.Title-A {
-	display: block;
-	text-align: center;
-	text-indent: 0.000000pt;
-	margin-top: 24.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 18.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Times New Roman";
-}
 P.Trademarks {
 	display: block;
 	text-align: justify;
@@ -2934,42 +2968,12 @@ H1.ZNotesPage, H2.ZNotesPage, H3.ZNotesPage, H4.ZNotesPage, H5.ZNotesPage, H6.ZN
 	text-transform: uppercase;
 	font-family: "Arial";
 }
-EM.FM10ptArial {
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 EM.FM7-arial {
 	font-size: 7.000000pt;
 	font-family: "Arial";
 }
-EM.FM7ptArial {
-	font-size: 7.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 EM.FM8-arial {
 	font-size: 8.000000pt;
-	font-family: "Arial";
-}
-EM.FM8ptArial {
-	font-size: 8.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
 	font-family: "Arial";
 }
 EM.FM9-arial {
@@ -2982,29 +2986,8 @@ EM.FM9-arial {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.FM9ptArial {
-	font-size: 9.000000pt;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
-EM.Arial {
-	font-size: 9.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: underline ;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 EM.ArialDefault {
 	font-family: "Arial";
-}
-EM.Black {
-	color: #000000;
 }
 EM.BlackMarker {
 }
@@ -3017,10 +3000,6 @@ EM.Bold {
 EM.BoldItalic {
 	font-weight: Bold;
 	font-style: Italic;
-}
-EM.BoldUppercase {
-	font-weight: Bold;
-	text-transform: uppercase;
 }
 EM.ChngeBarOff {
 }
@@ -3038,23 +3017,6 @@ EM.Code {
 }
 EM.Computer {
 	font-size: 9.000000pt;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Courier New";
-}
-EM.Computer-Indent {
-	font-size: 9.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Courier New";
-}
-EM.ComputerItalic {
-	font-style: Italic;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
@@ -3090,11 +3052,6 @@ EM.CrossReference {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.CrossRefNumSuper {
-	color: #0000ff;
-	vertical-align: super;
-	font-family: "Arial";
-}
 EM.E-Default {
 	text-decoration: none;
 	vertical-align: baseline;
@@ -3117,26 +3074,6 @@ EM.E-UnderBold {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.Emphasis {
-	font-size: 9.000000pt;
-	font-weight: medium;
-	font-style: Italic;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
-EM.Emphasize {
-	font-size: 9.000000pt;
-	font-weight: medium;
-	font-style: Italic;
-	color: #ff0000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
 EM.EquationVariables {
 	font-weight: medium;
 	font-style: Italic;
@@ -3146,25 +3083,18 @@ EM.EquationVariables {
 	text-transform: none;
 	font-family: "Times New Roman";
 }
-EM.hoch {
+EM.Gray {
 	font-size: 9.000000pt;
-	font-weight: medium;
+	font-weight: Bold;
 	font-style: Regular;
-	color: #000000;
+	color: #656565;
 	text-decoration: none;
-	vertical-align: super;
+	vertical-align: baseline;
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.Hyperlink {
-	color: #0000ff;
-	text-decoration: underline ;
-}
 EM.Italic {
 	font-style: Italic;
-}
-EM.ItalicNot {
-	font-style: Regular;
 }
 EM.Link {
 	font-size: 9.000000pt;
@@ -3176,17 +3106,8 @@ EM.Link {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.Lowercase {
-	text-transform: lowercase;
-}
 EM.lowercase {
 	text-transform: lowercase;
-}
-EM.MenuPath {
-	font-style: Italic;
-	text-decoration: underline ;
-	vertical-align: baseline;
-	text-transform: none;
 }
 EM.Mnemonic {
 	font-size: 9.000000pt;
@@ -3202,16 +3123,6 @@ EM.MnemonicRef {
 	font-size: 9.000000pt;
 	color: #0000ff;
 	font-family: "Courier New";
-}
-EM.Normal {
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
 }
 EM.NoSpellChk {
 }
@@ -3238,10 +3149,6 @@ EM.Overline {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.ParameterCrossRef {
-	color: #0000ff;
-	font-family: "Courier New";
-}
 EM.Pin-Name {
 	font-size: 9.000000pt;
 	font-weight: Bold;
@@ -3262,26 +3169,6 @@ EM.Red {
 	text-transform: none;
 	font-family: "Arial";
 }
-EM.Red-Marker {
-	color: #ff0000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
-EM.Register-Bit {
-	font-size: 8.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: "Arial";
-}
-EM.SmallCaps {
-	text-transform: none;
-}
 EM.Smallcaps {
 	text-transform: none;
 }
@@ -3291,21 +3178,8 @@ EM.Subscript {
 EM.Superscript {
 	vertical-align: super;
 }
-EM.SuperscriptHeader {
-	font-size: 14.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: super;
-	text-transform: none;
-	font-family: "Arial";
-}
 EM.Symbol {
 	font-family: "Symbol";
-}
-EM.Times-New-Roman {
-	font-family: "Times New Roman";
 }
 EM.Underbold {
 	font-size: 10.000000pt;
@@ -3320,16 +3194,6 @@ EM.Underbold {
 EM.Underline {
 	text-decoration: underline ;
 }
-EM.UnderlineNot {
-	text-decoration: none;
-}
 EM.Uppercase {
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
 	text-transform: uppercase;
-	font-family: "Arial";
 }

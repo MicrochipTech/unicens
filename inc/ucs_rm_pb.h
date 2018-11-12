@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -70,7 +70,9 @@ typedef enum Ucs_Rm_RouteInfos_
     UCS_RM_ROUTE_INFOS_BUILT          = 0x00U,     /*!< \brief Specifies that the route has been built. */
     UCS_RM_ROUTE_INFOS_DESTROYED      = 0x01U,     /*!< \brief Specifies that the route has been destroyed. */
     UCS_RM_ROUTE_INFOS_SUSPENDED      = 0x02U,     /*!< \brief Specifies that the route has been suspended. */
-    UCS_RM_ROUTE_INFOS_PROCESS_STOP   = 0x03U      /*!< \brief Specifies that the route cannot be processed anymore because of UNICENS Termination. */
+    UCS_RM_ROUTE_INFOS_PROCESS_STOP   = 0x03U,     /*!< \brief Specifies that the route cannot be processed anymore because of UNICENS Termination. */
+    UCS_RM_ROUTE_INFOS_ATD_UPDATE     = 0x04U,     /* Specifies that a new ATD value is available. */
+    UCS_RM_ROUTE_INFOS_ATD_ERROR      = 0x05U      /* Specifies that a ATD calculation was stopped due to an error. */
 
 } Ucs_Rm_RouteInfos_t;
 
@@ -102,8 +104,10 @@ typedef struct Ucs_Rm_Route_
     uint8_t active;
     /*! \brief User-defined route identifier. */
     uint16_t route_id;
+    /*! \brief ATD callback enable. */
+    uint8_t atd_enabled;
     /*! \brief Internal information of the route object. */
-    Ucs_Rm_RouteInt_t internal_infos; 
+    Ucs_Rm_RouteInt_t internal_infos;
 
 } Ucs_Rm_Route_t;
 

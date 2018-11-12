@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -55,8 +55,17 @@ extern "C"
 /*! \brief Internal configuration structure of a Connection Node. */
 typedef struct Ucs_Rm_NodeInt_
 {
-    uint8_t available;      /*!< \brief Availability flag */
-    uint8_t mgr_joined;     /*!< \brief Indicates whether the node was made available by manager */
+    Ucs_Signature_t signature;  /*!< \brief Copy of the real signature */
+    uint8_t available;          /*!< \brief Availability flag */
+    uint8_t mgr_joined;         /*!< \brief Indicates whether the node was made available by manager */
+    uint8_t script_state;       /*!< \brief Status of script execution */
+    uint8_t guard_cnt;          /*!< \brief Supervisor increases this number if it detect that the 
+                                 *          node is in a suspicious state. */
+    uint8_t guard_retries;      /*!< \brief Supervisor increases this count for every new sync
+                                 *          attempt. */
+    void *nobs_inst_ptr;        /*!< \brief Reference of to NodeObserver as workaround for missing
+                                 *          instance pointer in scripting result callback.
+                                 */
 
 } Ucs_Rm_NodeInt_t;
 

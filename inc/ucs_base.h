@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -49,6 +49,7 @@
 #include "ucs_trace.h"
 #include "ucs_eh.h"
 #include "ucs_alm.h"
+#include "ucs_addr.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -75,6 +76,7 @@ typedef struct CBase_
     CTimerManagement tm;            /*!< \brief Timer management instance */
     CEventHandler eh;               /*!< \brief Event handler instance */
     CApiLockingManager alm;         /*!< \brief API locking manager instance */
+    CAddress addr;                  /*!< \brief Local address handling */
     uint8_t ucs_inst_id;            /*!< \brief UNICENS instance ID */
     void *ucs_user_ptr;             /*!< \brief User reference for API callback functions */
 

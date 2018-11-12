@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -106,10 +106,11 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <div class="line"></div>
 <div class="line">    <span class="comment">/* assign init data */</span></div>
 <div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64b50780725a0dc8693b5b73f8345ad6.html#ga64b50780725a0dc8693b5b73f8345ad6" title="Assigns default values to a provided UNICENS init structure.">Ucs_SetDefaultConfig</a>(&amp;init_data);</div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a96bad24b6b49ffacfd9136230447cb22.html#a96bad24b6b49ffacfd9136230447cb22" title="Callback function to initialize the low-level driver and start the transmission and reception of mess...">start_fptr</a> = &amp;Lld_Start;</div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_ab0f955ca90942fda14ac12500422a437.html#ab0f955ca90942fda14ac12500422a437" title="Callback function to stop/abort the transmission and reception of messages.">stop_fptr</a> = &amp;Lld_Stop;</div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_ad8f7d021075e06672a999eb02da1d2e4.html#ad8f7d021075e06672a999eb02da1d2e4" title="Callback function to transmit one or multiple messages to the INIC.">tx_transmit_fptr</a> = &amp;Lld_TxTransmit;</div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a90fa6db664734c2446327b71c51f5b52.html#a90fa6db664734c2446327b71c51f5b52" title="Callback function which is invoked as soon as Rx message objects are available again.">rx_available_fptr</a> = &amp;Lld_RxMsgAvailable;</div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a96bad24b6b49ffacfd9136230447cb22.html#a96bad24b6b49ffacfd9136230447cb22" title="Mandatory callback function to initialize the low-level driver and start the transmission and recepti...">start_fptr</a> = &amp;Lld_Start;</div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_ab0f955ca90942fda14ac12500422a437.html#ab0f955ca90942fda14ac12500422a437" title="Mandatory callback function to stop/abort the transmission and reception of messages.">stop_fptr</a> = &amp;Lld_Stop;</div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a6b02bb0a28803f1a3b55423088736d96.html#a6b02bb0a28803f1a3b55423088736d96" title="Mandatory callback function to perform an INIC hardware reset.">reset_fptr</a> = &amp;Lld_Reset;</div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_ad8f7d021075e06672a999eb02da1d2e4.html#ad8f7d021075e06672a999eb02da1d2e4" title="Mandatory callback function to transmit one or multiple messages to the INIC.">tx_transmit_fptr</a> = &amp;Lld_TxTransmit;</div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a90fa6db664734c2446327b71c51f5b52.html#a90fa6db664734c2446327b71c51f5b52" title="Optional callback function which is invoked as soon as Rx message objects are available again...">rx_available_fptr</a> = &amp;Lld_RxMsgAvailable;</div>
 <div class="line">    <span class="comment">/* ... further assignment and initialization ... */</span></div>
 <div class="line"></div>
 <div class="line">    <span class="comment">/* create one instance of UCS */</span></div>
@@ -169,26 +170,31 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <div class="line">    <span class="comment">/* IMPORTANT: Do no longer invoke any UNICENS callback function and</span></div>
 <div class="line"><span class="comment">       immediately stop accessing UNICENS message objects.</span></div>
 <div class="line"><span class="comment">       I.e., ensure stopping asynchronous transmission and reception using UNICENS memory</span></div>
-<div class="line"><span class="comment">       before leaving this function (e.g., stop/wait DMA copy operations to/from UNICENS memory). </span></div>
+<div class="line"><span class="comment">       before leaving this function (e.g., stop/wait DMA copy operations to/from UNICENS memory).</span></div>
 <div class="line"><span class="comment">       Incoming messages from the INIC should be discarded until Lld_Start() is called again.</span></div>
 <div class="line"><span class="comment">     */</span></div>
 <div class="line">    _api_ptr = NULL;</div>
 <div class="line">    _h_ptr = NULL;</div>
+<div class="line">}</div>
+<div class="line"></div>
+<div class="line"><span class="keywordtype">void</span> Lld_Reset(<span class="keywordtype">void</span> *lld_user_ptr)</div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">/* Perform an INIC hardware reset here */</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><h1>Message Transmission</h1>
 <p>The low-level driver must implement a transmit function which requires a reference to <a class="el" href="struct_ucs___lld___tx_msg__t.html" title="Tx message object providing the raw port message byte stream.">Ucs_Lld_TxMsg_t</a>. The code section below shows the declaration of the <a class="el" href="struct_ucs___lld___tx_msg__t.html" title="Tx message object providing the raw port message byte stream.">Ucs_Lld_TxMsg_t</a> and the referred <a class="el" href="struct_ucs___mem___buffer__t.html">Ucs_Mem_Buffer_t</a> type. The <a class="el" href="struct_ucs___mem___buffer__t.html">Ucs_Mem_Buffer_t</a> structure contains values to describe the pointer and the size of the buffer. Furthermore it is possible that one buffer refers a second buffer if next_buffer_ptr is set. This means that it is possible to concatenate multiple buffers. Furthermore, one message structure refers a buffer structure. The <code>custom_next_msg_ptr</code> is not set by UNICENS library. It can be used by the Low Level Driver to concatenate messages, e.g. for asynchronous transmission.</p>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>Ucs_Mem_Buffer_</div>
 <div class="line">{</div>
 <div class="line">    <span class="keyword">struct </span>Ucs_Mem_Buffer_  *next_buffer_ptr;</div>
-<div class="line">    uint8_t                 *data_ptr; </div>
-<div class="line">    uint16_t                 data_size; </div>
+<div class="line">    uint8_t                 *data_ptr;</div>
+<div class="line">    uint16_t                 data_size;</div>
 <div class="line">    uint16_t                 total_size;</div>
-<div class="line"> </div>
+<div class="line"></div>
 <div class="line">} <a class="code" href="struct_ucs___mem___buffer__t.html" title="Memory chunk representing a message or part of a message.">Ucs_Mem_Buffer_t</a>;</div>
 <div class="line"></div>
 <div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>Ucs_Lld_TxMsg_</div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">struct </span>Ucs_Lld_TxMsg_   *custom_next_msg_ptr; </div>
+<div class="line">    <span class="keyword">struct </span>Ucs_Lld_TxMsg_   *custom_next_msg_ptr;</div>
 <div class="line">    <a class="code" href="struct_ucs___mem___buffer__t.html" title="Memory chunk representing a message or part of a message.">Ucs_Mem_Buffer_t</a>        *memory_ptr;</div>
 <div class="line"></div>
 <div class="line">} <a class="code" href="struct_ucs___lld___tx_msg__t.html" title="Tx message object providing the raw port message byte stream.">Ucs_Lld_TxMsg_t</a>;</div>
@@ -196,10 +202,10 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> Lld_TxTransmit(<a class="code" href="struct_ucs___lld___tx_msg__t.html" title="Tx message object providing the raw port message byte stream.">Ucs_Lld_TxMsg_t</a> *msg_ptr, <span class="keywordtype">void</span> *lld_user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <a class="code" href="struct_ucs___mem___buffer__t.html" title="Memory chunk representing a message or part of a message.">Ucs_Mem_Buffer_t</a> * buf_ptr;</div>
-<div class="line">    uint16_t i = 0U;                                      <span class="comment">/* index of target buffer*/</span> </div>
+<div class="line">    uint16_t i = 0U;                                      <span class="comment">/* index of target buffer*/</span></div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> ((msg_ptr != NULL) &amp;&amp; _api_ptr)</div>
-<div class="line">    { </div>
+<div class="line">    {</div>
 <div class="line">        <span class="keywordflow">for</span> (buf_ptr = msg_ptr-&gt;<a class="code" href="struct_ucs___lld___tx_msg__t_a0fae6a3f19d8a9bbdad3c3b1ead3e868.html#a0fae6a3f19d8a9bbdad3c3b1ead3e868" title="Points to the data buffer.">memory_ptr</a>; buf_ptr != NULL; buf_ptr = buf_ptr-&gt;<a class="code" href="struct_ucs___mem___buffer__t_a5245ce4ea7d022a357642b645e7ac645.html#a5245ce4ea7d022a357642b645e7ac645" title="Points to an additional memory buffer that belongs to the same message.">next_buffer_ptr</a>)</div>
 <div class="line">        {</div>
 <div class="line">            memcpy(&amp;_tx_buffer[i], buf_ptr-&gt;<a class="code" href="struct_ucs___mem___buffer__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Points to the data buffer.">data_ptr</a>, buf_ptr-&gt;<a class="code" href="struct_ucs___mem___buffer__t_aae6bdbdf6ea1ad3da5af37f0a91d3ea0.html#aae6bdbdf6ea1ad3da5af37f0a91d3ea0" title="Size of the data buffer.">data_size</a>);</div>
@@ -247,7 +253,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <div class="line"></div>
 <div class="line">                <span class="keywordflow">for</span> (i=0; i&lt;size; i++)</div>
 <div class="line">                {                       <span class="comment">/* copy data to UCS message object */</span></div>
-<div class="line">                    msg_ptr-&gt;<a class="code" href="struct_ucs___lld___rx_msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Points to a UNICENS allocated memory chunk.">data_ptr</a>[i] = _rx_buffer[i]; </div>
+<div class="line">                    msg_ptr-&gt;<a class="code" href="struct_ucs___lld___rx_msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Points to a UNICENS allocated memory chunk.">data_ptr</a>[i] = _rx_buffer[i];</div>
 <div class="line">                }</div>
 <div class="line">                                        <span class="comment">/* pass message object to UCS */</span></div>
 <div class="line">                _api_ptr-&gt;rx_receive_fptr(_h_ptr, msg_ptr);</div>
@@ -259,7 +265,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <div class="line">        }</div>
 <div class="line">        <span class="keywordflow">else</span></div>
 <div class="line">        {</div>
-<div class="line">            <span class="comment">/* discard Rx message - since UCS is not running */</span> </div>
+<div class="line">            <span class="comment">/* discard Rx message - since UCS is not running */</span></div>
 <div class="line">        }</div>
 <div class="line">    }</div>
 <div class="line">}</div>
@@ -272,12 +278,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__l_l_d.html',''
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

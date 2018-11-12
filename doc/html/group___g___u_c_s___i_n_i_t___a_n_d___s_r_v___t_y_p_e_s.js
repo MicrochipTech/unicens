@@ -19,6 +19,7 @@ var group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s =
     ] ],
     [ "Ucs_InitResultCb_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaba3a47e6c1d360c77e560cefe8c541e3.html#gaba3a47e6c1d360c77e560cefe8c541e3", null ],
     [ "Ucs_Inst_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda", null ],
+    [ "Ucs_StdNodeResultCb_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga4311fbe47aaabb059cb569bfee1fd940.html#ga4311fbe47aaabb059cb569bfee1fd940", null ],
     [ "Ucs_StdResultCb_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d", null ],
     [ "Ucs_Error_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga9551cd80ce8a13fa6cce717cbc13e499.html#ga9551cd80ce8a13fa6cce717cbc13e499", [
       [ "UCS_GEN_ERR_COMMUNICATION", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga9551cd80ce8a13fa6cce717cbc13e499.html#gga9551cd80ce8a13fa6cce717cbc13e499ad407f31040ff1757ca3a3b98643e406d", null ],
@@ -38,7 +39,7 @@ var group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s =
     ] ],
     [ "Ucs_Result_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#gac844b77cf41aef663782bc0b43d3540c", [
       [ "UCS_RES_SUCCESS", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540cae19d5a51de78bbf903a108a4e36a0fdf", null ],
-      [ "UCS_RES_ERR_MOST_STANDARD", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca4f4226f6e507caf5a9e044759c6409cf", null ],
+      [ "UCS_RES_ERR_STANDARD", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca17bbaf91f053c5d436cd80c7fbb5ef4b", null ],
       [ "UCS_RES_ERR_BUSY", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca8ff50e770356e4fca8d36a308e323d83", null ],
       [ "UCS_RES_ERR_PROCESSING", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540caa7f09aea37cedd8dfbe3665781aae6aa", null ],
       [ "UCS_RES_ERR_CONFIGURATION", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540caa142d5f1f196cbf759f2cbd6d8a7468a", null ],

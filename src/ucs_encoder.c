@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -54,14 +54,14 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-static void    Enc_Encode_00(Msg_MostTel_t *tel_ptr, uint8_t header[]);
-static void    Enc_Decode_00(Msg_MostTel_t *tel_ptr, uint8_t header[]);
+static void    Enc_Encode_00(Ucs_Message_t *tel_ptr, uint8_t header[]);
+static void    Enc_Decode_00(Ucs_Message_t *tel_ptr, uint8_t header[]);
 
-static void    Enc_Encode_80(Msg_MostTel_t *tel_ptr, uint8_t header[]);
-static void    Enc_Decode_80(Msg_MostTel_t *tel_ptr, uint8_t header[]);
+static void    Enc_Encode_80(Ucs_Message_t *tel_ptr, uint8_t header[]);
+static void    Enc_Decode_80(Ucs_Message_t *tel_ptr, uint8_t header[]);
 
-static void    Enc_Encode_81(Msg_MostTel_t *tel_ptr, uint8_t header[]);
-static void    Enc_Decode_81(Msg_MostTel_t *tel_ptr, uint8_t header[]);
+static void    Enc_Encode_81(Ucs_Message_t *tel_ptr, uint8_t header[]);
+static void    Enc_Decode_81(Ucs_Message_t *tel_ptr, uint8_t header[]);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
@@ -69,7 +69,7 @@ static void    Enc_Decode_81(Msg_MostTel_t *tel_ptr, uint8_t header[]);
 /*! \brief      Retrieves the interface of a specific encoder
  *  \details    Creates all encoder interfaces as singletons
  *  \param      type    Specifies the type of encoder to retrieve
- *  \return     The desired interface to the specified encoder 
+ *  \return     The desired interface to the specified encoder
  */
 IEncoder *Enc_GetEncoder(Enc_MsgContent_t type)
 {
@@ -100,11 +100,11 @@ IEncoder *Enc_GetEncoder(Enc_MsgContent_t type)
 /*------------------------------------------------------------------------------------------------*/
 /* Content type "00"                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Encodes a message telegram to the "ContentType 0x00" MOST message header 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Encodes a message telegram to the "ContentType 0x00" control message header
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Encode_00(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Encode_00(Ucs_Message_t *tel_ptr, uint8_t header[])
 {
     header[0]  = MISC_HB(tel_ptr->source_addr);
     header[1]  = MISC_LB(tel_ptr->source_addr);
@@ -117,26 +117,26 @@ static void Enc_Encode_00(Msg_MostTel_t *tel_ptr, uint8_t header[])
     header[6]  = MISC_HB(tel_ptr->id.function_id);
     header[7]  = MISC_LB(tel_ptr->id.function_id);
 
-    header[8]  = (uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU);
+    header[8]  = (uint8_t)((uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU));
     header[9]  = tel_ptr->opts.llrbc;
 
     header[10] = tel_ptr->tel.tel_cnt;
     header[11] = tel_ptr->tel.tel_len;
 }
 
-/*! \brief  Decodes a "ContentType 0x00" MOST message header to a message telegram structure 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Decodes a "ContentType 0x00" control message header to a message telegram structure
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Decode_00(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Decode_00(Ucs_Message_t *tel_ptr, uint8_t header[])
 {
-    tel_ptr->source_addr        = (uint16_t)((uint16_t)header[0] << 8) | (uint16_t)header[1];
-    tel_ptr->destination_addr   = (uint16_t)((uint16_t)header[2] << 8) | (uint16_t)header[3];
+    tel_ptr->source_addr        = (uint16_t)((uint16_t)((uint16_t)header[0] << 8) | (uint16_t)header[1]);
+    tel_ptr->destination_addr   = (uint16_t)((uint16_t)((uint16_t)header[2] << 8) | (uint16_t)header[3]);
 
     tel_ptr->id.fblock_id       = header[4];
     tel_ptr->id.instance_id     = header[5];
 
-    tel_ptr->id.function_id     = (uint16_t)((uint16_t)header[6] << 8) | (uint16_t)header[7];
+    tel_ptr->id.function_id     = (uint16_t)((uint16_t)((uint16_t)header[6] << 8) | (uint16_t)header[7]);
 
     tel_ptr->tel.tel_id         = header[8] >> 4;                       /* high nibble: TelId */
     tel_ptr->id.op_type         = (Ucs_OpType_t)(header[8] & 0x0FU);    /* low nibble: OPType */
@@ -151,13 +151,13 @@ static void Enc_Decode_00(Msg_MostTel_t *tel_ptr, uint8_t header[])
 /*------------------------------------------------------------------------------------------------*/
 /* Content type "0x80"                                                                              */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Encodes a message telegram to the "ContentType 0x80" MOST message header 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Encodes a message telegram to the "ContentType 0x80" control message header
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Encode_80(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Encode_80(Ucs_Message_t *tel_ptr, uint8_t header[])
 {             /* high nibble: TelId                    low nibble: OPType */
-    header[0]  = (uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU);
+    header[0]  = (uint8_t)((uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU));
     header[1]  = tel_ptr->tel.tel_cnt;
     header[2]  = tel_ptr->tel.tel_len;
 
@@ -174,11 +174,11 @@ static void Enc_Encode_80(Msg_MostTel_t *tel_ptr, uint8_t header[])
     header[10] = tel_ptr->id.instance_id;
 }
 
-/*! \brief  Decodes a "ContentType 0x80" MOST message header to a message telegram structure 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Decodes a "ContentType 0x80" control message header to a message telegram structure
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Decode_80(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Decode_80(Ucs_Message_t *tel_ptr, uint8_t header[])
 {
     tel_ptr->tel.tel_id         = header[0] >> 4;                       /* high nibble: TelId */
     tel_ptr->id.op_type         = (Ucs_OpType_t)(header[0] & 0x0FU);    /* low nibble: OPType */
@@ -186,10 +186,10 @@ static void Enc_Decode_80(Msg_MostTel_t *tel_ptr, uint8_t header[])
     tel_ptr->tel.tel_cnt        = header[1];
     tel_ptr->tel.tel_len        = header[2];
 
-    tel_ptr->id.function_id     = (uint16_t)((uint16_t)header[3] << 8) | (uint16_t)header[4];
+    tel_ptr->id.function_id     = (uint16_t)((uint16_t)((uint16_t)header[3] << 8) | (uint16_t)header[4]);
 
-    tel_ptr->source_addr        = (uint16_t)((uint16_t)header[5] << 8) | (uint16_t)header[6];
-    tel_ptr->destination_addr   = (uint16_t)((uint16_t)header[7] << 8) | (uint16_t)header[8];
+    tel_ptr->source_addr        = (uint16_t)((uint16_t)((uint16_t)header[5] << 8) | (uint16_t)header[6]);
+    tel_ptr->destination_addr   = (uint16_t)((uint16_t)((uint16_t)header[7] << 8) | (uint16_t)header[8]);
 
     tel_ptr->id.fblock_id       = header[9];
     tel_ptr->id.instance_id     = header[10];
@@ -200,16 +200,16 @@ static void Enc_Decode_80(Msg_MostTel_t *tel_ptr, uint8_t header[])
 /*------------------------------------------------------------------------------------------------*/
 /* Content type "0x81"                                                                              */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Encodes a message telegram to the "ContentType 0x81" MOST message header 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Encodes a message telegram to the "ContentType 0x81" control message header
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Encode_81(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Encode_81(Ucs_Message_t *tel_ptr, uint8_t header[])
 {
     header[0]  = tel_ptr->opts.llrbc;
-    header[1]  = ENC_LLR_TIME_DEFAULT; 
+    header[1]  = ENC_LLR_TIME_DEFAULT;
     /*           high nibble: TelId                    low nibble: OPType */
-    header[2]  = (uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU);
+    header[2]  = (uint8_t)((uint8_t)(tel_ptr->tel.tel_id << 4) | (uint8_t)((uint8_t)tel_ptr->id.op_type & 0xFU));
     header[3]  = tel_ptr->tel.tel_cnt;
     header[4]  = tel_ptr->tel.tel_len;
 
@@ -226,11 +226,11 @@ static void Enc_Encode_81(Msg_MostTel_t *tel_ptr, uint8_t header[])
     header[12] = tel_ptr->id.instance_id;
 }
 
-/*! \brief  Decodes a "ContentType 0x81" MOST message header to a message telegram structure 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Decodes a "ContentType 0x81" control message header to a message telegram structure
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-static void Enc_Decode_81(Msg_MostTel_t *tel_ptr, uint8_t header[])
+static void Enc_Decode_81(Ucs_Message_t *tel_ptr, uint8_t header[])
 {
     tel_ptr->opts.llrbc         = header[0];
 
@@ -240,10 +240,10 @@ static void Enc_Decode_81(Msg_MostTel_t *tel_ptr, uint8_t header[])
     tel_ptr->tel.tel_cnt        = header[3];
     tel_ptr->tel.tel_len        = header[4];
 
-    tel_ptr->id.function_id     = (uint16_t)((uint16_t)header[5] << 8) | (uint16_t)header[6];
+    tel_ptr->id.function_id     = (uint16_t)((uint16_t)((uint16_t)header[5] << 8) | (uint16_t)header[6]);
 
-    tel_ptr->source_addr        = (uint16_t)((uint16_t)header[7] << 8) | (uint16_t)header[8];
-    tel_ptr->destination_addr   = (uint16_t)((uint16_t)header[9] << 8) | (uint16_t)header[10];
+    tel_ptr->source_addr        = (uint16_t)((uint16_t)((uint16_t)header[7] << 8) | (uint16_t)header[8]);
+    tel_ptr->destination_addr   = (uint16_t)((uint16_t)((uint16_t)header[9] << 8) | (uint16_t)header[10]);
 
     tel_ptr->id.fblock_id       = header[11];
     tel_ptr->id.instance_id     = header[12];

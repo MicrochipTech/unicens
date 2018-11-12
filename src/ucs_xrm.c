@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -30,7 +30,7 @@
 
 /*!
  * \file
- * \brief Implementation of the Extended Resource Manager. This file contains the implementation of 
+ * \brief Implementation of the Extended Resource Manager. This file contains the implementation of
  *        the basic functions of the class CExtendedResourceManager.
  * \cond UCS_INTERNAL_DOC
  * \addtogroup G_UCS_XRM_INT
@@ -77,16 +77,16 @@ const Srv_Event_t XRM_EVENT_STREAMPORT_CONFIG_GET   = 0x400U;
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Invalid resource handle */
 const uint16_t XRM_INVALID_RESOURCE_HANDLE  = 0xFFFFU;
-/*! \brief Invalid MOST connection label */
+/*! \brief Invalid network connection label */
 const uint16_t XRM_INVALID_CONNECTION_LABEL = 0xFFFFU;  /* parasoft-suppress  MISRA2004-8_7 "Value shall be part of the module, not part of a function." */
 /*! \brief Default value used for INIC sender handles */
 const uint16_t XRM_DEFAULT_SENDER_HANDLE    = 0x0001U;
 /*! \brief Invalid device node address */
-const uint16_t XRM_INVALID_NODE_ADDRESS     = 0x0000U; 
+const uint16_t XRM_INVALID_NODE_ADDRESS     = 0x0000U;
 /*! \brief Mask for network availability info */
 const uint16_t XRM_MASK_NETWORK_AVAILABILITY  = 0x0002U;
 /*! \brief Mask for node address update info */
-const uint16_t XRM_MASK_NETWORK_NODE_ADDRESS  = 0x0010U; 
+const uint16_t XRM_MASK_NETWORK_NODE_ADDRESS  = 0x0010U;
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class CExtendedResourceManager                                               */
@@ -108,7 +108,7 @@ void Xrm_Ctor(CExtendedResourceManager *self, Xrm_InitData_t *data_ptr)
     self->res_debugging_fptr = data_ptr->res_debugging_fptr;
 
     /* Set the flag that indicates the run mode of the instance */
-    self->IsInRemoteControlMode = (UCS_ADDR_LOCAL_DEV != Inic_GetTargetAddress(self->inic_ptr)) ? true:false;
+    self->IsInRemoteControlMode = (UCS_ADDR_LOCAL_NODE != Inic_GetTargetAddress(self->inic_ptr)) ? true:false;
 
     /* Initialize observers */
     Obs_Ctor(&self->obs.tx_msg_obj_obs, self, &Xrm_MsgObjAvailCb);
@@ -117,8 +117,6 @@ void Xrm_Ctor(CExtendedResourceManager *self, Xrm_InitData_t *data_ptr)
     Sobs_Ctor(&self->obs.resource_invalid_list_obs, self, &Xrm_RequestResourceListResultCb);
     Sobs_Ctor(&self->obs.resource_destroy_obs, self, &Xrm_DestroyResourcesResultCb);
     Sobs_Ctor(&self->obs.stream_port_config_obs, self, &Xrm_Stream_PortConfigResult);
-    Sobs_Ctor(&self->obs.most_port_enable_obs, self, &Xrm_Most_PortEnableResult);
-    Sobs_Ctor(&self->obs.most_port_en_full_str_obs, self, &Xrm_Most_PortEnFullStrResult);
     Obs_Ctor(&self->obs.rsm_sync_lost_obs, self, &Xrm_RmtDevSyncLostCb);
 
     /* Add observer to resource monitor subject */
@@ -126,13 +124,13 @@ void Xrm_Ctor(CExtendedResourceManager *self, Xrm_InitData_t *data_ptr)
     /* Initialize callback pointer for unmute callback */
     self->obs.check_unmute_fptr = data_ptr->check_unmute_fptr;
 
-    /* Add observer to the MNS termination event */
+    /* Add observer to the UCS termination event */
     Mobs_Ctor(&self->obs.internal_error_obs, self, EH_M_TERMINATION_EVENTS, &Xrm_UninitializeService);
     Eh_AddObsrvInternalEvent(&self->base_ptr->eh, &self->obs.internal_error_obs);
-    /* Add observer to the MNS network event */
+    /* Add observer to the UCS network event */
     Mobs_Ctor(&self->obs.nw_status_obs, self, (XRM_MASK_NETWORK_AVAILABILITY | XRM_MASK_NETWORK_NODE_ADDRESS), &Xrm_MnsNwStatusInfosCb);
     Net_AddObserverNetworkStatus(self->net_ptr, &self->obs.nw_status_obs);
-    /* Add observer to the MNS RSM event */
+    /* Add observer to the UCS RSM event */
     Rsm_AddObserver(self->rsm_ptr, &self->obs.rsm_sync_lost_obs);
 
     /* Initialize the Jobs list queue */
@@ -145,7 +143,7 @@ void Xrm_Ctor(CExtendedResourceManager *self, Xrm_InitData_t *data_ptr)
 }
 
 /*! \brief Service function of the Extended Resource Manager.
- *  \param self    Instance pointer
+ *  \param self    Reference to the XRM instance
  */
 void Xrm_Service(void *self)
 {
@@ -154,49 +152,49 @@ void Xrm_Service(void *self)
     Srv_GetEvent(&self_->xrm_srv, &event_mask);
 
     /* Handle event to process a XRM job */
-    if((event_mask & XRM_EVENT_PROCESS) == XRM_EVENT_PROCESS)
+    if ((event_mask & XRM_EVENT_PROCESS) == XRM_EVENT_PROCESS)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_PROCESS);
         Xrm_ProcessJob(self_);
     }
     /* Handle event to request the list of invalid resource handles */
-    if((event_mask & XRM_EVENT_REQ_INV_RES_LST) == XRM_EVENT_REQ_INV_RES_LST)
+    if ((event_mask & XRM_EVENT_REQ_INV_RES_LST) == XRM_EVENT_REQ_INV_RES_LST)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_REQ_INV_RES_LST);
         Xrm_RequestResourceList(self_);
     }
     /* Handle event to destroy invalid INIC resources */
-    if((event_mask & XRM_EVENT_DESTROY_INV_RES) == XRM_EVENT_DESTROY_INV_RES)
+    if ((event_mask & XRM_EVENT_DESTROY_INV_RES) == XRM_EVENT_DESTROY_INV_RES)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_DESTROY_INV_RES);
         Xrm_DestroyResources(self_, &Xrm_DestroyResourcesResultCb);
     }
     /* Handle event to resume the destruction of all INIC resources of a job */
-    if((event_mask & XRM_EVENT_RESUME_JOB_DESTRUCT) == XRM_EVENT_RESUME_JOB_DESTRUCT)
+    if ((event_mask & XRM_EVENT_RESUME_JOB_DESTRUCT) == XRM_EVENT_RESUME_JOB_DESTRUCT)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_RESUME_JOB_DESTRUCT);
         Xrm_ResumeJobDestruction(self_);
     }
     /* Handle event to resume the destruction of all INIC resources of a job */
-    if((event_mask & XRM_EVENT_RESET_RES_MONITOR) == XRM_EVENT_RESET_RES_MONITOR)
+    if ((event_mask & XRM_EVENT_RESET_RES_MONITOR) == XRM_EVENT_RESET_RES_MONITOR)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_RESET_RES_MONITOR);
         Xrm_ResetResourceMonitor(self_);
     }
     /* Handle error event */
-    if((event_mask & XRM_EVENT_ERROR) == XRM_EVENT_ERROR)
+    if ((event_mask & XRM_EVENT_ERROR) == XRM_EVENT_ERROR)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_ERROR);
         Xrm_HandleError(self_);
     }
     /* Handle event to notify application of automatically destroyed resources */
-    if((event_mask & XRM_EVENT_NOTIFY_AUTO_DEST_RES) == XRM_EVENT_NOTIFY_AUTO_DEST_RES)
+    if ((event_mask & XRM_EVENT_NOTIFY_AUTO_DEST_RES) == XRM_EVENT_NOTIFY_AUTO_DEST_RES)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_NOTIFY_AUTO_DEST_RES);
         Xrm_ReportAutoDestructionResult(self_);
     }
     /* Handle event to report result of resource destruction of a specific XRM job */
-    if((event_mask & XRM_EVENT_NOTIFY_DESTROYED_JOB) == XRM_EVENT_NOTIFY_DESTROYED_JOB)
+    if ((event_mask & XRM_EVENT_NOTIFY_DESTROYED_JOB) == XRM_EVENT_NOTIFY_DESTROYED_JOB)
     {
         Srv_ClearEvent(&self_->xrm_srv, XRM_EVENT_NOTIFY_DESTROYED_JOB);
         Xrm_ReportJobDestructionResult(self_);
@@ -222,7 +220,7 @@ void Xrm_Service(void *self)
 }
 
 /*! \brief Checks if the API is locked and the MNS are initialized.
- *  \param self     Instance pointer
+ *  \param self     Reference to the XRM instance
  *  \return \c true if the API is not locked and the MNS are initialized, otherwise \c false.
  */
 bool Xrm_IsApiFree(CExtendedResourceManager *self)
@@ -231,7 +229,7 @@ bool Xrm_IsApiFree(CExtendedResourceManager *self)
 }
 
 /*! \brief Locks/Unlocks the XRM API.
- *  \param self     Instance pointer
+ *  \param self     Reference to the XRM instance
  *  \param status   Locking status. \c true = Lock, \c false = Unlock
  */
 void Xrm_ApiLocking(CExtendedResourceManager *self, bool status)
@@ -240,7 +238,7 @@ void Xrm_ApiLocking(CExtendedResourceManager *self, bool status)
 }
 
 /*! \brief  Add observer to be notified if ICM TX message object is available. Store pending events.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  event_mask  Event to be queued
  */
 void Xrm_WaitForTxMsgObj(CExtendedResourceManager *self, Srv_Event_t event_mask)
@@ -254,12 +252,12 @@ void Xrm_WaitForTxMsgObj(CExtendedResourceManager *self, Srv_Event_t event_mask)
  *  \param  ud_ptr     Reference to the user data. Not used !
  *  \return \c true if it's part of my job list, otherwise \c false.
  */
-bool Xrm_SetNtfForThisJob(void * job_ptr, void * ud_ptr)
+bool Xrm_SetNtfForThisJob(void *job_ptr, void *ud_ptr)
 {
-    Xrm_Job_t * job_ptr_ = (Xrm_Job_t *)job_ptr;
+    Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
     MISC_UNUSED(ud_ptr);
 
-    if(job_ptr_->valid != false)
+    if (job_ptr_->valid != false)
     {
         job_ptr_->notify = true;
     }
@@ -268,7 +266,7 @@ bool Xrm_SetNtfForThisJob(void * job_ptr, void * ud_ptr)
 }
 
 /*! \brief  Handle internal errors and un-initialize XRM service.
- *  \param  self            Instance pointer
+ *  \param  self            Reference to the XRM instance
  *  \param  error_code_ptr  Reference to internal error code
  */
 void Xrm_UninitializeService(void *self, void *error_code_ptr)
@@ -295,7 +293,7 @@ void Xrm_UninitializeService(void *self, void *error_code_ptr)
 
 
 /*! \brief  Handle the network status information mask "Availability" and "NodeAddress".
- *  \param  self            Instance pointer
+ *  \param  self            Reference to the XRM instance
  *  \param  result_ptr      Reference to the results
  */
 void Xrm_MnsNwStatusInfosCb(void *self, void *result_ptr)
@@ -306,7 +304,7 @@ void Xrm_MnsNwStatusInfosCb(void *self, void *result_ptr)
     if ((XRM_MASK_NETWORK_AVAILABILITY & result_ptr_->change_mask) == XRM_MASK_NETWORK_AVAILABILITY)
     {
         if ((result_ptr_->availability == UCS_NW_NOT_AVAILABLE)  &&
-            (self_->IsInRemoteControlMode))
+            (self_->IsInRemoteControlMode != false))
         {
             /* Release all resources */
             Xrm_ReleaseResrcHandles(self_);
@@ -315,7 +313,7 @@ void Xrm_MnsNwStatusInfosCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Whenever this function is called, a message object (ICM or MCM) is available.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  result_ptr  Not used!
  */
 void Xrm_MsgObjAvailCb(void *self, void *result_ptr)
@@ -328,7 +326,7 @@ void Xrm_MsgObjAvailCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Whenever this function is called, all remote devices have lost the synchronization.
- *  \param  self        instance pointer 
+ *  \param  self        Reference to the XRM instance
  *  \param  result_ptr  Not Used !
  */
 void Xrm_RmtDevSyncLostCb(void *self, void *result_ptr)
@@ -340,47 +338,48 @@ void Xrm_RmtDevSyncLostCb(void *self, void *result_ptr)
 }
 
 /*! \brief Processes the XRM job that is specified by the given resource object list.
- *  \param self                             Instance pointer
- *  \param resource_object_list[]           Reference to array of references to INIC resource objects
- *  \param most_network_connection_label    MOST network connection label
- *  \param user_arg                         User argument
- *  \param report_fptr                      Report function pointer
+ *  \param self                        Reference to the XRM instance
+ *  \param resource_object_list[]      Reference to array of references to INIC resource objects
+ *  \param network_connection_label    Network connection label
+ *  \param user_arg                    User argument
+ *  \param report_fptr                 Report function pointer
  *  \return  Possible return values are shown in the table below.
- *           Value                     | Description 
+ *           Value                     | Description
  *           ------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS           | No error 
+ *           UCS_RET_SUCCESS           | No error
+ *           UCS_RET_ERR_ALREADY_SET   | Given job is already set
  *           UCS_RET_ERR_NOT_AVAILABLE | Associated job not found
  *           UCS_RET_ERR_PARAM         | Null pointer detected
  *           UCS_RET_ERR_API_LOCKED    | API is currently locked
  */
-Ucs_Return_t Xrm_Process(CExtendedResourceManager *self, 
+Ucs_Return_t Xrm_Process(CExtendedResourceManager *self,
                          UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_list[],
-                         uint16_t most_network_connection_label,
-                         void * user_arg,
+                         uint16_t network_connection_label,
+                         void *user_arg,
                          Ucs_Xrm_ReportCb_t report_fptr)
 {
     Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
     if (self != NULL)
     {
-        if(Xrm_IsApiFree(self) != false)
+        if (Xrm_IsApiFree(self) != false)
         {
-            if((resource_object_list != NULL) && (report_fptr != NULL))
+            if ((resource_object_list != NULL) && (report_fptr != NULL))
             {
                 Xrm_ApiLocking(self, true);
                 self->current_job_ptr = Xrm_GetJob(self, resource_object_list);
-                if(self->current_job_ptr != NULL)
+                if (self->current_job_ptr != NULL)
                 {
                     bool job_is_mine = Dl_IsNodeInList(&self->job_list, &self->current_job_ptr->node);
-                    if (job_is_mine)
+                    if (job_is_mine != false)
                     {
-                        if(self->current_job_ptr->valid == false)
+                        if (self->current_job_ptr->valid == false)
                         {
                             self->current_job_ptr->user_arg = user_arg;
                             self->current_job_ptr->valid = true;
                             self->current_job_ptr->notify = false;
                             self->current_job_ptr->report_fptr = report_fptr;
-                            self->current_job_ptr->most_network_connection_label = most_network_connection_label;
+                            self->current_job_ptr->network_connection_label = network_connection_label;
                             self->current_job_ptr->resource_object_list_ptr = resource_object_list;
                             self->current_obj_pptr = &self->current_job_ptr->resource_object_list_ptr[0];
                             Xrm_ProcessJob(self);
@@ -424,10 +423,10 @@ Ucs_Return_t Xrm_Process(CExtendedResourceManager *self,
 /*! \brief   Destroys all resources that are specified by the given resource object list.
  *  \details This function triggers the destruction of all resources which are used by the given
  *           job. A resource will be destroyed only if it is not used by other valid resources.
- *  \param   self                     Instance pointer
+ *  \param   self                     Reference to the XRM instance
  *  \param   resource_object_list[]   Reference to array of references to INIC resource objects
  *  \return  Possible return values are shown in the table below.
- *           Value                     | Description 
+ *           Value                     | Description
  *           ------------------------- | ------------------------------------------------------
  *           UCS_RET_SUCCESS           | No error
  *           UCS_RET_ERR_ALREADY_SET   | Connection is already destroyed
@@ -442,23 +441,23 @@ Ucs_Return_t Xrm_Destroy(CExtendedResourceManager *self,
 
     if (self != NULL)
     {
-        if(Xrm_IsApiFree(self) != false)
+        if (Xrm_IsApiFree(self) != false)
         {
-            if(resource_object_list != NULL)
+            if (resource_object_list != NULL)
             {
                 Xrm_ApiLocking(self, true);
                 self->current_job_ptr = Xrm_GetJob(self, resource_object_list);
-                if((self->current_job_ptr != NULL) &&
+                if ((self->current_job_ptr != NULL) &&
                    (self->current_job_ptr->resource_object_list_ptr != NULL))
                 {
                     Xrm_PreJobDestrResult_t result;
 
                     result = Xrm_PrepareJobDestruction(self);
-                    if(result == XRM_PRE_JOB_DEST_TASKS_EXIST)
+                    if (result == XRM_PRE_JOB_DEST_TASKS_EXIST)
                     {
                         Xrm_DestroyResources(self, &Xrm_DestroyJobResourcesResultCb);
                     }
-                    else if(result == XRM_PRE_JOB_DEST_DONE)
+                    else if (result == XRM_PRE_JOB_DEST_DONE)
                     {
                         Srv_SetEvent(&self->xrm_srv, XRM_EVENT_NOTIFY_DESTROYED_JOB);
                     }
@@ -492,7 +491,7 @@ Ucs_Return_t Xrm_Destroy(CExtendedResourceManager *self,
     else
     {
         /* This means that there is no instance associated to this job,
-         * what in turn means that the job is not available. 
+         * what in turn means that the job is not available.
          */
         ret_val = UCS_RET_ERR_NOT_AVAILABLE;
     }
@@ -501,9 +500,9 @@ Ucs_Return_t Xrm_Destroy(CExtendedResourceManager *self,
 }
 
 /*! \brief  Prepares the destruction of INIC resources of the current job.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  *  \return  Possible return values are shown in the table below.
- *           Value                           | Description 
+ *           Value                           | Description
  *           ------------------------------- | ------------------------------------
  *           XRM_PRE_JOB_DEST_TASKS_EXIST    | There are resources to destroy
  *           XRM_PRE_JOB_DEST_NO_TASKS_EXIST | All resources already destroyed
@@ -521,9 +520,9 @@ Xrm_PreJobDestrResult_t Xrm_PrepareJobDestruction(CExtendedResourceManager *self
 }
 
 /*! \brief  Prepares precariously the destruction of INIC resources of the current job (This was legacy code and is unsafe).
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  *  \return  Possible return values are shown in the table below.
- *           Value                           | Description 
+ *           Value                           | Description
  *           ------------------------------- | ------------------------------------
  *           XRM_PRE_JOB_DEST_TASKS_EXIST    | There are resources to destroy
  *           XRM_PRE_JOB_DEST_NO_TASKS_EXIST | All resources already destroyed
@@ -531,25 +530,25 @@ Xrm_PreJobDestrResult_t Xrm_PrepareJobDestruction(CExtendedResourceManager *self
  */
 Xrm_PreJobDestrResult_t Xrm_UnsafePrepareJobDestruction(CExtendedResourceManager *self)
 {
-    uint8_t i;
+    uint16_t i;
     uint16_t resource_handle;
     Xrm_PreJobDestrResult_t ret_val = XRM_PRE_JOB_DEST_NO_TASKS_EXIST;
     self->inv_resource_handle_index     = 0U;
     self->inv_resource_handle_list_size = 0U;
-    for(i=Xrm_CountResourceObjects(self, self->current_job_ptr); (i>0U) && (self->inv_resource_handle_list_size < XRM_NUM_RES_HDL_PER_ICM); i--)
+    for (i=Xrm_CountResourceObjects(self, self->current_job_ptr); (i>0U) && (self->inv_resource_handle_list_size < XRM_NUM_RES_HDL_PER_ICM); i--)
     {
         uint8_t count = Xrm_CountResourceHandleEntries(self, self->current_job_ptr->resource_object_list_ptr[i - 1U]);
-        if(count == 1U)
+        if (count == 1U)
         {
             resource_handle = Xrm_GetResourceHandle(self, self->current_job_ptr, self->current_job_ptr->resource_object_list_ptr[i - 1U], NULL);
-            if(resource_handle != XRM_INVALID_RESOURCE_HANDLE)
+            if (resource_handle != XRM_INVALID_RESOURCE_HANDLE)
             {
                 self->inv_resource_handle_list[self->inv_resource_handle_list_size] = resource_handle;
                 self->inv_resource_handle_list_size++;
                 ret_val = XRM_PRE_JOB_DEST_TASKS_EXIST;
             }
         }
-        else if(count > 0U)
+        else if (count > 0U)
         {
             Xrm_ReleaseResourceHandle(self, self->current_job_ptr, self->current_job_ptr->resource_object_list_ptr[i - 1U]);
             ret_val = (ret_val == XRM_PRE_JOB_DEST_NO_TASKS_EXIST) ? XRM_PRE_JOB_DEST_DONE : ret_val;
@@ -560,11 +559,11 @@ Xrm_PreJobDestrResult_t Xrm_UnsafePrepareJobDestruction(CExtendedResourceManager
 
 
 /*! \brief  Resumes the destruction of all resources of the current job.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_ResumeJobDestruction(CExtendedResourceManager *self)
 {
-    if(Xrm_UnsafePrepareJobDestruction(self) == XRM_PRE_JOB_DEST_TASKS_EXIST)
+    if (Xrm_UnsafePrepareJobDestruction(self) == XRM_PRE_JOB_DEST_TASKS_EXIST)
     {
         Xrm_DestroyResources(self, &Xrm_DestroyJobResourcesResultCb);
     }
@@ -579,15 +578,15 @@ void Xrm_ResumeJobDestruction(CExtendedResourceManager *self)
 
 /*! \brief  Returns the number of resource objects for the job that is identified by the given job
  *          reference.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  job_ptr     Reference to job
  *  \return Number of INIC resource objects of the desired job
  */
-uint8_t Xrm_CountResourceObjects(CExtendedResourceManager *self, Xrm_Job_t *job_ptr)
+uint16_t Xrm_CountResourceObjects(CExtendedResourceManager *self, Xrm_Job_t *job_ptr)
 {
-    uint8_t num_resource_objects = 0U;
+    uint16_t num_resource_objects = 0U;
     MISC_UNUSED(self);
-    while(job_ptr->resource_object_list_ptr[num_resource_objects] != NULL)
+    while (job_ptr->resource_object_list_ptr[num_resource_objects] != NULL)
     {
         num_resource_objects++;
     }
@@ -596,11 +595,11 @@ uint8_t Xrm_CountResourceObjects(CExtendedResourceManager *self, Xrm_Job_t *job_
 }
 
 /*! \brief  Returns the reference of the job that is identified by the given resource object list.
- *  \param  self                        Instance pointer
+ *  \param  self                        Reference to the XRM instance
  *  \param  resource_object_list[]      Reference to array of references to INIC resource objects
  *  \return Reference to the desired job if the job was found, otherwise NULL.
  */
-Xrm_Job_t * Xrm_GetJob(CExtendedResourceManager *self,
+Xrm_Job_t *Xrm_GetJob(CExtendedResourceManager *self,
                        UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_list[])
 {
     Xrm_Job_t *ret_ptr = NULL;
@@ -608,8 +607,8 @@ Xrm_Job_t * Xrm_GetJob(CExtendedResourceManager *self,
     ret_ptr = Xrmp_GetJob(self->xrmp_ptr, resource_object_list);
     if (ret_ptr != NULL)
     {
-        if ((!Dl_IsNodeInList(&self->job_list, &ret_ptr->node)) && 
-            (!Dln_IsNodePartOfAList(&ret_ptr->node)))
+        if ((Dl_IsNodeInList(&self->job_list, &ret_ptr->node) == false) &&
+            (Dln_IsNodePartOfAList(&ret_ptr->node) == false))
         {
             Dln_SetData(&ret_ptr->node, ret_ptr);
             Dl_InsertTail(&self->job_list, &ret_ptr->node);
@@ -619,17 +618,17 @@ Xrm_Job_t * Xrm_GetJob(CExtendedResourceManager *self,
     return ret_ptr;
 }
 
-/*! \brief  Checks whether the given resource object list is part of the given Job
+/*! \brief  Checks whether the given resource object list is part of the given job.
  *  \param  job_ptr           Reference to a job list
  *  \param  resrc_obj_ptr     Reference to array of references to INIC resource objects
  *  \return \c true if it's part of my job list, otherwise \c false.
  */
-bool Xrm_IsPartOfJobList (void * job_ptr, void * resrc_obj_ptr)
+bool Xrm_IsPartOfJobList (void *job_ptr, void *resrc_obj_ptr)
 {
     Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
     bool ret_val = false;
 
-    if(job_ptr_->resource_object_list_ptr == (UCS_XRM_CONST Ucs_Xrm_ResObject_t **)resrc_obj_ptr)
+    if (job_ptr_->resource_object_list_ptr == (UCS_XRM_CONST Ucs_Xrm_ResObject_t **)resrc_obj_ptr)
     {
         ret_val = true;
     }
@@ -637,7 +636,7 @@ bool Xrm_IsPartOfJobList (void * job_ptr, void * resrc_obj_ptr)
     return ret_val;
 }
 
-/*! \brief  Checks whether the given resource object list is part of my Job list
+/*! \brief  Checks whether the given resource object list is part of my job list.
  *  \param  self                        Instance pointer
  *  \param  resource_object_list[]      Reference to array of references to INIC resource objects
  *  \return \c true if it's part of my job list, otherwise \c false.
@@ -648,12 +647,12 @@ bool Xrm_IsInMyJobList(CExtendedResourceManager *self, UCS_XRM_CONST Ucs_Xrm_Res
 }
 
 /*! \brief  Returns the table index of the given resource object.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  job_ptr     Reference to job
  *  \param  obj_pptr    Reference to array of references to INIC resource objects
  *  \return Table index of the given resource object. If entry is not found 0xFF is returned.
  */
-uint8_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
+uint16_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
                                    Xrm_Job_t *job_ptr,
                                    UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr)
 {
@@ -661,7 +660,7 @@ uint8_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
 }
 
 /*! \brief  Check if the current device is already attached respectively sync'ed.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  *  \return \c true if no error occurred, otherwise \c false.
  */
 bool Xrm_IsCurrDeviceAlreadyAttached(CExtendedResourceManager *self)
@@ -677,18 +676,18 @@ bool Xrm_IsCurrDeviceAlreadyAttached(CExtendedResourceManager *self)
 }
 
 /*! \brief  Check if the current device is already attached respectively sync'ed.
- *  \param  self    XRM Instance pointer
+ *  \param  self    Reference to the XRM instance
  *  \param  job_ptr Reference to the XRM job to be looked for
  *  \return \c true if the given job is part of my jobs_list, otherwise \c false.
  */
-bool Xrm_IsInMyJobsList (void * self, void * job_ptr)
+bool Xrm_IsInMyJobsList (void *self, void *job_ptr)
 {
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
     bool ret_val = false;
 
-    if ((self_ != NULL) && (job_ptr_ != NULL) && 
-        (Dl_IsNodeInList(&self_->job_list, &job_ptr_->node)))
+    if ((self_ != NULL) && (job_ptr_ != NULL) &&
+        (Dl_IsNodeInList(&self_->job_list, &job_ptr_->node) != false))
     {
         ret_val = true;
     }
@@ -697,7 +696,7 @@ bool Xrm_IsInMyJobsList (void * self, void * job_ptr)
 }
 
 /*! \brief  Search for the next resource object to process.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  *  \return \c true if no error occurred, otherwise \c false.
  */
 bool Xrm_SearchNextResourceObject(CExtendedResourceManager *self)
@@ -705,24 +704,24 @@ bool Xrm_SearchNextResourceObject(CExtendedResourceManager *self)
     uint16_t tmp_resource_handle;
     bool ret_val = true;
 
-    while(*self->current_obj_pptr != NULL)
+    while (*self->current_obj_pptr != NULL)
     {
-        if(Xrm_IsDefaultCreatedPort(self, *self->current_obj_pptr) != false)
+        if (Xrm_IsDefaultCreatedPort(self, *self->current_obj_pptr) != false)
         {
             self->current_obj_pptr++;
         }
         else
         {
             tmp_resource_handle = Xrm_GetResourceHandle(self, NULL, *self->current_obj_pptr, &Xrm_IsInMyJobsList);
-            if(tmp_resource_handle == XRM_INVALID_RESOURCE_HANDLE)
+            if (tmp_resource_handle == XRM_INVALID_RESOURCE_HANDLE)
             {
                 break;
             }
             else
             {
-                if(Xrm_GetResourceHandle(self, self->current_job_ptr, *self->current_obj_pptr, NULL) == XRM_INVALID_RESOURCE_HANDLE)
+                if (Xrm_GetResourceHandle(self, self->current_job_ptr, *self->current_obj_pptr, NULL) == XRM_INVALID_RESOURCE_HANDLE)
                 {
-                    if(Xrm_StoreResourceHandle(self, tmp_resource_handle, self->current_job_ptr, *self->current_obj_pptr) == false)
+                    if (Xrm_StoreResourceHandle(self, tmp_resource_handle, self->current_job_ptr, *self->current_obj_pptr) == false)
                     {
                         self->report_result.code = UCS_XRM_RES_ERR_CONFIG;
                         Xrm_HandleError(self);
@@ -739,13 +738,13 @@ bool Xrm_SearchNextResourceObject(CExtendedResourceManager *self)
 }
 
 /*! \brief  Process the next INIC resource object in the resource object list of the current job.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_ProcessJob(CExtendedResourceManager *self)
 {
-    if(Xrm_SearchNextResourceObject(self) != false)
+    if (Xrm_SearchNextResourceObject(self) != false)
     {
-        if(*self->current_obj_pptr != NULL)
+        if (*self->current_obj_pptr != NULL)
         {
             if (Xrm_IsCurrDeviceAlreadyAttached(self) == false)
             {
@@ -753,10 +752,10 @@ void Xrm_ProcessJob(CExtendedResourceManager *self)
             }
             else
             {
-                switch(*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr))
+                switch (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr))
                 {
-                    case UCS_XRM_RC_TYPE_MOST_SOCKET:
-                        Xrm_CreateMostSocket(self);
+                    case UCS_XRM_RC_TYPE_NW_SOCKET:
+                        Xrm_CreateNetworkSocket(self);
                         break;
                     case UCS_XRM_RC_TYPE_MLB_PORT:
                         Xrm_CreateMlbPort(self);
@@ -813,7 +812,7 @@ void Xrm_ProcessJob(CExtendedResourceManager *self)
 }
 
 /*! \brief  Checks if the given resource object is from type "Default Created Port".
- *  \param  self                    Instance pointer
+ *  \param  self                    Reference to the XRM instance
  *  \param  resource_object_ptr     Reference to the resource object
  *  \return Returns \c true if resource object is from type "Default Created Port", otherwise \c false.
  */
@@ -824,7 +823,7 @@ bool Xrm_IsDefaultCreatedPort(CExtendedResourceManager *self, UCS_XRM_CONST Ucs_
 }
 
 /*! \brief  Stores the given resource handle in the resource handle list.
- *  \param  self                Instance pointer
+ *  \param  self                Reference to the XRM instance
  *  \param  resource_handle     Resource handle to save
  *  \param  job_ptr             Reference to job
  *  \param  resource_object_ptr Reference to resource object
@@ -840,7 +839,7 @@ bool Xrm_StoreResourceHandle(CExtendedResourceManager *self,
 
 /*! \brief  Retrieves the resource handle identified by the given job reference and the given
  *          resource object reference.
- *  \param  self                    Instance pointer
+ *  \param  self                    Reference to the XRM instance
  *  \param  job_ptr                 Reference to the job. Use NULL as wildcard.
  *  \param  resource_object_ptr     Reference to the resource object
  *  \param  func_ptr                Reference to a function that checks if found jobs by XRMP belongs to our own job list
@@ -853,21 +852,56 @@ uint16_t Xrm_GetResourceHandle(CExtendedResourceManager *self,
     return Xrmp_GetResourceHandle(self->xrmp_ptr, job_ptr, resource_object_ptr, func_ptr, self);
 }
 
+/*! \brief      Retrieves the resource handle identified by the given endpoint, resource type and connection label.
+ *  \details    Goes through the endpoint job list and seeks the job matching to the resource type.
+ *              This job is given to the XRM pool to get the corresponding resource handle.
+ *  \param  self                Instance pointer of the XRM module
+ *  \param  conn_lab            The connection label of the route
+ *  \param  end_point_ptr       Reference to the routes endpoint
+ *  \param  resource_type       The seeked resource type
+ *  \return Resource handle if handle was found, otherwise XRM_INVALID_RESOURCE_HANDLE.
+ */
+uint16_t Xrm_GetResourceHandleForAtd(CExtendedResourceManager *self,
+                               uint16_t conn_lab,
+                               Ucs_Rm_EndPoint_t *end_point_ptr,
+                               Ucs_Xrm_ResourceType_t resource_type)
+{
+    uint16_t resource_handle = XRM_INVALID_RESOURCE_HANDLE;
+    uint16_t i = 0U;
+    bool loop = true;
+
+    while (loop != false)
+    {
+        if (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(end_point_ptr->jobs_list_ptr[i]) == resource_type)
+        {
+            resource_handle = Xrmp_GetResourceHandleForAtd(self->xrmp_ptr, conn_lab, end_point_ptr->jobs_list_ptr[i]);
+            break;
+        }
+        else if (end_point_ptr->jobs_list_ptr[i] == NULL) /* Exit loop: job list ends with NULL */
+        {
+            loop = false;
+        }
+        i++;
+    }
+
+    return resource_handle;
+}
+
 /*! \brief  Checks for the resource handle in the given resource handle list and counts It if found.
- *  \param  resrc_ptr       Reference to the resource handle list to be looked for.
- *  \param  job_ptr         Reference to the job list to be looked for.
- *  \param  param_ptr       Reference to the user parameter.
- *  \param  user_arg        Reference to the user argument.
+ *  \param  resrc_ptr       Reference to the corresponding resource handle list
+ *  \param  job_ptr         Reference to the corresponding job list
+ *  \param  param_ptr       Reference to the user parameter
+ *  \param  user_arg        Reference to the user argument
  *  \return \c false to continue the for-each-loop of the resources list queue.
  */
-bool Xrm_IncrResHandleEntryCnt (void *resrc_ptr, void *job_ptr, void *param_ptr, void * user_arg)
+bool Xrm_IncrResHandleEntryCnt (void *resrc_ptr, void *job_ptr, void *param_ptr, void *user_arg)
 {
-    Xrm_ResourceHandleListItem_t * resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
-    Xrm_Job_t * job_ptr_ = (Xrm_Job_t *)job_ptr;
-    Xrm_CntEntriesResHandle_t * param_ptr_ = (Xrm_CntEntriesResHandle_t *)param_ptr;
+    Xrm_ResourceHandleListItem_t *resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
+    Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
+    Xrm_CntEntriesResHandle_t *param_ptr_ = (Xrm_CntEntriesResHandle_t *)param_ptr;
     MISC_UNUSED(user_arg);
 
-    if((resrc_ptr_->resource_handle != XRM_INVALID_RESOURCE_HANDLE) &&
+    if ((resrc_ptr_->resource_handle != XRM_INVALID_RESOURCE_HANDLE) &&
        (resrc_ptr_->job_ptr == job_ptr_) &&
        (resrc_ptr_->resource_object_ptr == param_ptr_->resource_object_ptr))
     {
@@ -877,14 +911,14 @@ bool Xrm_IncrResHandleEntryCnt (void *resrc_ptr, void *job_ptr, void *param_ptr,
     return false;
 }
 
-/*! \brief  Finds the resource handle to be counted in my job list and pass it to the record callback function .
- *  \param  job_ptr                 Reference to the job to be looked for.
- *  \param  param_ptr               Reference to the user parameter.
+/*! \brief  Finds the resource handle to be counted in my job list and pass it to the record callback function.
+ *  \param  job_ptr     Reference to the corresponding job
+ *  \param  param_ptr   Reference to the user parameter
  *  \return \c false to continue the for-each-loop of the job_list queue
  */
-bool Xrm_CntResHandleEntries(void * job_ptr, void * param_ptr)
+bool Xrm_CntResHandleEntries(void *job_ptr, void *param_ptr)
 {
-    Xrm_CntEntriesResHandle_t * param_ptr_ = (Xrm_CntEntriesResHandle_t *)param_ptr;
+    Xrm_CntEntriesResHandle_t *param_ptr_ = (Xrm_CntEntriesResHandle_t *)param_ptr;
 
     Xrmp_Foreach(param_ptr_->xrm_inst->xrmp_ptr, &Xrm_IncrResHandleEntryCnt, job_ptr, param_ptr_, NULL);
 
@@ -892,7 +926,7 @@ bool Xrm_CntResHandleEntries(void * job_ptr, void * param_ptr)
 }
 
 /*! \brief  Retrieves the number of list entries that uses the given resource handle.
- *  \param  self                    Instance pointer
+ *  \param  self                    Reference to the XRM instance
  *  \param  resource_object_ptr     Reference to the current resource object
  *  \return Number of list entries
  */
@@ -911,21 +945,21 @@ uint8_t Xrm_CountResourceHandleEntries(CExtendedResourceManager *self,
 }
 
 /*! \brief  Releases the given resource handle.
- *  \param  resrc_ptr       Reference to the resource handle list to be looked for.
- *  \param  job_ptr         Reference to the job list to be looked for.
- *  \param  resrc_obj_pptr  Reference to the resource object to be looked for.
- *  \param  user_arg         Reference to the user argument
- *  \return \c true to stop the foreach loop when the resource handle has been found, otherwise \c false
+ *  \param  resrc_ptr       Reference to the corresponding resource handle list
+ *  \param  job_ptr         Reference to the corresponding job list
+ *  \param  resrc_obj_pptr  Reference to the corresponding resource object
+ *  \param  user_arg        Reference to the user argument
+ *  \return \c true to stop the for each loop when the resource handle has been found, otherwise \c false
  */
-bool Xrm_ReleaseResrcHandle(void *resrc_ptr, void *job_ptr, void *resrc_obj_pptr, void * user_arg)
+bool Xrm_ReleaseResrcHandle(void *resrc_ptr, void *job_ptr, void *resrc_obj_pptr, void *user_arg)
 {
     bool ret_val = false;
-    Xrm_ResourceHandleListItem_t * resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
-    Xrm_Job_t * job_ptr_ = (Xrm_Job_t *)job_ptr;
+    Xrm_ResourceHandleListItem_t *resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
+    Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *resrc_obj_ptr_ = *(UCS_XRM_CONST Ucs_Xrm_ResObject_t **)resrc_obj_pptr;
     MISC_UNUSED(user_arg);
 
-    if((resrc_ptr_->job_ptr == job_ptr_) &&
+    if ((resrc_ptr_->job_ptr == job_ptr_) &&
         (resrc_ptr_->resource_object_ptr == resrc_obj_ptr_))
     {
         resrc_ptr_->resource_handle = XRM_INVALID_RESOURCE_HANDLE;
@@ -938,7 +972,7 @@ bool Xrm_ReleaseResrcHandle(void *resrc_ptr, void *job_ptr, void *resrc_obj_pptr
 }
 
 /*! \brief  Releases the given resource handle. Frees the corresponding table row.
- *  \param  self                    Instance pointer
+ *  \param  self                    Reference to the XRM instance
  *  \param  job_ptr                 Reference to the job
  *  \param  resource_object_ptr     Reference to the resource object
  */
@@ -946,28 +980,28 @@ void Xrm_ReleaseResourceHandle(CExtendedResourceManager *self,
                                Xrm_Job_t *job_ptr,
                                UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_ptr)
 {
-    void * resource_object_pptr = (void *)&resource_object_ptr;
+    void *resource_object_pptr = (void *)&resource_object_ptr;
     Xrmp_Foreach(self->xrmp_ptr, &Xrm_ReleaseResrcHandle, job_ptr, resource_object_pptr, NULL);
 }
 
 /*! \brief  Releases the given resource and sets the notification to \c true.
- *  \param  resrc_ptr       Reference to the resource handle list to be looked for.
- *  \param  resrc_handle    Reference to the resource handle to be found.
- *  \param  job_ptr         Reference to the job to be looked for.
- *  \param  user_arg        Reference to a user argument.
+ *  \param  resrc_ptr       Reference to the corresponding resource handle list
+ *  \param  resrc_handle    Reference to the resource handle to be found
+ *  \param  job_ptr         Reference to the corresponding job
+ *  \param  user_arg        Reference to a user argument
  *  \return \c false to continue the for-each-loop of the resources list table
  */
-bool Xrm_FreeResrcHandleAndNtf(void *resrc_ptr, void *resrc_handle, void *job_ptr, void * user_arg)
+bool Xrm_FreeResrcHandleAndNtf(void *resrc_ptr, void *resrc_handle, void *job_ptr, void *user_arg)
 {
-    Xrm_ResourceHandleListItem_t * resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
-    uint16_t * resrc_handle_ = (uint16_t *)resrc_handle;
-    Xrm_Job_t * job_ptr_ = (Xrm_Job_t *)job_ptr;
+    Xrm_ResourceHandleListItem_t *resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
+    uint16_t *resrc_handle_ = (uint16_t *)resrc_handle;
+    Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
     CExtendedResourceManager *self = (CExtendedResourceManager *) user_arg;
 
-    if((resrc_ptr_->resource_handle == *resrc_handle_) &&
+    if ((resrc_ptr_->resource_handle == *resrc_handle_) &&
        (*resrc_handle_ != XRM_INVALID_RESOURCE_HANDLE) &&
-       ((resrc_ptr_->job_ptr == job_ptr_) || 
-       (Dl_IsNodeInList(&self->job_list, &resrc_ptr_->job_ptr->node))))
+       ((resrc_ptr_->job_ptr == job_ptr_) ||
+       (Dl_IsNodeInList(&self->job_list, &resrc_ptr_->job_ptr->node) != false)))
     {
         resrc_ptr_->job_ptr->notify = true;
         resrc_ptr_->job_ptr->valid = false;
@@ -988,28 +1022,28 @@ bool Xrm_FreeResrcHandleAndNtf(void *resrc_ptr, void *resrc_handle, void *job_pt
 
 /*! \brief  Releases all given resource handles. Frees the corresponding table rows. Marks the
  *          corresponding job(s) as invalid and sets the notification flag.
- *  \param  self                        Instance pointer
- *  \param  job_ptr                     Reference to the job. Use NULL as wildcard.
+ *  \param  self                        Reference to the XRM instance
+ *  \param  job_ptr                     Reference to the job. Use NULL as wildcard
  *  \param  resource_handle_list        Resource handle list
  *  \param  resource_handle_list_size   Size of list resource_handle_list[]
  *  \param  failed_resource_handle      This parameter can be used to specify where the release
  *                                      process has to be stopped. All resource handles prior to
  *                                      the failed handle are released. If this feature is not
- *                                      used \c failed_resource_handle must be set to 
+ *                                      used \c failed_resource_handle must be set to
  *                                      \ref XRM_INVALID_RESOURCE_HANDLE.
  *  \return the index of the resource where the release process has stopped.
  */
-uint8_t Xrm_ReleaseResourceHandles(CExtendedResourceManager *self,
+uint16_t Xrm_ReleaseResourceHandles(CExtendedResourceManager *self,
                                    Xrm_Job_t *job_ptr,
                                    uint16_t resource_handle_list[],
-                                   uint8_t resource_handle_list_size,
+                                   uint16_t resource_handle_list_size,
                                    uint16_t failed_resource_handle)
 {
-    uint8_t i;
+    uint16_t i;
 
-    for(i=0U; i<resource_handle_list_size; i++)
+    for (i=0U; i<resource_handle_list_size; i++)
     {
-        if((failed_resource_handle != XRM_INVALID_RESOURCE_HANDLE) &&
+        if ((failed_resource_handle != XRM_INVALID_RESOURCE_HANDLE) &&
            (resource_handle_list[i] == failed_resource_handle))
         {
             break;
@@ -1023,32 +1057,37 @@ uint8_t Xrm_ReleaseResourceHandles(CExtendedResourceManager *self,
 
 /*! \brief  Releases all resource handles created on remote devices. Frees the corresponding table rows. Marks the
  *          corresponding job(s) as invalid and sets the notification flag.
- *  \param  self       Instance pointer
+ *  \param  self       Reference to the XRM instance
  */
 void Xrm_ReleaseResrcHandles(CExtendedResourceManager *self)
 {
-    if(Xrm_IsApiFree(self) != false)
+    if (Xrm_IsApiFree(self) != false)
     {
         Xrm_ApiLocking(self, true);
 
         Xrm_MarkResrcAndJobsAsInvalid(self);
         Xrm_NotifyInvalidJobs(self);
         Xrm_ApiLocking(self, false);
+        TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_ReleaseResrcHandles(): release successful node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
     else
     {
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_ReleaseResrcHandles(): API LOCKED node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
         self->queued_event_mask |= XRM_EVENT_NOTIFY_AUTO_DEST_RESR;
     }
 }
 
 /*! \brief  Handles and reports Extended Resource Manager errors.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_HandleError(CExtendedResourceManager *self)
 {
-    self->current_job_ptr->valid = false;
-    self->current_job_ptr->notify = false;
-    self->current_job_ptr->report_fptr(Inic_GetTargetAddress(self->inic_ptr), XRM_INVALID_CONNECTION_LABEL, self->report_result, self->current_job_ptr->user_arg);
+    if (self->current_job_ptr != NULL)
+    {
+        self->current_job_ptr->valid = false;
+        self->current_job_ptr->notify = false;
+        self->current_job_ptr->report_fptr(Inic_GetTargetAddress(self->inic_ptr), XRM_INVALID_CONNECTION_LABEL, self->report_result, self->current_job_ptr->user_arg);
+    }
     Xrm_ApiLocking(self, false);
     /* Execute the queued events */
     if (self->queued_event_mask > 0U)
@@ -1059,7 +1098,7 @@ void Xrm_HandleError(CExtendedResourceManager *self)
 }
 
 /*! \brief  Reports result of automatically destroyed resources
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_ReportAutoDestructionResult(CExtendedResourceManager *self)
 {
@@ -1076,7 +1115,7 @@ void Xrm_ReportAutoDestructionResult(CExtendedResourceManager *self)
 }
 
 /*! \brief  Reports result of resource destruction for a specific XRM job
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_ReportJobDestructionResult(CExtendedResourceManager *self)
 {
@@ -1094,7 +1133,7 @@ void Xrm_ReportJobDestructionResult(CExtendedResourceManager *self)
 }
 
 /*! \brief  Reports the conclusion of Extended Resource Manager jobs.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_FinishJob(CExtendedResourceManager *self)
 {
@@ -1117,21 +1156,21 @@ void Xrm_FinishJob(CExtendedResourceManager *self)
  *  \param  ud_ptr3     Optional reference to the user data 3. Not used !
  *  \return \c false to continue the for-each-loop of the job_list queue
  */
-bool Xrm_MarkThisResrcAsInvalid (void *resrc_ptr, void * xrm_inst, void *ud_ptr2, void *ud_ptr3)
+bool Xrm_MarkThisResrcAsInvalid (void *resrc_ptr, void *xrm_inst, void *ud_ptr2, void *ud_ptr3)
 {
-    Xrm_ResourceHandleListItem_t * resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
-    CExtendedResourceManager * xrm_inst_ = (CExtendedResourceManager *)xrm_inst;
+    Xrm_ResourceHandleListItem_t *resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
+    CExtendedResourceManager *xrm_inst_ = (CExtendedResourceManager *)xrm_inst;
     MISC_UNUSED(ud_ptr2);
     MISC_UNUSED(ud_ptr3);
 
-    if (Dl_IsNodeInList(&xrm_inst_->job_list, &resrc_ptr_->job_ptr->node))
+    if (Dl_IsNodeInList(&xrm_inst_->job_list, &resrc_ptr_->job_ptr->node) != false)
     {
-        if (resrc_ptr_->job_ptr->valid == true)
+        if (resrc_ptr_->job_ptr->valid != false)
         {
             resrc_ptr_->job_ptr->valid  = false;
             resrc_ptr_->job_ptr->notify = true;
         }
-        
+
         /* Inform monitor callback function */
         if (xrm_inst_->res_debugging_fptr != NULL)
         {
@@ -1148,7 +1187,7 @@ bool Xrm_MarkThisResrcAsInvalid (void *resrc_ptr, void * xrm_inst, void *ud_ptr2
 }
 
 /*! \brief  Marks all jobs on remote devices as "invalid".
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_MarkResrcAndJobsAsInvalid (CExtendedResourceManager *self)
 {
@@ -1158,16 +1197,16 @@ void Xrm_MarkResrcAndJobsAsInvalid (CExtendedResourceManager *self)
 }
 
 /*! \brief  Calls the result callbacks of jobs that were marked as invalid.
- *  \param  job_ptr    Reference to the job to be looked for.
- *  \param  xrm_inst   XRM Instance pointer.
+ *  \param  job_ptr    Reference to the job to be looked for
+ *  \param  xrm_inst   XRM Instance pointer
  *  \return \c false to continue the for-each-loop of the job_list queue
  */
-bool Xrm_SetJobAsInvalid(void * job_ptr, void * xrm_inst)
+bool Xrm_SetJobAsInvalid(void *job_ptr, void *xrm_inst)
 {
     Xrm_Job_t *job_ptr_ = (Xrm_Job_t *)job_ptr;
-    CExtendedResourceManager * xrm_inst_ = (CExtendedResourceManager *)xrm_inst;
+    CExtendedResourceManager *xrm_inst_ = (CExtendedResourceManager *)xrm_inst;
 
-    if(job_ptr_->notify != false)
+    if (job_ptr_->notify != false)
     {
         job_ptr_->report_fptr(Inic_GetTargetAddress(xrm_inst_->inic_ptr), job_ptr_->connection_label, xrm_inst_->report_result, job_ptr_->user_arg);
         job_ptr_->notify = false;
@@ -1177,7 +1216,7 @@ bool Xrm_SetJobAsInvalid(void * job_ptr, void * xrm_inst)
 }
 
 /*! \brief  Calls the result callbacks of jobs that were marked as invalid.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_NotifyInvalidJobs(CExtendedResourceManager *self)
 {

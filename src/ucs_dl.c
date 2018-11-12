@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -68,7 +68,7 @@ void Dl_InsertAfter(CDlList *self, CDlNode *node, CDlNode *new_node)
     TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size <= 0xFFFFU));
     new_node->prev = node;
     new_node->next = node->next;
-    if(node->next == NULL)                      /* Is initial node last node in list? */
+    if (node->next == NULL)                      /* Is initial node last node in list? */
     {
         self->tail = new_node;                  /* Set new node as tail of list */
     }
@@ -91,7 +91,7 @@ void Dl_InsertBefore(CDlList *self, CDlNode *node, CDlNode *new_node)
     TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size <= 0xFFFFU));
     new_node->prev = node->prev;
     new_node->next = node;
-    if(node->prev == NULL)                      /* Is initial node first node in list? */
+    if (node->prev == NULL)                      /* Is initial node first node in list? */
     {
         self->head = new_node;                  /* Set new node as head of list */
     }
@@ -110,7 +110,7 @@ void Dl_InsertBefore(CDlList *self, CDlNode *node, CDlNode *new_node)
  */
 void Dl_InsertHead(CDlList *self, CDlNode *new_node)
 {
-    if(self->head == NULL)                      /* Is list empty? */
+    if (self->head == NULL)                      /* Is list empty? */
     {
         TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size <= 0xFFFFU));
         self->head = new_node;
@@ -132,7 +132,7 @@ void Dl_InsertHead(CDlList *self, CDlNode *new_node)
  */
 void Dl_InsertTail(CDlList *self, CDlNode *new_node)
 {
-    if(self->tail == NULL)                      /* Is list empty? */
+    if (self->tail == NULL)                      /* Is list empty? */
     {
         Dl_InsertHead(self, new_node);
     }
@@ -152,10 +152,10 @@ Dl_Ret_t Dl_Remove(CDlList *self, CDlNode *node)
 {
     Dl_Ret_t ret_val = DL_UNKNOWN_NODE;
 
-    if(Dl_IsNodeInList(self, node) != false)    /* Is node part of list? */
+    if (Dl_IsNodeInList(self, node) != false)    /* Is node part of list? */
     {
         TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size > 0U));
-        if(node->prev == NULL)                  /* First node in list? */
+        if (node->prev == NULL)                  /* First node in list? */
         {
             self->head = node->next;            /* Replace head node with next node in list */
         }
@@ -163,7 +163,7 @@ Dl_Ret_t Dl_Remove(CDlList *self, CDlNode *node)
         {
             node->prev->next = node->next;      /* Set next pointer of previous node to next node */
         }
-        if(node->next == NULL)                  /* Last node in list? */
+        if (node->next == NULL)                  /* Last node in list? */
         {
             self->tail = node->prev;            /* Replace tail node with previous node in list */
         }
@@ -185,17 +185,17 @@ Dl_Ret_t Dl_Remove(CDlList *self, CDlNode *node)
  *  \param  self   Instance pointer
  *  \return The reference of the removed head node or \c NULL if the list is empty.
  */
-CDlNode * Dl_PopHead(CDlList *self)
+CDlNode *Dl_PopHead(CDlList *self)
 {
-    CDlNode *node = self->head; 
+    CDlNode *node = self->head;
 
-    if(node != NULL)                             /* Is list not empty? */
+    if (node != NULL)                             /* Is list not empty? */
     {
         TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size > 0U));
         self->head = node->next;                /* Replace head node with next node in list */
-        if(node->next == NULL)                  /* Last node in list? */
+        if (node->next == NULL)                  /* Last node in list? */
         {
-            self->tail = NULL;                  /* Replace tail node and set list's tail pointer 
+            self->tail = NULL;                  /* Replace tail node and set list's tail pointer
                                                  *  to NULL
                                                  */
         }
@@ -216,16 +216,16 @@ CDlNode * Dl_PopHead(CDlList *self)
  *  \param  self   Instance pointer
  *  \return The reference of the removed tail node or \c NULL if the list is empty.
  */
-CDlNode * Dl_PopTail(CDlList *self)
+CDlNode *Dl_PopTail(CDlList *self)
 {
     CDlNode *node = self->tail;
 
-    if(node != NULL)                             /* Is list not empty? */
+    if (node != NULL)                             /* Is list not empty? */
     {
         TR_ASSERT(self->ucs_user_ptr, "[DL]", (self->size > 0U));
-        if(node->prev == NULL)                  /* First node in list? */
+        if (node->prev == NULL)                  /* First node in list? */
         {
-            self->head = NULL;                  /* Replace head node and set list's head pointer 
+            self->head = NULL;                  /* Replace head node and set list's head pointer
                                                  * to NULL
                                                  */
         }
@@ -247,7 +247,7 @@ CDlNode * Dl_PopTail(CDlList *self)
  *  \param  self   Instance pointer
  *  \return The reference of the head node or \c NULL if the list is empty.
  */
-CDlNode * Dl_PeekHead(CDlList *self)
+CDlNode *Dl_PeekHead(CDlList *self)
 {
     return self->head;
 }
@@ -256,26 +256,26 @@ CDlNode * Dl_PeekHead(CDlList *self)
  *  \param  self   Instance pointer
  *  \return The reference of the tail node or NULL if the list is empty.
  */
-CDlNode * Dl_PeekTail(CDlList *self)
+CDlNode *Dl_PeekTail(CDlList *self)
 {
     return self->tail;
 }
 
-/*! \brief  Calls the given function for each node in the doubly linked list. If the func_ptr 
+/*! \brief  Calls the given function for each node in the doubly linked list. If the func_ptr
  *          returns true the loop is stopped and the current node will be returned.
  *  \param  self           Instance pointer
  *  \param  func_ptr       Reference of the callback function which is called for each node
  *  \param  user_data_ptr  Reference of optional user data given to func_ptr
  *  \return Returns the current node or \c NULL if the whole list is processed.
  */
-CDlNode * Dl_Foreach(CDlList *self, Dl_ForeachFunc_t func_ptr, void *user_data_ptr)
+CDlNode *Dl_Foreach(CDlList *self, Dl_ForeachFunc_t func_ptr, void *user_data_ptr)
 {
     CDlNode *ret_val = NULL;
     CDlNode *node = self->head;
 
-    while(node != NULL)                                          /* End of list reached? */
+    while (node != NULL)                                          /* End of list reached? */
     {
-        if(func_ptr(node->data_ptr, user_data_ptr) != false)    /* Data found? */
+        if (func_ptr(node->data_ptr, user_data_ptr) != false)    /* Data found? */
         {
             ret_val = node;
             break;
@@ -296,9 +296,9 @@ bool Dl_IsNodeInList(CDlList *self, const CDlNode *node)
     bool ret_val = false;
     CDlNode *current_node = self->head;
 
-    while(current_node != NULL)                  /* End of list reached? */
+    while (current_node != NULL)                  /* End of list reached? */
     {
-        if(current_node == node)                /* Is current node the searched one */
+        if (current_node == node)                /* Is current node the searched one */
         {
             ret_val = true;
             break;
@@ -315,9 +315,9 @@ bool Dl_IsNodeInList(CDlList *self, const CDlNode *node)
 void Dl_AppendList(CDlList *self, CDlList *list_ptr)
 {
     TR_ASSERT(self->ucs_user_ptr, "[DL]", (list_ptr != NULL));
-    if(list_ptr->head != NULL)
+    if (list_ptr->head != NULL)
     {
-        if(self->tail == NULL)             /* Is list empty? */
+        if (self->tail == NULL)             /* Is list empty? */
         {
             self->head = list_ptr->head;
             self->tail = list_ptr->tail;
@@ -328,7 +328,7 @@ void Dl_AppendList(CDlList *self, CDlList *list_ptr)
             list_ptr->head->prev = self->tail;
             self->tail->next = list_ptr->head;
             self->tail = list_ptr->tail;
-            self->size += list_ptr->size;
+            self->size = (uint16_t)(self->size + list_ptr->size);
         }
         list_ptr->head = NULL;
         list_ptr->tail = NULL;
@@ -373,7 +373,7 @@ void Dln_SetData(CDlNode *self, void *data_ptr)
 /*! \brief Interface function to request the data pointer of the given node.
  *  \param self       Instance pointer
  */
-void * Dln_GetData(CDlNode *self)
+void *Dln_GetData(CDlNode *self)
 {
     return self->data_ptr;
 }

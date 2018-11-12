@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -58,37 +58,15 @@ extern "C"
 
 
 /*------------------------------------------------------------------------------------------------*/
-/* Enumerators                                                                                    */
-/*------------------------------------------------------------------------------------------------*/
-/*! \brief Result codes used for Command Interpreter API functions
- *  \ingroup G_UCS_CMD_TYPES
- */
-typedef enum Ucs_Cmd_Return_
-{
-    UCS_CMD_RET_SUCCESS             = 0x00,     /*!< Operation successfully completed */
-    UCS_CMD_RET_ERR_MSGID_NOTAVAIL  = 0x01,     /*!< MessageId not found */
-    UCS_CMD_RET_ERR_TX_BUSY         = 0x02,     /*!< No free Tx buffer available */
-    UCS_CMD_RET_ERR_APPL            = 0x03,     /*!< Application handler function reports custom error */
-    UCS_CMD_RET_ERR_ALREADY_ENTERED = 0x04,     /*!< MessageId Table already connected */
-    UCS_CMD_RET_ERR_NULL_PTR        = 0x05      /*!< NULL pointer used as argument */
-} Ucs_Cmd_Return_t;
-
-/*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Type definition of user handler functions
  *  \param   msg_rx_ptr     Reference to the received message
  *  \param   user_ptr      User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \return  Possible return values are shown in the table below.
- *  Value                           | Description 
- *  ------------------------------- | ------------------------------------
- *  UCS_CMD_RET_SUCCESS             | The handler function succeeded.
- *  UCS_CMD_RET_ERR_TX_BUSY         | The handler function could not send an answer because no free Tx Buffer was available.
- *  UCS_CMD_RET_ERR_APPL            | An error happened in handler function. 
- *  \note    The application must not return other values than the ones listed above.
+ *  \return  Return values are application dependent.
  *  \ingroup G_UCS_CMD_TYPES
  */
-typedef Ucs_Cmd_Return_t (*Ucs_Cmd_Handler_Function_t)(Ucs_AmsRx_Msg_t *msg_rx_ptr, void *user_ptr);
+typedef uint16_t (*Ucs_Cmd_Handler_Function_t)(Ucs_AmsRx_Msg_t *msg_rx_ptr, void *user_ptr);
 
 
 
@@ -98,14 +76,14 @@ typedef Ucs_Cmd_Return_t (*Ucs_Cmd_Handler_Function_t)(Ucs_AmsRx_Msg_t *msg_rx_p
 
 /*! \brief   Structure of a single element of the MessageId Table
  *  \details The application provides a MessageId Table which contains all supported MessageIds
- *           with their belonging handler functions. The MessageId Table is an array of several 
- *           Ucs_Cmd_MsgId_t elements. It has to end with a termination entry with the 
+ *           with their belonging handler functions. The MessageId Table is an array of several
+ *           Ucs_Cmd_MsgId_t elements. It has to end with a termination entry with the
  *           value {\ref UCS_CMD_MSGID_TERMINATION, NULL}.
  *  \ingroup G_UCS_CMD_TYPES
  */
 typedef struct Ucs_Cmd_MsgId_
 {
-    /*! \brief MessageId */
+    /*! \brief MessageId. */
     uint16_t msg_id;
     /*! \brief Pointer to the belonging handler function */
     Ucs_Cmd_Handler_Function_t handler_function_ptr;

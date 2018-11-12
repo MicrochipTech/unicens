@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -50,7 +50,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 #define UCS_ADDR_INTERNAL                0x0000U  /* < \brief   Internal transmission destination address
                                                    *   \details Can be used for internal message transmission
-                                                   *            to avoid possible race conditions during 
+                                                   *            to avoid possible race conditions during
                                                    *            recalculation of the own node address.
                                                    */
 #define UCS_ADDR_LOCAL_INIC              0x0001U  /* < \brief Destination address of the local INIC */
@@ -67,23 +67,23 @@ typedef enum Ucs_MsgTxStatus_
 {
     UCS_MSG_STAT_OK                     = 0x00U, /*!< \brief Transmission succeeded */
     UCS_MSG_STAT_ERROR_CFG_NO_RCVR      = 0x01U, /*!< \brief No internal receiver exists */
-    UCS_MSG_STAT_ERROR_BF               = 0x08U, /*!< \brief Buffer full */ 
-    UCS_MSG_STAT_ERROR_CRC              = 0x09U, /*!< \brief CRC */ 
-    UCS_MSG_STAT_ERROR_ID               = 0x0AU, /*!< \brief Corrupted identifiers */ 
-    UCS_MSG_STAT_ERROR_ACK              = 0x0BU, /*!< \brief Corrupted PACK or CACK */ 
+    UCS_MSG_STAT_ERROR_BF               = 0x08U, /*!< \brief Buffer full */
+    UCS_MSG_STAT_ERROR_CRC              = 0x09U, /*!< \brief CRC */
+    UCS_MSG_STAT_ERROR_ID               = 0x0AU, /*!< \brief Corrupted identifiers */
+    UCS_MSG_STAT_ERROR_ACK              = 0x0BU, /*!< \brief Corrupted PACK or CACK */
     UCS_MSG_STAT_ERROR_TIMEOUT          = 0x0CU, /*!< \brief TX timeout */
-    UCS_MSG_STAT_ERROR_FATAL_WT         = 0x10U, /*!< \brief Wrong target */ 
+    UCS_MSG_STAT_ERROR_FATAL_WT         = 0x10U, /*!< \brief Wrong target */
     UCS_MSG_STAT_ERROR_FATAL_OA         = 0x11U, /*!< \brief Own node address */
-    UCS_MSG_STAT_ERROR_NA_TRANS         = 0x18U, /*!< \brief Control channel was switched off and 
-                                                  *          a pending transmission was canceled */ 
+    UCS_MSG_STAT_ERROR_NA_TRANS         = 0x18U, /*!< \brief Control channel was switched off and
+                                                  *          a pending transmission was canceled */
     UCS_MSG_STAT_ERROR_NA_OFF           = 0x19U, /*!< \brief Control channel not available */
     UCS_MSG_STAT_ERROR_UNKNOWN          = 0xFEU, /*!< \brief Unknown error status */
-    UCS_MSG_STAT_ERROR_SYNC             = 0xFFU  /*!< \brief Internal error which is notified if 
+    UCS_MSG_STAT_ERROR_SYNC             = 0xFFU  /*!< \brief Internal error which is notified if
                                                   *          communication link with INIC is lost
                                                   */
 } Ucs_MsgTxStatus_t;
 
-/*! \brief   Operation Types 
+/*! \brief   Operation Types
  */
 typedef enum Ucs_OpType_
 {
@@ -113,7 +113,7 @@ typedef enum Ucs_OpType_
 
 } Ucs_OpType_t;
 
-/*! \brief  MOST message id "FBlockID.InstID.FktID.OPType" */
+/*! \brief  Message id "FBlockID.InstID.FktID.OPType" */
 typedef struct Msg_MsgId_
 {
     uint8_t         fblock_id;      /*!< \brief FBlockID */
@@ -126,32 +126,32 @@ typedef struct Msg_MsgId_
 /*! \brief  Retry options */
 typedef struct Msg_TxOptions_
 {
-    uint8_t     llrbc;          /*!< \brief   Low-level retry block count performed by the INIC. 
-                                 *   \details The LLRBC are applicable for MCMs. ICMs don't care.
-                                 *            Values exceeding the maximum value are be corrected 
+    uint8_t     llrbc;          /*!< \brief   Low-level retry block count performed by the INIC.
+                                 *   \details The LLRBC are applicable for RCM and MCMs. ICMs don't care.
+                                 *            Values exceeding the maximum value are be corrected
                                  *            by the INIC silently to the maximum value.
                                  *            Valid range: 0..100
                                  */
-    uint8_t     cancel_id;      /*!< \brief   Either "0" or label for a group of dependent telegrams. 
+    uint8_t     cancel_id;      /*!< \brief   Either "0" or label for a group of dependent telegrams.
                                  *   \details The value determines the required action if the transmission
                                  *            has failed.
                                  *            Valid range:
                                  *            - 0: Only the failed telegram will is removed from the FIFO.
-                                 *            - 1..255: All telegrams with the same cancel_id as a failed telegram 
+                                 *            - 1..255: All telegrams with the same cancel_id as a failed telegram
                                  *              will be removed from the FIFO queue.
                                  */
 
 } Msg_TxOptions_t;
 
-/*! \brief  Most telegram data */
+/*! \brief  Message telegram data */
 typedef struct Msg_TelData_
 {
     uint8_t     tel_id;         /*!< \brief Telegram id which indicates the telegram as part of
                                  *          segmented message or as single transfer. */
-    uint8_t     tel_len;        /*!< \brief The telegram length. 
+    uint8_t     tel_len;        /*!< \brief The telegram length.
                                  *          I.e. the number of telegram bytes starting at address
                                  *          which is referred in \c tel_data_ptr. The INIC will add
-                                 *          \em one in case of \"tel_id = 1..3\". 
+                                 *          \em one in case of \"tel_id = 1..3\".
                                  */
     uint8_t     tel_cnt;        /*!< \brief The message count indexing the telegram within a segmented
                                  *          message.
@@ -162,18 +162,18 @@ typedef struct Msg_TelData_
 
 } Msg_TelData_t;
 
-/*! \brief  Common MOST message */
-typedef struct Msg_MostTel_
+/*! \brief  Common control message */
+typedef struct Ucs_Message_
 {
-    uint16_t destination_addr;      /*!< \brief MOST destination address */
-    uint16_t source_addr;           /*!< \brief MOST source address */
+    uint16_t destination_addr;      /*!< \brief The destination address */
+    uint16_t source_addr;           /*!< \brief The source address */
 
-    Msg_MsgId_t         id;         /*!< \brief MOST message id "FBlockID.InstID.FktID.OPType" */
+    Msg_MsgId_t         id;         /*!< \brief The message id "FBlockID.InstID.FktID.OPType" */
     Msg_TxOptions_t     opts;       /*!< \brief Message transmission options */
-    Msg_TelData_t       tel;        /*!< \brief MOST telegram data */
+    Msg_TelData_t       tel;        /*!< \brief The telegram data */
     void               *info_ptr;   /*!< \brief Possible reference to additional data */
 
-} Msg_MostTel_t;
+} Ucs_Message_t;
 
 /*! @} */
 

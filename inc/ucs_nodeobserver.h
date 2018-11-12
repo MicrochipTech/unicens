@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -46,7 +46,10 @@
 #include "ucs_base.h"
 #include "ucs_nodedis.h"
 #include "ucs_rtm.h"
+#include "ucs_net.h"
 #include "ucs_nodeobserver_pb.h"
+#include "ucs_netstarter.h"
+#include "ucs_nm.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -60,7 +63,14 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-
+/*! \brief      Callback function type to run a node script
+ *  \details    Internal modules shall have no dependencies to public API.
+ *  \param      self           The instance
+ *  \param      node_ptr       Reference to the node object
+ *  \param      result_fptr    The result callback function
+ *  \return     \see Ucs_Ns_Run()
+ */
+typedef Ucs_Return_t (*Nobs_RunScriptCb_t)(void *self, Ucs_Rm_Node_t *node_ptr, Ucs_Ns_ResultCb_t result_fptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Class                                                                                          */
@@ -74,24 +84,34 @@ typedef struct CNodeObserver_
     CBase               *base_ptr;              /*!< \brief Reference to base services */
     CNodeDiscovery      *nd_ptr;                /*!< \brief Reference to node discovery */
     CRouteManagement    *rtm_ptr;               /*!< \brief Reference to route management */
+    CNetworkManagement  *net_ptr;               /*!< \brief Reference to network management */
+    CNodeManagement     *nm_ptr;                /*!< \brief Reference to node management */
+
     Ucs_Mgr_InitData_t   init_data;             /*!< \brief Initialization data describing nodes and routes*/
+    CService             service;               /*!< \brief  Service object */
     CMaskedObserver      event_observer;        /*!< \brief Observes init complete event */
 
     Ucs_Signature_t      eval_signature;
     Ucs_Nd_CheckResult_t eval_action;
     Ucs_Rm_Node_t       *eval_node_ptr;
-    CTimer               wakeup_timer;          /*!< \brief Timer wakes up processing, sets current 
+    CTimer               wakeup_timer;          /*!< \brief Timer wakes up processing, sets current
                                                  *          node available and restarts NodeDiscovery
                                                  */
+    CObserver            mgr_obs;               /*!< \brief Observes CManager state changes */
+    uint16_t             last_node_checked;     /*!< \brief Remembers node index for round robin execution */
+    CTimer               guard_timer;           /*!< \brief Timer to check for invalid node states */
 
 } CNodeObserver;
 
 /*------------------------------------------------------------------------------------------------*/
 /* Methods                                                                                        */
 /*------------------------------------------------------------------------------------------------*/
-extern void Nobs_Ctor(CNodeObserver *self, CBase *base_ptr, CNodeDiscovery *nd_ptr, CRouteManagement *rtm_ptr, Ucs_Mgr_InitData_t *init_ptr);
+extern void Nobs_Ctor(CNodeObserver *self, CBase *base_ptr, CNetStarter *nts_ptr, CNodeDiscovery *nd_ptr,
+                      CRouteManagement *rtm_ptr, CNetworkManagement  *net_ptr, CNodeManagement *nm_ptr,
+                      Ucs_Mgr_InitData_t *init_ptr);
 extern Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_ptr);
 extern void Nobs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr);
+extern uint8_t Nobs_GetSuspiciousNodesCnt(CNodeObserver *self);
 
 #ifdef __cplusplus
 }               /* extern "C" */

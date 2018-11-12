@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -95,44 +95,49 @@ $(document).ready(function(){initNavTree('struct_ucs___ns___config_msg__t.html',
 </div><!--header-->
 <div class="contents">
 
-<p>Structure of a ConfigMsg used in Node-Script.  
+<p>Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages which contains the command to execute as well as for the expected result which returns from the corresponding node.  
  <a href="struct_ucs___ns___config_msg__t.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:aeb1ff6787da243b8d6ced7bce3ee46d5"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_aeb1ff6787da243b8d6ced7bce3ee46d5.html#aeb1ff6787da243b8d6ced7bce3ee46d5">FBlockId</a></td></tr>
-<tr class="memdesc:aeb1ff6787da243b8d6ced7bce3ee46d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">FBlockId of the config msg.  <a href="#aeb1ff6787da243b8d6ced7bce3ee46d5"></a><br/></td></tr>
-<tr class="separator:aeb1ff6787da243b8d6ced7bce3ee46d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08a6ee143e484d0a82593eb1ff632813"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a08a6ee143e484d0a82593eb1ff632813.html#a08a6ee143e484d0a82593eb1ff632813">InstId</a></td></tr>
-<tr class="memdesc:a08a6ee143e484d0a82593eb1ff632813"><td class="mdescLeft">&#160;</td><td class="mdescRight">InstId of the config msg.  <a href="#a08a6ee143e484d0a82593eb1ff632813"></a><br/></td></tr>
-<tr class="separator:a08a6ee143e484d0a82593eb1ff632813"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad758e0bb7d48d20f40d5acbfcf916eb1"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_ad758e0bb7d48d20f40d5acbfcf916eb1.html#ad758e0bb7d48d20f40d5acbfcf916eb1">FunktId</a></td></tr>
-<tr class="memdesc:ad758e0bb7d48d20f40d5acbfcf916eb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">FunktId of the config msg.  <a href="#ad758e0bb7d48d20f40d5acbfcf916eb1"></a><br/></td></tr>
-<tr class="separator:ad758e0bb7d48d20f40d5acbfcf916eb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4011d0b720d10f4eeacd939998ebe85d"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a4011d0b720d10f4eeacd939998ebe85d.html#a4011d0b720d10f4eeacd939998ebe85d">OpCode</a></td></tr>
-<tr class="memdesc:a4011d0b720d10f4eeacd939998ebe85d"><td class="mdescLeft">&#160;</td><td class="mdescRight">OpCode of the config msg.  <a href="#a4011d0b720d10f4eeacd939998ebe85d"></a><br/></td></tr>
-<tr class="separator:a4011d0b720d10f4eeacd939998ebe85d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab81bc4284c46cfa5378520e45441ef32"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_ab81bc4284c46cfa5378520e45441ef32.html#ab81bc4284c46cfa5378520e45441ef32">DataLen</a></td></tr>
-<tr class="memdesc:ab81bc4284c46cfa5378520e45441ef32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data length.  <a href="#ab81bc4284c46cfa5378520e45441ef32"></a><br/></td></tr>
-<tr class="separator:ab81bc4284c46cfa5378520e45441ef32"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad076d2b6eaae6f9b32363de4729e9349"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_ad076d2b6eaae6f9b32363de4729e9349.html#ad076d2b6eaae6f9b32363de4729e9349">DataPtr</a></td></tr>
-<tr class="memdesc:ad076d2b6eaae6f9b32363de4729e9349"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to the Data.  <a href="#ad076d2b6eaae6f9b32363de4729e9349"></a><br/></td></tr>
-<tr class="separator:ad076d2b6eaae6f9b32363de4729e9349"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afadabe68185500b54de12bf7701db13b"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_afadabe68185500b54de12bf7701db13b.html#afadabe68185500b54de12bf7701db13b">fblock_id</a></td></tr>
+<tr class="memdesc:afadabe68185500b54de12bf7701db13b"><td class="mdescLeft">&#160;</td><td class="mdescRight">FBlock ID of the config msg.  <a href="#afadabe68185500b54de12bf7701db13b"></a><br/></td></tr>
+<tr class="separator:afadabe68185500b54de12bf7701db13b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a855446320d126b91bae19127e7870ecc"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a855446320d126b91bae19127e7870ecc.html#a855446320d126b91bae19127e7870ecc">inst_id</a></td></tr>
+<tr class="memdesc:a855446320d126b91bae19127e7870ecc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instance ID of the config msg.  <a href="#a855446320d126b91bae19127e7870ecc"></a><br/></td></tr>
+<tr class="separator:a855446320d126b91bae19127e7870ecc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1aa9d7878de6f8d53bd2d59e4b635399"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a1aa9d7878de6f8d53bd2d59e4b635399.html#a1aa9d7878de6f8d53bd2d59e4b635399">funct_id</a></td></tr>
+<tr class="memdesc:a1aa9d7878de6f8d53bd2d59e4b635399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function ID of the config msg.  <a href="#a1aa9d7878de6f8d53bd2d59e4b635399"></a><br/></td></tr>
+<tr class="separator:a1aa9d7878de6f8d53bd2d59e4b635399"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86fcd2ef53f06074a90c9d831823570e"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a86fcd2ef53f06074a90c9d831823570e.html#a86fcd2ef53f06074a90c9d831823570e">op_type</a></td></tr>
+<tr class="memdesc:a86fcd2ef53f06074a90c9d831823570e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operation type of the config msg.  <a href="#a86fcd2ef53f06074a90c9d831823570e"></a><br/></td></tr>
+<tr class="separator:a86fcd2ef53f06074a90c9d831823570e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a510b9f81d6817d59826dff17d3b92806"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a510b9f81d6817d59826dff17d3b92806.html#a510b9f81d6817d59826dff17d3b92806">data_size</a></td></tr>
+<tr class="memdesc:a510b9f81d6817d59826dff17d3b92806"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of the data to be transmitted or to be checked. <br/>
+ Setting the data_size to <b>0xFF</b> in case of <code>exp_result</code> will disable the check of data on incoming messages.  <a href="#a510b9f81d6817d59826dff17d3b92806"></a><br/></td></tr>
+<tr class="separator:a510b9f81d6817d59826dff17d3b92806"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9abe3afa0731d5384cb3c40f84d8096f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___m_i_s_c_ga0f98f94a438e5b2e7a28c49025b99954.html#ga0f98f94a438e5b2e7a28c49025b99954">UCS_NS_CONST</a> uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t_a9abe3afa0731d5384cb3c40f84d8096f.html#a9abe3afa0731d5384cb3c40f84d8096f">data_ptr</a></td></tr>
+<tr class="memdesc:a9abe3afa0731d5384cb3c40f84d8096f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to the data.  <a href="#a9abe3afa0731d5384cb3c40f84d8096f"></a><br/></td></tr>
+<tr class="separator:a9abe3afa0731d5384cb3c40f84d8096f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Structure of a ConfigMsg used in Node-Script. </p>
+<div class="textblock"><p>Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages which contains the command to execute as well as for the expected result which returns from the corresponding node. </p>
+<table  class="mns_ic_table">
+<tr>
+<td id="mns_ic_started">&#160;</td><td>See also section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r_i_p_t.html">Node Scripting</a> for more description and an example implementation. </td></tr>
+</table>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="struct_ucs___ns___config_msg__t.html">Ucs_Ns_ConfigMsg_t</a></li>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

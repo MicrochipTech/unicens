@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -63,46 +63,52 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
     { DEC_FKTOP(INIC_FID_DEVICE_ATTACH,           UCS_OP_ERROR),      Inic_DeviceAttach_Error },
     { DEC_FKTOP(INIC_FID_DEVICE_SYNC,             UCS_OP_RESULT),     Inic_DeviceSync_Result },
     { DEC_FKTOP(INIC_FID_DEVICE_SYNC,             UCS_OP_ERROR),      Inic_DeviceSync_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_STATUS,          UCS_OP_STATUS),     Inic_NwStatus_Status },
-    { DEC_FKTOP(INIC_FID_MOST_NW_STATUS,          UCS_OP_ERROR),      Inic_DummyHandler },
-    { DEC_FKTOP(INIC_FID_MOST_NW_CFG,             UCS_OP_STATUS),     Inic_NwConfig_Status },
-    { DEC_FKTOP(INIC_FID_MOST_NW_CFG,             UCS_OP_ERROR),      Inic_NwConfig_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_FRAME_COUNTER,   UCS_OP_STATUS),     Inic_NwFrameCounter_Status },
-    { DEC_FKTOP(INIC_FID_MOST_NW_FRAME_COUNTER,   UCS_OP_ERROR),      Inic_NwFrameCounter_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_STARTUP,         UCS_OP_RESULT),     Inic_NwStartup_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_STARTUP,         UCS_OP_ERROR),      Inic_NwStartup_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SHUTDOWN,        UCS_OP_RESULT),     Inic_NwShutdown_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SHUTDOWN,        UCS_OP_ERROR),      Inic_NwShutdown_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_TRIGGER_RBD,     UCS_OP_RESULT),     Inic_NwTriggerRbd_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_TRIGGER_RBD,     UCS_OP_ERROR),      Inic_NwTriggerRbd_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_RBD_RESULT,      UCS_OP_STATUS),     Inic_NwRbdResult_Status },
-    { DEC_FKTOP(INIC_FID_MOST_NW_RBD_RESULT,      UCS_OP_ERROR),      Inic_NwRbdResult_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_ATTACH,          UCS_OP_RESULT),     Inic_NwAttach_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_ATTACH,          UCS_OP_ERROR),      Inic_NwAttach_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_FORCE_NO_AVAIL,  UCS_OP_STATUS),     Inic_NwForceNotAvailable_Status },
-    { DEC_FKTOP(INIC_FID_MOST_NW_FORCE_NO_AVAIL,  UCS_OP_ERROR),      Inic_NwForceNotAvailable_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SYS_DIAGNOSIS,   UCS_OP_RESULT),     Inic_NwSysDiagnosis_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SYS_DIAGNOSIS,   UCS_OP_ERROR),      Inic_NwSysDiagnosis_Error },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SYS_DIAG_END,    UCS_OP_RESULT),     Inic_NwSysDiagEnd_Result },
-    { DEC_FKTOP(INIC_FID_MOST_NW_SYS_DIAG_END,    UCS_OP_ERROR),      Inic_NwSysDiagEnd_Error },
-    { DEC_FKTOP(INIC_FID_BACK_CHANNEL_DIAGNOSIS,  UCS_OP_RESULT),     Inic_BCDiagnosis_Result },
-    { DEC_FKTOP(INIC_FID_BACK_CHANNEL_DIAGNOSIS,  UCS_OP_ERROR),      Inic_BCDiagnosis_Error },
-    { DEC_FKTOP(INIC_FID_BACK_CHANNEL_DIAG_END,   UCS_OP_RESULT),     Inic_BCDiagEnd_Result },
-    { DEC_FKTOP(INIC_FID_BACK_CHANNEL_DIAG_END,   UCS_OP_ERROR),      Inic_BCDiagEnd_Error },
-    { DEC_FKTOP(INIC_FID_MOST_PORT_STATUS,        UCS_OP_STATUS),     Inic_MostPortStatus_Status },
-    { DEC_FKTOP(INIC_FID_MOST_PORT_STATUS,        UCS_OP_ERROR),      Inic_MostPortStatus_Error },
-    { DEC_FKTOP(INIC_FID_MOST_SOCKET_CREATE,      UCS_OP_RESULT),     Inic_MostSocketCreate_Result },
-    { DEC_FKTOP(INIC_FID_MOST_SOCKET_CREATE,      UCS_OP_ERROR),      Inic_MostSocketCreate_Error },
-    { DEC_FKTOP(INIC_FID_MOST_SOCKET_STATUS,      UCS_OP_STATUS),     Inic_DummyHandler },
-    { DEC_FKTOP(INIC_FID_MOST_SOCKET_STATUS,      UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_DEVICE_INFO,             UCS_OP_STATUS),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_DEVICE_INFO,             UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_NETWORK_STATUS,          UCS_OP_STATUS),     Inic_NwStatus_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_STATUS,          UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_NETWORK_CFG,             UCS_OP_STATUS),     Inic_NwConfig_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_CFG,             UCS_OP_ERROR),      Inic_NwConfig_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_FRAME_COUNTER,   UCS_OP_STATUS),     Inic_NwFrameCounter_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_FRAME_COUNTER,   UCS_OP_ERROR),      Inic_NwFrameCounter_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_STARTUP,         UCS_OP_RESULT),     Inic_NwStartup_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_STARTUP,         UCS_OP_ERROR),      Inic_NwStartup_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_SHUTDOWN,        UCS_OP_RESULT),     Inic_NwShutdown_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_SHUTDOWN,        UCS_OP_ERROR),      Inic_NwShutdown_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_RBD,             UCS_OP_RESULT),     Inic_NetworkRbd_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_RBD,             UCS_OP_ERROR),      Inic_NetworkRbd_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_RBD_RESULT,      UCS_OP_STATUS),     Inic_NetworkRbdResult_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_RBD_RESULT,      UCS_OP_ERROR),      Inic_NetworkRbdResult_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_STARTUP_EXT,     UCS_OP_RESULT),     Inic_NwStartupExt_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_STARTUP_EXT,     UCS_OP_ERROR),      Inic_NwStartupExt_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_FORCE_NA,        UCS_OP_STATUS),     Inic_NwForceNotAvailable_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_FORCE_NA,        UCS_OP_ERROR),      Inic_NwForceNotAvailable_Error },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_FULLDUPLEX,      UCS_OP_RESULT),     Inic_NwDiagFullDuplex_Result },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_FULLDUPLEX,      UCS_OP_ERROR),      Inic_NwDiagFullDuplex_Error },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_FULLDUPLEX_END,  UCS_OP_RESULT),     Inic_NwDiagFullDuplexEnd_Result },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_FULLDUPLEX_END,  UCS_OP_ERROR),      Inic_NwDiagFullDuplexEnd_Error },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_HALFDUPLEX,      UCS_OP_RESULT),     Inic_NwDiagHalfDuplex_Result },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_HALFDUPLEX,      UCS_OP_ERROR),      Inic_NwDiagHalfDuplex_Error },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_HALFDUPLEX_END,  UCS_OP_RESULT),     Inic_NwDiagHalfDuplexEnd_Result },
+    { DEC_FKTOP(INIC_FID_NW_DIAG_HALFDUPLEX_END,  UCS_OP_ERROR),      Inic_NwDiagHalfDuplexEnd_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_FALLBACK,        UCS_OP_RESULT),     Inic_NetworkFallback_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_FALLBACK,        UCS_OP_ERROR),      Inic_NetworkFallback_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_FALLBACK_END,    UCS_OP_RESULT),     Inic_NetworkFallbackEnd_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_FALLBACK_END,    UCS_OP_ERROR),      Inic_NetworkFallbackEnd_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_INFO,            UCS_OP_STATUS),     Inic_NetworkInfo_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_INFO,            UCS_OP_ERROR),      Inic_NetworkInfo_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_PORT_STATUS,     UCS_OP_STATUS),     Inic_NetworkPortStatus_Status },
+    { DEC_FKTOP(INIC_FID_NETWORK_PORT_STATUS,     UCS_OP_ERROR),      Inic_NetworkPortStatus_Error },
+    { DEC_FKTOP(INIC_FID_NETWORK_PORT_USED,       UCS_OP_STATUS),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_NETWORK_PORT_USED,       UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_NETWORK_SOCKET_CREATE,   UCS_OP_RESULT),     Inic_NetworkSocketCreate_Result },
+    { DEC_FKTOP(INIC_FID_NETWORK_SOCKET_CREATE,   UCS_OP_ERROR),      Inic_NetworkSocketCreate_Error },
     { DEC_FKTOP(INIC_FID_MLB_PORT_CREATE,         UCS_OP_RESULT),     Inic_MlbPortCreate_Result },
     { DEC_FKTOP(INIC_FID_MLB_PORT_CREATE,         UCS_OP_ERROR),      Inic_MlbPortCreate_Error },
-/*  { DEC_FKTOP(INIC_FID_MLB_PORT_ALLOCATE_ONLY,  UCS_OP_RESULT),     Inic_DummyHandler },    */
-/*  { DEC_FKTOP(INIC_FID_MLB_PORT_ALLOCATE_ONLY,  UCS_OP_ERROR),      Inic_DummyHandler },    */
-/*  { DEC_FKTOP(INIC_FID_MLB_PORT_DEALLOC_ONLY,   UCS_OP_RESULT),     Inic_DummyHandler },    */
-/*  { DEC_FKTOP(INIC_FID_MLB_PORT_DEALLOC_ONLY,   UCS_OP_ERROR),      Inic_DummyHandler },    */
     { DEC_FKTOP(INIC_FID_MLB_SOCKET_CREATE,       UCS_OP_RESULT),     Inic_MlbSocketCreate_Result },
     { DEC_FKTOP(INIC_FID_MLB_SOCKET_CREATE,       UCS_OP_ERROR),      Inic_MlbSocketCreate_Error },
+    { DEC_FKTOP(INIC_FID_MLB_MUX_COCKET_CREATE,   UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_MLB_MUX_COCKET_CREATE,   UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_SPI_PORT_CREATE,         UCS_OP_RESULT),     Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_SPI_PORT_CREATE,         UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_SPI_SOCKET_CREATE,       UCS_OP_RESULT),     Inic_DummyHandler },
@@ -123,18 +129,16 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
     { DEC_FKTOP(INIC_FID_RMCK_PORT_CREATE,        UCS_OP_ERROR),      Inic_RmckPortCreate_Error },
     { DEC_FKTOP(INIC_FID_I2C_PORT_CREATE,         UCS_OP_RESULT),     Inic_I2cPortCreate_Result },
     { DEC_FKTOP(INIC_FID_I2C_PORT_CREATE,         UCS_OP_ERROR),      Inic_I2cPortCreate_Error },
+    { DEC_FKTOP(INIC_FID_I2C_SOFT_PORT_CREATE,    UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_I2C_SOFT_PORT_CREATE,    UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_I2C_PORT_READ,           UCS_OP_RESULT),     Inic_I2cPortRead_Result },
     { DEC_FKTOP(INIC_FID_I2C_PORT_READ,           UCS_OP_ERROR),      Inic_I2cPortRead_Error },
     { DEC_FKTOP(INIC_FID_I2C_PORT_WRITE,          UCS_OP_RESULT),     Inic_I2cPortWrite_Result },
     { DEC_FKTOP(INIC_FID_I2C_PORT_WRITE,          UCS_OP_ERROR),      Inic_I2cPortWrite_Error },
-    { DEC_FKTOP(INIC_FID_PCI_PORT_CREATE,         UCS_OP_RESULT),     Inic_PciPortCreate_Result },
-    { DEC_FKTOP(INIC_FID_PCI_PORT_CREATE,         UCS_OP_ERROR),      Inic_PciPortCreate_Error },
-    { DEC_FKTOP(INIC_FID_PCI_SOCKET_CREATE,       UCS_OP_RESULT),     Inic_PciSocketCreate_Result },
-    { DEC_FKTOP(INIC_FID_PCI_SOCKET_CREATE,       UCS_OP_ERROR),      Inic_PciSocketCreate_Error },
+    { DEC_FKTOP(INIC_FID_I2C_PORT_READ_EXT,       UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_I2C_PORT_READ_EXT,       UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_GPIO_PORT_CREATE,        UCS_OP_RESULT),     Inic_GpioPortCreate_Result },
     { DEC_FKTOP(INIC_FID_GPIO_PORT_CREATE,        UCS_OP_ERROR),      Inic_GpioPortCreate_Error },
-    { DEC_FKTOP(INIC_FID_MOST_PORT_ENABLE,        UCS_OP_RESULT),     Inic_MostPortEnable_Result },
-    { DEC_FKTOP(INIC_FID_MOST_PORT_ENABLE,        UCS_OP_ERROR),      Inic_MostPortEnable_Error },
     { DEC_FKTOP(INIC_FID_GPIO_PORT_PIN_MODE,      UCS_OP_STATUS),     Inic_GpioPortPinMode_Status },
     { DEC_FKTOP(INIC_FID_GPIO_PORT_PIN_MODE,      UCS_OP_ERROR),      Inic_GpioPortPinMode_Error },
     { DEC_FKTOP(INIC_FID_GPIO_PORT_PIN_STATE,     UCS_OP_STATUS),     Inic_GpioPortPinState_Status },
@@ -147,10 +151,20 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
     { DEC_FKTOP(INIC_FID_RESOURCE_INVALID_LIST,   UCS_OP_ERROR),      Inic_ResourceInvalidList_Error },
     { DEC_FKTOP(INIC_FID_RESOURCE_MONITOR,        UCS_OP_STATUS),     Inic_ResourceMonitor_Status },
     { DEC_FKTOP(INIC_FID_RESOURCE_MONITOR,        UCS_OP_ERROR),      Inic_ResourceMonitor_Error },
-/*  { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },   */   
-/*  { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_ERROR),      Inic_DummyHandler },   */   
-/*  { DEC_FKTOP(INIC_FID_PACKET_DETACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },   */   
-/*  { DEC_FKTOP(INIC_FID_PACKET_DETACH_SOCKETS,   UCS_OP_ERROR),      Inic_DummyHandler },   */   
+    { DEC_FKTOP(INIC_FID_RESOURCE_MONITOR_CFG,    UCS_OP_STATUS),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_MONITOR_CFG,    UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_TAG,            UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_TAG,            UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_LIST,           UCS_OP_STATUS),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_LIST,           UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_STATUS),     Inic_ResourceInfo_Status },
+    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_ERROR),      Inic_ResourceInfo_Error },
+    { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_PACKET_DETACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_PACKET_DETACH_SOCKETS,   UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_QOS_CREATE,              UCS_OP_RESULT),     Inic_QoSCreate_Result },
     { DEC_FKTOP(INIC_FID_QOS_CREATE,              UCS_OP_ERROR),      Inic_QoSCreate_Error },
     { DEC_FKTOP(INIC_FID_AVP_CREATE,              UCS_OP_RESULT),     Inic_AvpCreate_Result },
@@ -159,8 +173,8 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
     { DEC_FKTOP(INIC_FID_SYNC_CREATE,             UCS_OP_ERROR),      Inic_SyncCreate_Error },
     { DEC_FKTOP(INIC_FID_SYNC_MUTE,               UCS_OP_RESULT),     Inic_SyncMute_Result },
     { DEC_FKTOP(INIC_FID_SYNC_MUTE,               UCS_OP_ERROR),      Inic_SyncMute_Error },
-    { DEC_FKTOP(INIC_FID_SYNC_DEMUTE,             UCS_OP_RESULT),     Inic_SyncDemute_Result },
-    { DEC_FKTOP(INIC_FID_SYNC_DEMUTE,             UCS_OP_ERROR),      Inic_SyncDemute_Error },
+    { DEC_FKTOP(INIC_FID_SYNC_UNMUTE,             UCS_OP_RESULT),     Inic_SyncDemute_Result },
+    { DEC_FKTOP(INIC_FID_SYNC_UNMUTE,             UCS_OP_ERROR),      Inic_SyncDemute_Error },
     { DEC_FKTOP(INIC_FID_DFIPHASE_CREATE,         UCS_OP_RESULT),     Inic_DfiPhaseCreate_Result },
     { DEC_FKTOP(INIC_FID_DFIPHASE_CREATE,         UCS_OP_ERROR),      Inic_DfiPhaseCreate_Error },
     { DEC_FKTOP(INIC_FID_IPC_CREATE,              UCS_OP_RESULT),     Inic_IpcCreate_Result },
@@ -178,23 +192,25 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
 /*! \brief Bitmask for API method Inic_NwForceNotAvailable() used by API locking manager */
 #define INIC_API_NW_FORCE_NA        0x01U
 /*! \brief Bitmask for API method Inic_NwShutdown() used by API locking manager */
-#define INIC_API_NW_SHUTDOWN        0x02U
+#define INIC_API_NETWORK_SHUTDOWN        0x02U
 /*! \brief Bitmask for API method Inic_NwFrameCounter_Get() used by API locking manager */
-#define INIC_API_NW_FRAME_COUNTER   0x04U
-/*! \brief Bitmask for API method Inic_NwTriggerRbd() used by API locking manager */
-#define INIC_API_NW_TRIGGER_RBD     0x08U
-/*! \brief Bitmask for API method Inic_NwRbdResult_Get() used by API locking manager */
+#define INIC_API_NETWORK_FRAME_COUNTER   0x04U
+/*! \brief Bitmask for API method Inic_NetworkRbd_Sr() used by API locking manager */
+#define INIC_API_NETWORK_RBD     0x08U
+/*! \brief Bitmask for API method Inic_NetworkRbdResult_Get() used by API locking manager */
 #define INIC_API_NW_RBD_RESULT      0x10U
 /*! \brief Bitmask for API method Inic_DeviceVersion_Get() used by API locking manager */
 #define INIC_API_DEVICE_VERSION_GET 0x20U
+/*! \brief Bitmask for API method Inic_NwConfig_SetGet() */
+#define INIC_API_NW_CONFIG          0x40U
 
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
 static void Inic_HandleInternalErrors(void *self, void *error_code_ptr);
 static void Inic_HandleApiTimeout(void *self, void *method_mask_ptr);
-static void Inic_DecodeIcm(CInic *self, Msg_MostTel_t *msg_ptr);
-static void Inic_MsgTxStatusCb(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status);
+static void Inic_DecodeIcm(CInic *self, Ucs_Message_t *msg_ptr);
+static void Inic_MsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
@@ -215,13 +231,13 @@ void Inic_Ctor(CInic *self, Inic_InitData_t *init_ptr)
     self->target_address  = init_ptr->tgt_addr;
 
     /* create instances of single-observers */
-    for(i=0U; i<INIC_NUM_SSUB; i++)
+    for (i=0U; i<INIC_NUM_SSUB; i++)
     {
         Ssub_Ctor(&self->ssubs[i], self->base_ptr->ucs_user_ptr);
     }
 
     /* create instances of "normal" observers */
-    for(i=0U; i<INIC_NUM_SUB; i++)
+    for (i=0U; i<INIC_NUM_SUB; i++)
     {
         Sub_Ctor(&self->subs[i], self->base_ptr->ucs_user_ptr);
     }
@@ -246,7 +262,7 @@ void Inic_Ctor(CInic *self, Inic_InitData_t *init_ptr)
 static void Inic_HandleInternalErrors(void *self, void *error_code_ptr)
 {
     uint8_t i;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     CInic *self_ = (CInic *)self;
     MISC_UNUSED(error_code_ptr);
 
@@ -256,7 +272,7 @@ static void Inic_HandleInternalErrors(void *self, void *error_code_ptr)
     res_data.result.info_size = 0U;
 
     /* Internal error has been occurred => Cancel running jobs */
-    for(i=0U; i<INIC_NUM_SSUB; i++)
+    for (i=0U; i<INIC_NUM_SSUB; i++)
     {
         Ssub_Notify(&self_->ssubs[i], &res_data, true);
     }
@@ -270,7 +286,7 @@ static void Inic_HandleApiTimeout(void *self, void *method_mask_ptr)
 {
     CInic *self_ = (CInic *)self;
     Alm_ModuleMask_t method_mask = *((Alm_ModuleMask_t *)method_mask_ptr);
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_ERR_TIMEOUT;
@@ -278,33 +294,37 @@ static void Inic_HandleApiTimeout(void *self, void *method_mask_ptr)
 
     switch(method_mask)
     {
-        case INIC_API_NW_SHUTDOWN:
+        case INIC_API_NETWORK_SHUTDOWN:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SHUTDOWN], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NwShutdown().", 0U));
             break;
-        case INIC_API_NW_FRAME_COUNTER:
+        case INIC_API_NETWORK_FRAME_COUNTER:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FRAME_COUNTER], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NwFrameCounter_Get().", 0U));
             break;
-        case INIC_API_NW_TRIGGER_RBD:
+        case INIC_API_NETWORK_RBD:
             self_->lock.rbd_trigger_timeout_counter++;
-            if(self_->lock.rbd_trigger_timeout_counter < 5U)
+            if (self_->lock.rbd_trigger_timeout_counter < 5U)
             {
-                (void)Al_Lock(&self_->lock.api, INIC_API_NW_TRIGGER_RBD);
+                (void)Al_Lock(&self_->lock.api, INIC_API_NETWORK_RBD);
             }
             else
             {
-                Inic_StdResult_t rbd_result_data;
-                Ucs_StdResult_t result    = {UCS_RES_ERR_TIMEOUT, NULL, 0U};
-                rbd_result_data.data_info = NULL;
-                rbd_result_data.result    = result;
+                Inic_StdResult_t rbd_result_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+                Ucs_StdResult_t result           = {UCS_RES_ERR_TIMEOUT, NULL, 0U};
+                rbd_result_data.data_info        = NULL;
+                rbd_result_data.result           = result;
                 Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_TRIGGER_RBD], &rbd_result_data, true);
-                TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NwTriggerRbd().", 0U));
+                TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NetworkRbd_Sr().", 0U));
             }
             break;
         case INIC_API_NW_RBD_RESULT:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_RBD_RESULT], &res_data, true);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NwRbdResult_Get().", 0U));
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NetworkRbdResult_Get().", 0U));
+            break;
+        case INIC_API_NW_CONFIG:
+            Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_CONFIG], &res_data, true);
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "API locking timeout occurred for method Inic_NwConfig_SetGet().", 0U));
             break;
         default:
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC]", "Unknown API locking bitmask detected. Mask: 0x%02X", 1U, method_mask));
@@ -313,10 +333,10 @@ static void Inic_HandleApiTimeout(void *self, void *method_mask_ptr)
 }
 
 /*! \brief  Decode an ICM message
- *  \param  self     Instance pointer to FBlock INIC 
+ *  \param  self     Instance pointer to FBlock INIC
  *  \param  msg_ptr  pointer to the ICM message to decode
  */
-static void Inic_DecodeIcm(CInic *self, Msg_MostTel_t *msg_ptr)
+static void Inic_DecodeIcm(CInic *self, Ucs_Message_t *msg_ptr)
 {
     Dec_Return_t result;
     uint16_t     index;
@@ -337,7 +357,7 @@ static void Inic_DecodeIcm(CInic *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to INIC object
  *  \param  tel_ptr  received message
  */
-void Inic_OnIcmRx(void *self, Msg_MostTel_t *tel_ptr)
+void Inic_OnIcmRx(void *self, Ucs_Message_t *tel_ptr)
 {
     CInic *self_ = (CInic *)self;
 
@@ -354,8 +374,8 @@ void Inic_OnIcmRx(void *self, Msg_MostTel_t *tel_ptr)
  *  \param   self     Reference to INIC object
  *  \param   tel_ptr  Reference to the RCM Rx message object
  */
-void Inic_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr)
-{ 
+void Inic_OnRcmRxFilter(void *self, Ucs_Message_t *tel_ptr)
+{
     uint16_t     index;
     CInic *self_ = (CInic *)self;
 
@@ -370,13 +390,13 @@ void Inic_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr)
  *  \param tel_ptr  Reference to transmitted message
  *  \param status   Status of the transmitted message
  */
-static void Inic_MsgTxStatusCb(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status)
+static void Inic_MsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status)
 {
     CInic *self_ = (CInic *)self;
 
     if ((status != UCS_MSG_STAT_OK) && (tel_ptr->info_ptr != NULL))
     {
-        Inic_StdResult_t res_data;
+        Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
         CSingleSubject *ssub_ptr = (CSingleSubject *)tel_ptr->info_ptr;
 
         res_data.data_info        = &status;
@@ -473,7 +493,7 @@ void Inic_DelObsvrDeviceStatus(CInic *self, CObserver *obs_ptr)
 /*! \brief  This method requests the INIC version info
  *  \param  self        Reference to CInic instance
  *  \param  obs_ptr     Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
@@ -481,9 +501,9 @@ Ucs_Return_t Inic_DeviceVersion_Get(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, INIC_API_DEVICE_VERSION_GET) != false)
+    if (Al_Lock(&self->lock.api, INIC_API_DEVICE_VERSION_GET) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -516,13 +536,13 @@ Ucs_Return_t Inic_DeviceVersion_Get(CInic *self, CSingleObserver *obs_ptr)
 /*! \brief  Attach EHC to the INIC
  *  \param  self            Reference to CInic instance
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
 Ucs_Return_t Inic_DeviceAttach(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t     result = UCS_RET_SUCCESS;
-    Msg_MostTel_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+    Ucs_Message_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -546,19 +566,16 @@ Ucs_Return_t Inic_DeviceAttach(CInic *self, CSingleObserver *obs_ptr)
     return result;
 }
 
-/*! \brief  Attaches the given PMS channel to the network
+/*! \brief  Starts the FullDuplex Diagnosis
  *  \param  self                Reference to CInic instance
- *  \param  pmp_channel_handle  Port message channel resource handle
  *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Inic_NwAttach(CInic *self,
-                           uint16_t pmp_channel_handle,
-                           CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NwDiagFullDuplex_Sr(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -566,16 +583,13 @@ Ucs_Return_t Inic_NwAttach(CInic *self,
 
         msg_ptr->id.fblock_id   = FB_INIC;
         msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_MOST_NW_ATTACH;
+        msg_ptr->id.function_id = INIC_FID_NW_DIAG_FULLDUPLEX;
         msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
-        msg_ptr->tel.tel_data_ptr[0] = MISC_HB(pmp_channel_handle);
-        msg_ptr->tel.tel_data_ptr[1] = MISC_LB(pmp_channel_handle);
-
-        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_ATTACH];
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_DIAG_FDX];
         Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
 
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_ATTACH], obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_DIAG_FDX], obs_ptr);
     }
     else
     {
@@ -585,17 +599,16 @@ Ucs_Return_t Inic_NwAttach(CInic *self,
     return result;
 }
 
-
-/*! \brief  Starts the System diagnosis
+/*! \brief  Stops the FullDuplex Diagnosis
  *  \param  self                Reference to CInic instance
  *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Inic_NwSysDiagnosis(CInic *self, CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NwDiagFullDuplexEnd_Sr(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -603,13 +616,13 @@ Ucs_Return_t Inic_NwSysDiagnosis(CInic *self, CSingleObserver *obs_ptr)
 
         msg_ptr->id.fblock_id   = FB_INIC;
         msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_MOST_NW_SYS_DIAGNOSIS;
+        msg_ptr->id.function_id = INIC_FID_NW_DIAG_FULLDUPLEX_END;
         msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
-        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_SYS_DIAGNOSIS];
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_DIAG_FDX_END];
         Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
 
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_SYS_DIAGNOSIS], obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_DIAG_FDX_END], obs_ptr);
     }
     else
     {
@@ -619,50 +632,17 @@ Ucs_Return_t Inic_NwSysDiagnosis(CInic *self, CSingleObserver *obs_ptr)
     return result;
 }
 
-/*! \brief  Stops the System diagnosis
- *  \param  self                Reference to CInic instance
- *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
- */
-Ucs_Return_t Inic_NwSysDiagEnd(CInic *self, CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
-
-    if (msg_ptr != NULL)
-    {
-        msg_ptr->destination_addr  = self->target_address;
-
-        msg_ptr->id.fblock_id   = FB_INIC;
-        msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_MOST_NW_SYS_DIAG_END;
-        msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
-
-        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_SYS_DIAGEND];
-        Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
-
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_SYS_DIAGEND], obs_ptr);
-    }
-    else
-    {
-        result = UCS_RET_ERR_BUFFER_OVERFLOW;
-    }
-
-    return result;
-}
-
-/*! \brief Starts the Backchannel Diagnosis Mode
+/*! \brief Starts the HalfDuplex Diagnosis Mode
  *
- *  \param *self         Reference to CInic instance
- *  \param *obs_ptr      Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \param self          Reference to CInic instance
+ *  \param obs_ptr       Reference to an optional observer
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Inic_BCDiagnosis(CInic *self, CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NwDiagHalfDuplex(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -670,13 +650,13 @@ Ucs_Return_t Inic_BCDiagnosis(CInic *self, CSingleObserver *obs_ptr)
 
         msg_ptr->id.fblock_id   = FB_INIC;
         msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_BACK_CHANNEL_DIAGNOSIS;
+        msg_ptr->id.function_id = INIC_FID_NW_DIAG_HALFDUPLEX;
         msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
-        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_BC_DIAGNOSIS];
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_DIAG_HDX];
         Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
 
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_BC_DIAGNOSIS], obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_DIAG_HDX], obs_ptr);
     }
     else
     {
@@ -686,17 +666,17 @@ Ucs_Return_t Inic_BCDiagnosis(CInic *self, CSingleObserver *obs_ptr)
     return result;
 }
 
-/*! \brief Stops the Backchannel Diagnosis Mode
+/*! \brief Stops the HalfDuplex Diagnosis Mode
  *
- *  \param *self         Reference to CInic instance
- *  \param *obs_ptr      Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \param self          Reference to CInic instance
+ *  \param obs_ptr       Reference to an optional observer
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Inic_BCDiagEnd(CInic *self, CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NwDiagHalfDuplexEnd(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -704,13 +684,81 @@ Ucs_Return_t Inic_BCDiagEnd(CInic *self, CSingleObserver *obs_ptr)
 
         msg_ptr->id.fblock_id   = FB_INIC;
         msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_BACK_CHANNEL_DIAG_END;
+        msg_ptr->id.function_id = INIC_FID_NW_DIAG_HALFDUPLEX_END;
         msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
-        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_BC_DIAG_END];
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_DIAG_HDX_END];
         Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
 
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_BC_DIAG_END], obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_DIAG_HDX_END], obs_ptr);
+    }
+    else
+    {
+        result = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return result;
+}
+
+/*! \brief Starts the FBP Mode
+ *
+ *  \param self          Reference to CInic instance
+ *  \param obs_ptr       Reference to an optional observer
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ */
+Ucs_Return_t Inic_FBP_Mode(CInic *self, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+
+    if (msg_ptr != NULL)
+    {
+        msg_ptr->destination_addr  = MSG_ADDR_INIC;
+
+        msg_ptr->id.fblock_id   = FB_INIC;
+        msg_ptr->id.instance_id = 0U;
+        msg_ptr->id.function_id = INIC_FID_NETWORK_FALLBACK;
+        msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
+
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_FALLBACK];
+        Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
+
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_FALLBACK], obs_ptr);
+    }
+    else
+    {
+        result = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return result;
+}
+
+/*! \brief Stops the FBP Mode
+ *
+ *  \param self          Reference to CInic instance
+ *  \param obs_ptr       Reference to an optional observer
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ */
+Ucs_Return_t Inic_FBP_End(CInic *self, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+
+    if (msg_ptr != NULL)
+    {
+        msg_ptr->destination_addr  = MSG_ADDR_INIC;
+
+        msg_ptr->id.fblock_id   = FB_INIC;
+        msg_ptr->id.instance_id = 0U;
+        msg_ptr->id.function_id = INIC_FID_NETWORK_FALLBACK_END;
+        msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
+
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_FALLBACK_END];
+        Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
+
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_FALLBACK_END], obs_ptr);
     }
     else
     {
@@ -721,20 +769,59 @@ Ucs_Return_t Inic_BCDiagEnd(CInic *self, CSingleObserver *obs_ptr)
 }
 
 
-/*! \brief  Requests the INIC.MOSTNetworRBDResult.Status message
+/*! \brief This function contains information on the network.
+ *  \param self             Reference to CInic instance
+ *  \param obs_ptr          Reference to an optional observer. The result must be casted into type
+ *                          Inic_StdResult_t.
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ */
+Ucs_Return_t Inic_NetworkInfo_Get(CInic *self, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+
+    if (msg_ptr != NULL)
+    {
+        msg_ptr->destination_addr  = self->target_address;
+        msg_ptr->id.fblock_id   = FB_INIC;
+        msg_ptr->id.instance_id = 0U;
+        msg_ptr->id.function_id = INIC_FID_NETWORK_INFO;
+        msg_ptr->id.op_type     = UCS_OP_GET;
+
+
+        msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_INFO];
+        Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
+
+        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_INFO], obs_ptr);
+    }
+    else
+    {
+        result = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return result;
+}
+
+
+
+
+
+/*! \brief  Requests the INIC.NetworRBDResult.Status message
  *  \param  self        Reference to CInic instance
  *  \param  obs_ptr     Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t  Inic_NwRbdResult_Get(CInic *self, CSingleObserver *obs_ptr)
+Ucs_Return_t  Inic_NetworkRbdResult_Get(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, INIC_API_NW_RBD_RESULT) != false)
+    if (Al_Lock(&self->lock.api, INIC_API_NW_RBD_RESULT) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -742,7 +829,7 @@ Ucs_Return_t  Inic_NwRbdResult_Get(CInic *self, CSingleObserver *obs_ptr)
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_NW_RBD_RESULT;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_RBD_RESULT;
             msg_ptr->id.op_type     = UCS_OP_GET;
 
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_RBD_RESULT];
@@ -765,15 +852,15 @@ Ucs_Return_t  Inic_NwRbdResult_Get(CInic *self, CSingleObserver *obs_ptr)
 }
 
 
-/*! \brief  This functions starts up the MOST network.
+/*! \brief  This functions starts up the network.
  *  \param  self             Reference to CInic instance
- *  \param  auto_forced_na   The delay time to shutdown the network after INIC has entered the 
+ *  \param  auto_forced_na   The delay time to shutdown the network after INIC has entered the
  *                           protected mode.
  *  \param  packet_bandwidth The desired packed bandwidth
  *  \param  obs_ptr          Reference to an optional observer. The result must be casted into type
  *                           Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
 Ucs_Return_t Inic_NwStartup(CInic *self, uint16_t auto_forced_na,
@@ -783,7 +870,7 @@ Ucs_Return_t Inic_NwStartup(CInic *self, uint16_t auto_forced_na,
 
     if (self->startup_locked == false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -792,7 +879,7 @@ Ucs_Return_t Inic_NwStartup(CInic *self, uint16_t auto_forced_na,
             msg_ptr->destination_addr    = self->target_address;
             msg_ptr->id.fblock_id        = FB_INIC;
             msg_ptr->id.instance_id      = 0U;
-            msg_ptr->id.function_id      = INIC_FID_MOST_NW_STARTUP;
+            msg_ptr->id.function_id      = INIC_FID_NETWORK_STARTUP;
             msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
             msg_ptr->tel.tel_data_ptr[0] = MISC_HB(auto_forced_na);
             msg_ptr->tel.tel_data_ptr[1] = MISC_LB(auto_forced_na);
@@ -818,21 +905,77 @@ Ucs_Return_t Inic_NwStartup(CInic *self, uint16_t auto_forced_na,
     return result;
 }
 
-/*! \brief  This function shuts down the entire MOST network.
+/*! \brief  This functions starts up the network with extended parameter set (EXPERIMENTAL).
+ *  \param  self             Reference to CInic instance
+ *  \param  auto_forced_na   The delay time to shutdown the network after INIC has entered the
+ *                           protected mode.
+ *  \param  packet_bandwidth The desired packed bandwidth
+ *  \param  proxy_channel_bw The reserved bandwidth in bytes.
+ *  \param  obs_ptr          Reference to an optional observer. The result must be casted into type
+ *                           Inic_StdResult_t.
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
+ */
+Ucs_Return_t Inic_NwStartupExt(CInic *self, uint16_t auto_forced_na,
+                             uint16_t packet_bandwidth, uint16_t proxy_channel_bw, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+
+    if (self->startup_locked == false)
+    {
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+
+        if (msg_ptr != NULL)
+        {
+            self->startup_locked = true;
+
+            msg_ptr->destination_addr    = self->target_address;
+            msg_ptr->id.fblock_id        = FB_INIC;
+            msg_ptr->id.instance_id      = 0U;
+            msg_ptr->id.function_id      = INIC_FID_NETWORK_STARTUP_EXT;
+            msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
+            msg_ptr->tel.tel_data_ptr[0] = MISC_HB(auto_forced_na);
+            msg_ptr->tel.tel_data_ptr[1] = MISC_LB(auto_forced_na);
+            msg_ptr->tel.tel_data_ptr[2] = MISC_HB(packet_bandwidth);
+            msg_ptr->tel.tel_data_ptr[3] = MISC_LB(packet_bandwidth);
+            msg_ptr->tel.tel_data_ptr[4] = MISC_HB(proxy_channel_bw);
+            msg_ptr->tel.tel_data_ptr[5] = MISC_LB(proxy_channel_bw);
+
+            msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_STARTUP_EXT];
+            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_MsgTxStatusCb, self);
+
+            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_STARTUP_EXT], obs_ptr);
+        }
+        else
+        {
+            self->startup_locked = false;
+            result = UCS_RET_ERR_BUFFER_OVERFLOW;
+        }
+    }
+    else
+    {
+        result = UCS_RET_ERR_API_LOCKED;
+    }
+
+    return result;
+}
+
+/*! \brief  This function shuts down the entire network.
  *  \param  self            Reference to CInic instance
  *  \param  obs_ptr         Reference to an optional observer. The result must be casted into type
  *                          Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
 Ucs_Return_t Inic_NwShutdown(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, INIC_API_NW_SHUTDOWN) != false)
+    if (Al_Lock(&self->lock.api, INIC_API_NETWORK_SHUTDOWN) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -840,7 +983,7 @@ Ucs_Return_t Inic_NwShutdown(CInic *self, CSingleObserver *obs_ptr)
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_NW_SHUTDOWN;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_SHUTDOWN;
             msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_NW_SHUTDOWN];
@@ -850,7 +993,7 @@ Ucs_Return_t Inic_NwShutdown(CInic *self, CSingleObserver *obs_ptr)
         }
         else
         {
-            Al_Release(&self->lock.api, INIC_API_NW_SHUTDOWN);
+            Al_Release(&self->lock.api, INIC_API_NETWORK_SHUTDOWN);
             result = UCS_RET_ERR_BUFFER_OVERFLOW;
         }
     }
@@ -867,17 +1010,17 @@ Ucs_Return_t Inic_NwShutdown(CInic *self, CSingleObserver *obs_ptr)
  *  \param type             Specifies if the INIC starts the RBD as a TimingMaster or TimingSlave.
  *  \param obs_ptr          Reference to an optional observer. The result must be casted into type
  *                          Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t Inic_NwTriggerRbd(CInic *self, Ucs_Diag_RbdType_t type, CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NetworkRbd_Sr(CInic *self, Ucs_Diag_RbdType_t type, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, INIC_API_NW_TRIGGER_RBD) != false)
+    if (Al_Lock(&self->lock.api, INIC_API_NETWORK_RBD) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
         if (msg_ptr != NULL)
         {
@@ -887,7 +1030,7 @@ Ucs_Return_t Inic_NwTriggerRbd(CInic *self, Ucs_Diag_RbdType_t type, CSingleObse
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_NW_TRIGGER_RBD;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_RBD;
             msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
             msg_ptr->tel.tel_data_ptr[0] = (uint8_t)type;
@@ -899,7 +1042,7 @@ Ucs_Return_t Inic_NwTriggerRbd(CInic *self, Ucs_Diag_RbdType_t type, CSingleObse
         }
         else
         {
-            Al_Release(&self->lock.api, INIC_API_NW_TRIGGER_RBD);
+            Al_Release(&self->lock.api, INIC_API_NETWORK_RBD);
             result = UCS_RET_ERR_BUFFER_OVERFLOW;
         }
     }
@@ -913,12 +1056,12 @@ Ucs_Return_t Inic_NwTriggerRbd(CInic *self, Ucs_Diag_RbdType_t type, CSingleObse
 
 /*! \brief This function triggers the INIC to force the NotAvailable state
  *  \param self             Reference to CInic instance
- *  \param force            Is \c true if the INIC shall force the network in NotAvailable state. 
+ *  \param force            Is \c true if the INIC shall force the network in NotAvailable state.
  *                          If \c false the INIC shall no no longer force the network to NotAvailable state.
  *  \param obs_ptr          Reference to an optional observer. The result must be casted into type
  *                          Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
 Ucs_Return_t Inic_NwForceNotAvailable(CInic *self, bool force, CSingleObserver *obs_ptr)
@@ -927,14 +1070,14 @@ Ucs_Return_t Inic_NwForceNotAvailable(CInic *self, bool force, CSingleObserver *
 
     if (Al_Lock(&self->lock.api, INIC_API_NW_FORCE_NA) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
         if (msg_ptr != NULL)
         {
             msg_ptr->destination_addr  = self->target_address;
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_NW_FORCE_NO_AVAIL;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_FORCE_NA;
             msg_ptr->id.op_type     = UCS_OP_SETGET;
 
             if (force == false)
@@ -971,41 +1114,53 @@ Ucs_Return_t Inic_NwForceNotAvailable(CInic *self, bool force, CSingleObserver *
  *  \param  config  Holds the parameter values
  *  \param  obs_ptr Reference to an optional observer. The result must be casted into type
  *                  Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               Message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   No message buffer available
+ *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
 Ucs_Return_t Inic_NwConfig_SetGet(CInic *self, uint16_t mask, Inic_NetworkConfig_t config,
                                   CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 24U);
 
-    if (msg_ptr != NULL)
+    if (Al_Lock(&self->lock.api, INIC_API_NW_CONFIG) != false)
     {
-        mask = mask & 7U;       /* allow only bit 0..2 */
-        msg_ptr->destination_addr  = self->target_address;
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 24U);
 
-        msg_ptr->id.fblock_id   = FB_INIC;
-        msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_MOST_NW_CFG;
-        msg_ptr->id.op_type     = UCS_OP_SETGET;
+        if (msg_ptr != NULL)
+        {
+            mask = mask & 0xFU;       /* allow only bit 0..3 */
+            msg_ptr->destination_addr  = self->target_address;
 
-        msg_ptr->tel.tel_data_ptr[0]  = MISC_HB(mask);
-        msg_ptr->tel.tel_data_ptr[1]  = MISC_LB(mask);
-        msg_ptr->tel.tel_data_ptr[2]  = MISC_HB(config.node_address);
-        msg_ptr->tel.tel_data_ptr[3]  = MISC_LB(config.node_address);
-        msg_ptr->tel.tel_data_ptr[4]  = MISC_HB(config.group_address);
-        msg_ptr->tel.tel_data_ptr[5]  = MISC_LB(config.group_address);
-        msg_ptr->tel.tel_data_ptr[6]  = config.llrbc;
-        MISC_MEM_SET(&msg_ptr->tel.tel_data_ptr[7], 0, 17U);
+            msg_ptr->id.fblock_id   = FB_INIC;
+            msg_ptr->id.instance_id = 0U;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_CFG;
+            msg_ptr->id.op_type     = UCS_OP_SETGET;
 
-        Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
+            msg_ptr->tel.tel_data_ptr[0]  = MISC_HB(mask);
+            msg_ptr->tel.tel_data_ptr[1]  = MISC_LB(mask);
+            msg_ptr->tel.tel_data_ptr[2]  = MISC_HB(config.node_address);
+            msg_ptr->tel.tel_data_ptr[3]  = MISC_LB(config.node_address);
+            msg_ptr->tel.tel_data_ptr[4]  = MISC_HB(config.group_address);
+            msg_ptr->tel.tel_data_ptr[5]  = MISC_LB(config.group_address);
+            msg_ptr->tel.tel_data_ptr[6]  = config.llrbc;
+            msg_ptr->tel.tel_data_ptr[7]  = MISC_HB(config.packet_filter);
+            msg_ptr->tel.tel_data_ptr[8]  = MISC_LB(config.packet_filter);
+            MISC_MEM_SET(&msg_ptr->tel.tel_data_ptr[9], 0, 15U);
 
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_CONFIG], obs_ptr);
+            Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
+
+            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_CONFIG], obs_ptr);
+        }
+        else
+        {
+            Al_Release(&self->lock.api, INIC_API_NW_CONFIG);
+            result = UCS_RET_ERR_BUFFER_OVERFLOW;
+        }
     }
     else
     {
-        result = UCS_RET_ERR_BUFFER_OVERFLOW;
+        result = UCS_RET_ERR_API_LOCKED;
     }
 
     return result;
@@ -1015,50 +1170,16 @@ Ucs_Return_t Inic_NwConfig_SetGet(CInic *self, uint16_t mask, Inic_NetworkConfig
  *  \param  self        Reference to CInic instance
  *  \param  obs_ptr     Reference to an optional observer. The result must be casted into type
  *                      Inic_StdResult_t.
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
 Ucs_Return_t Inic_NwConfig_Get(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
-    if (msg_ptr != NULL)
+    if (Al_Lock(&self->lock.api, INIC_API_NW_CONFIG) != false)
     {
-        msg_ptr->destination_addr  = self->target_address;
-
-        msg_ptr->id.fblock_id   = FB_INIC;
-        msg_ptr->id.instance_id = 0U;
-        msg_ptr->id.function_id = INIC_FID_MOST_NW_CFG;
-        msg_ptr->id.op_type     = UCS_OP_GET;
-
-        Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
-
-        (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_CONFIG], obs_ptr);
-    }
-    else
-    {
-        result = UCS_RET_ERR_BUFFER_OVERFLOW;
-    }
-
-    return result;
-}
-
-/*! \brief  Requests the INIC.MOSTNetworkFrameCounter.Status message
- *  \param  self        Reference to CInic instance
- *  \param  reference   Reference counter value 
- *  \param  obs_ptr     Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
- *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
- */
-Ucs_Return_t Inic_NwFrameCounter_Get(CInic *self, uint32_t reference, CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-
-    if(Al_Lock(&self->lock.api, INIC_API_NW_FRAME_COUNTER) != false)
-    {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -1066,7 +1187,50 @@ Ucs_Return_t Inic_NwFrameCounter_Get(CInic *self, uint32_t reference, CSingleObs
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_NW_FRAME_COUNTER;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_CFG;
+            msg_ptr->id.op_type     = UCS_OP_GET;
+
+            Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
+
+            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_NW_CONFIG], obs_ptr);
+        }
+        else
+        {
+            Al_Release(&self->lock.api, INIC_API_NW_CONFIG);
+            result = UCS_RET_ERR_BUFFER_OVERFLOW;
+        }
+    }
+    else
+    {
+        result = UCS_RET_ERR_API_LOCKED;
+    }
+
+    return result;
+}
+
+/*! \brief  Requests the INIC.NetworkFrameCounter.Status message
+ *  \param  self        Reference to CInic instance
+ *  \param  reference   Reference counter value
+ *  \param  obs_ptr     Reference to an optional observer
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
+ */
+Ucs_Return_t Inic_NwFrameCounter_Get(CInic *self, uint32_t reference, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+
+    if (Al_Lock(&self->lock.api, INIC_API_NETWORK_FRAME_COUNTER) != false)
+    {
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+
+        if (msg_ptr != NULL)
+        {
+            msg_ptr->destination_addr  = self->target_address;
+
+            msg_ptr->id.fblock_id   = FB_INIC;
+            msg_ptr->id.instance_id = 0U;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_FRAME_COUNTER;
             msg_ptr->id.op_type     = UCS_OP_GET;
 
             msg_ptr->tel.tel_data_ptr[0]  = (uint8_t)(reference >> 24);
@@ -1081,7 +1245,7 @@ Ucs_Return_t Inic_NwFrameCounter_Get(CInic *self, uint32_t reference, CSingleObs
         }
         else
         {
-            Al_Release(&self->lock.api, INIC_API_NW_FRAME_COUNTER);
+            Al_Release(&self->lock.api, INIC_API_NETWORK_FRAME_COUNTER);
             result = UCS_RET_ERR_BUFFER_OVERFLOW;
         }
     }
@@ -1106,7 +1270,7 @@ Ucs_Return_t Inic_NwFrameCounter_Get(CInic *self, uint32_t reference, CSingleObs
  * \param  self     instance of CInic
  * \param msg_ptr   Pointer to received message
  */
-void Inic_DummyHandler(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DummyHandler(void *self, Ucs_Message_t *msg_ptr)
 {
     MISC_UNUSED(self);
     MISC_UNUSED(msg_ptr);
@@ -1116,7 +1280,7 @@ void Inic_DummyHandler(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_DeviceStatus_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceStatus_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
 
@@ -1143,10 +1307,10 @@ void Inic_DeviceStatus_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_DeviceVersion_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceVersion_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1169,7 +1333,6 @@ void Inic_DeviceVersion_Status(void *self, Msg_MostTel_t *msg_ptr)
         res_data.result.code     = UCS_RES_SUCCESS;
         res_data.result.info_ptr = NULL;
 
-
         Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_VERSION], &res_data, true);
     }
     Al_Release(&self_->lock.api, INIC_API_DEVICE_VERSION_GET);
@@ -1179,16 +1342,16 @@ void Inic_DeviceVersion_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_DeviceVersion_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceVersion_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               msg_ptr->tel.tel_len);
 
         Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_VERSION], &res_data, true);
@@ -1200,10 +1363,10 @@ void Inic_DeviceVersion_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwStatus_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwStatus_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1229,12 +1392,12 @@ void Inic_NwStatus_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwConfig_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwConfig_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
-    if (msg_ptr->tel.tel_len > 4U)
+    if (msg_ptr->tel.tel_len > 6U)
     {
         res_data.data_info       = &self_->network_config;
         res_data.result.code     = UCS_RES_SUCCESS;
@@ -1243,102 +1406,105 @@ void Inic_NwConfig_Status(void *self, Msg_MostTel_t *msg_ptr)
         MISC_DECODE_WORD(&(self_->network_config.node_address), &(msg_ptr->tel.tel_data_ptr[0]));
         MISC_DECODE_WORD(&(self_->network_config.group_address), &(msg_ptr->tel.tel_data_ptr[2]));
         self_->network_config.llrbc   = msg_ptr->tel.tel_data_ptr[4];
+        MISC_DECODE_WORD(&(self_->network_config.packet_filter), &(msg_ptr->tel.tel_data_ptr[5]));
 
         Sub_Notify(&self_->subs[INIC_SUB_NW_CONFIG], &res_data);
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_CONFIG], &res_data, true);
     }
+    Al_Release(&self_->lock.api, INIC_API_NW_CONFIG);
 }
 
 /*! \brief Handler function for INIC.NetworkConfiguration.Error
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwConfig_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwConfig_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               msg_ptr->tel.tel_len);
 
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_CONFIG], &res_data, true);
     }
+    Al_Release(&self_->lock.api, INIC_API_NW_CONFIG);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkFrameCounter.Status
+/*! \brief Handler function for INIC.NetworkFrameCounter.Status
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwFrameCounter_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwFrameCounter_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-    Inic_FrameCounterStatus_t frame_counter_status; 
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    Inic_FrameCounterStatus_t frame_counter_status;
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         MISC_DECODE_DWORD(&frame_counter_status.reference, &(msg_ptr->tel.tel_data_ptr[0]));
         MISC_DECODE_DWORD(&frame_counter_status.frame_counter, &(msg_ptr->tel.tel_data_ptr[4]));
-        frame_counter_status.lock = msg_ptr->tel.tel_data_ptr[8];
+        frame_counter_status.lock = ((msg_ptr->tel.tel_data_ptr[8])!= 0U) ? true : false;
         res_data.data_info        = &frame_counter_status;
         res_data.result.code      = UCS_RES_SUCCESS;
         res_data.result.info_ptr  = NULL;
 
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FRAME_COUNTER], &res_data, true);    /* provides pointer to Inic_StdResult_t structure */
     }
-    Al_Release(&self_->lock.api, INIC_SSUB_NW_FRAME_COUNTER);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_FRAME_COUNTER);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkFrameCounter.Error
+/*! \brief Handler function for INIC.NetworkFrameCounter.Error
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwFrameCounter_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwFrameCounter_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               msg_ptr->tel.tel_len);
 
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FRAME_COUNTER], &res_data, true);    /* provides pointer to Inic_StdResult_t structure */
     }
-    Al_Release(&self_->lock.api, INIC_SSUB_NW_FRAME_COUNTER);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_FRAME_COUNTER);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkStartup.ErrorAck
+/*! \brief Handler function for INIC.NetworkStartup.ErrorAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwStartup_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwStartup_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     self_->startup_locked = false;
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0], 
+                                          &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
     Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_STARTUP], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkStartup.ResultAck
+/*! \brief Handler function for INIC.NetworkStartup.ResultAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwStartup_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwStartup_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     MISC_UNUSED(msg_ptr);
 
     self_->startup_locked = false;
@@ -1348,108 +1514,142 @@ void Inic_NwStartup_Result(void *self, Msg_MostTel_t *msg_ptr)
     Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_STARTUP], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkShutdown.ErrorAck
+/*! \brief Handler function for INIC.NetworkStartupExt.ErrorAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwShutdown_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwStartupExt_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    self_->startup_locked = false;
+    res_data.data_info = NULL;
+    res_data.result = Inic_TranslateError(self_,
+                                          &msg_ptr->tel.tel_data_ptr[0],
+                                          (msg_ptr->tel.tel_len));
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_STARTUP_EXT], &res_data, true);
+}
+
+/*! \brief Handler function for INIC.NetworkStartupExt.ResultAck
+ *  \param self      Reference to CInic instance
+ *  \param msg_ptr   Pointer to received message
+ */
+void Inic_NwStartupExt_Result(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    MISC_UNUSED(msg_ptr);
+
+    self_->startup_locked = false;
+    res_data.data_info = NULL;
+    res_data.result.code = UCS_RES_SUCCESS;
+    res_data.result.info_ptr = NULL;
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_STARTUP_EXT], &res_data, true);
+}
+
+/*! \brief Handler function for INIC.NetworkShutdown.ErrorAck
+ *  \param self      Reference to CInic instance
+ *  \param msg_ptr   Pointer to received message
+ */
+void Inic_NwShutdown_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SHUTDOWN], &res_data, true);
     }
-    Al_Release(&self_->lock.api, INIC_API_NW_SHUTDOWN);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_SHUTDOWN);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkShutdown.ResultAck
+/*! \brief Handler function for INIC.NetworkShutdown.ResultAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwShutdown_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwShutdown_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
     Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SHUTDOWN], &res_data, true);
-    Al_Release(&self_->lock.api, INIC_API_NW_SHUTDOWN);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_SHUTDOWN);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkTriggerRBD.ErrorAck
+/*! \brief Handler function for INIC.NetworkRBD.ErrorAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwTriggerRbd_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkRbd_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_TRIGGER_RBD], &res_data, true);
     }
-    Al_Release(&self_->lock.api, INIC_API_NW_TRIGGER_RBD);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_RBD);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkTriggerRBD.ResultAck
+/*! \brief Handler function for INIC.NetworkRBD.ResultAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwTriggerRbd_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkRbd_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
     Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_TRIGGER_RBD], &res_data, true);
-    Al_Release(&self_->lock.api, INIC_API_NW_TRIGGER_RBD);
+    Al_Release(&self_->lock.api, INIC_API_NETWORK_RBD);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkForceNotAvailable.ErrorAck
+/*! \brief Handler function for INIC.NetworkForceNotAvailable.ErrorAck
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwForceNotAvailable_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwForceNotAvailable_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FORCE_NA], &res_data, true);
     }
     Al_Release(&self_->lock.api, INIC_API_NW_FORCE_NA);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkForceNotAvailable.ResultAck
+/*! \brief Handler function for INIC.NetworkForceNotAvailable.Status
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_NwForceNotAvailable_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwForceNotAvailable_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
@@ -1463,16 +1663,16 @@ void Inic_NwForceNotAvailable_Status(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_DeviceAttach_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceAttach_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
         Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_ATTACH], &res_data, true);
     }
@@ -1482,10 +1682,10 @@ void Inic_DeviceAttach_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_DeviceAttach_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceAttach_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
@@ -1495,198 +1695,276 @@ void Inic_DeviceAttach_Result(void *self, Msg_MostTel_t *msg_ptr)
     Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_ATTACH], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.NetworkAttach.ErrorAck
+
+/*! \brief Handler function for INIC.NetworkDiagnosisFullDuplex.Error
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_NwAttach_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagFullDuplex_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
-        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_ATTACH], &res_data, true);
+        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_FDX], &res_data, true);
     }
 }
 
-/*! \brief Handler function for INIC.NetworkAttach.ResultAck
+/*! \brief Handler function for INIC.NetworkDiagnosisFullDuplex.Result
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_NwAttach_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagFullDuplex_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_ATTACH], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_FDX], &res_data, true);
 }
 
-
-
-
-/*! \brief Handler function for INIC.MOSTNetworkSystemDiagnosis.Error
+/*! \brief Handler function for INIC.NetworkDiagnosisFullDuplexEnd.Error
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_NwSysDiagnosis_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagFullDuplexEnd_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               (msg_ptr->tel.tel_len));
-        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SYS_DIAGNOSIS], &res_data, true);
+        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_FDX_END], &res_data, true);
     }
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkSystemDiagnosis.Result
+/*! \brief Handler function for INIC.NetworkDiagnosisFullDuplexEnd.Result
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_NwSysDiagnosis_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagFullDuplexEnd_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SYS_DIAGNOSIS], &res_data, true);
-}
-
-/*! \brief Handler function for INIC.MOSTNetworkSystemDiagnosisEnd.Error
- * \param  self     reference to INIC object
- * \param  msg_ptr  received message
- */
-void Inic_NwSysDiagEnd_Error(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    if (msg_ptr->tel.tel_len > 0U)
-    {
-        res_data.data_info = NULL;
-        res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
-                                              (msg_ptr->tel.tel_len));
-        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SYS_DIAGEND], &res_data, true);
-    }
-}
-
-/*! \brief Handler function for INIC.MOSTNetworkSystemDiagnosisEnd.Result
- * \param  self     reference to INIC object
- * \param  msg_ptr  received message
- */
-void Inic_NwSysDiagEnd_Result(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    MISC_UNUSED(msg_ptr);
-
-    res_data.data_info       = NULL;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_SYS_DIAGEND], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_FDX_END], &res_data, true);
 }
 
 
 
-/*! \brief Handler function for INIC.BCDiag.Error
+/*! \brief Handler function for INIC.NetworkDiagnosisHalfDuplex.Error
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_BCDiagnosis_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagHalfDuplex_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0], 
+                                          &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_BC_DIAGNOSIS], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_HDX], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.BCDiag.ResultAck
+/*! \brief Handler function for INIC.NetworkDiagnosisHalfDuplex.ResultAck
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_BCDiagnosis_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagHalfDuplex_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_BC_DIAGNOSIS], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_HDX], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.BCDiagEnd.Error
+/*! \brief Handler function for INIC.NetworkDiagnosisHalfDuplexEnd.Error
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_BCDiagEnd_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagHalfDuplexEnd_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0], 
+                                          &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_BC_DIAG_END], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_HDX_END], &res_data, true);
 }
 
-/*! \brief Handler function for INIC.BCDiagEnd.Result
+/*! \brief Handler function for INIC.NetworkDiagnosisHalfDuplexEnd.Result
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_BCDiagEnd_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NwDiagHalfDuplexEnd_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_BC_DIAG_END], &res_data, true);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_DIAG_HDX_END], &res_data, true);
+}
+
+
+/*! \brief Handler function for INIC.FBP_mode.Error
+ * \param  self     reference to INIC object
+ * \param  msg_ptr  received message
+ */
+void Inic_NetworkFallback_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    res_data.data_info = NULL;
+    res_data.result = Inic_TranslateError(self_,
+                                          &msg_ptr->tel.tel_data_ptr[0],
+                                          (msg_ptr->tel.tel_len));
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FALLBACK], &res_data, true);
+}
+
+
+
+/*! \brief Handler function for INIC.FBP_mode.Result
+ * \param  self     reference to INIC object
+ * \param  msg_ptr  received message
+ */
+void Inic_NetworkFallback_Result(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    MISC_UNUSED(msg_ptr);
+
+    res_data.data_info       = NULL;
+    res_data.result.code     = UCS_RES_SUCCESS;
+    res_data.result.info_ptr = NULL;
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FALLBACK], &res_data, true);
+}
+
+/*! \brief Handler function for INIC.FBPiagEnd.Error
+ * \param  self     reference to INIC object
+ * \param  msg_ptr  received message
+ */
+void Inic_NetworkFallbackEnd_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    res_data.data_info = NULL;
+    res_data.result = Inic_TranslateError(self_,
+                                          &msg_ptr->tel.tel_data_ptr[0],
+                                          (msg_ptr->tel.tel_len));
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FALLBACK_END], &res_data, true);
+}
+
+/*! \brief Handler function for INIC.FBPiagEnd.Result
+ * \param  self     reference to INIC object
+ * \param  msg_ptr  received message
+ */
+void Inic_NetworkFallbackEnd_Result(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    MISC_UNUSED(msg_ptr);
+
+    res_data.data_info       = NULL;
+    res_data.result.code     = UCS_RES_SUCCESS;
+    res_data.result.info_ptr = NULL;
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_FALLBACK_END], &res_data, true);
 }
 
 
 
 
-
-/*! \brief Handler function for INIC.MOSTNetworkRBDResult.Status
+/*! \brief Handler function for INIC.NetworkInfo.Status
  *  \param  self        Reference to INIC object
  *  \param  msg_ptr     Received message
  */
-void Inic_NwRbdResult_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkInfo_Status(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_NetworkInfo_t network_info_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    if (msg_ptr->tel.tel_len > 0U)
+    {
+        network_info_data.sys_conf_state = (Ucs_Diag_RbdResult_t)msg_ptr->tel.tel_data_ptr[1];
+        network_info_data.availability   = (Ucs_Network_Availability_t)msg_ptr->tel.tel_data_ptr[2];
+        network_info_data.avail_info     = (Ucs_Network_AvailInfo_t)msg_ptr->tel.tel_data_ptr[3];
+        network_info_data.avail_trans_cause = (Ucs_Network_AvailTransCause_t)msg_ptr->tel.tel_data_ptr[4];
+        MISC_DECODE_WORD(&(network_info_data.node_address), &(msg_ptr->tel.tel_data_ptr[5]));
+        network_info_data.node_position     = msg_ptr->tel.tel_data_ptr[7];
+        network_info_data.max_position      = msg_ptr->tel.tel_data_ptr[8];
+        MISC_DECODE_WORD(&(network_info_data.packet_bw), &(msg_ptr->tel.tel_data_ptr[9]));
+        res_data.data_info       = &network_info_data;
+        res_data.result.code     = UCS_RES_SUCCESS;
+        res_data.result.info_ptr = NULL;
+
+        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_INFO], &res_data, true);
+    }
+}
+
+/*! \brief Handler function for INIC.NetworkInfo.Error
+ * \param  self     reference to INIC object
+ * \param  msg_ptr  received message
+ */
+void Inic_NetworkInfo_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    if (msg_ptr->tel.tel_len > 0U)
+    {
+        res_data.data_info  = NULL;
+        res_data.result = Inic_TranslateError(self_,
+                                              &msg_ptr->tel.tel_data_ptr[0],
+                                              msg_ptr->tel.tel_len);
+
+        Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_INFO], &res_data, true);
+    }
+}
+
+/*! \brief Handler function for INIC.NetworkRBDResult.Status
+ *  \param  self        Reference to INIC object
+ *  \param  msg_ptr     Received message
+ */
+void Inic_NetworkRbdResult_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_RbdResult_t rbd_result_data;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1703,20 +1981,20 @@ void Inic_NwRbdResult_Status(void *self, Msg_MostTel_t *msg_ptr)
     Al_Release(&self_->lock.api, INIC_API_NW_RBD_RESULT);
 }
 
-/*! \brief Handler function for INIC.MOSTNetworkRBDResult.Error
+/*! \brief Handler function for INIC.NetworkRBDResult.Error
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_NwRbdResult_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkRbdResult_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Inic_TranslateError(self_,
-                                              &msg_ptr->tel.tel_data_ptr[0], 
+                                              &msg_ptr->tel.tel_data_ptr[0],
                                               msg_ptr->tel.tel_len);
 
         Ssub_Notify(&self_->ssubs[INIC_SSUB_NW_RBD_RESULT], &res_data, true);
@@ -1742,9 +2020,9 @@ Ucs_StdResult_t Inic_TranslateError(CInic *self, uint8_t error_data[], uint8_t e
     Ucs_StdResult_t ret_val;
     MISC_UNUSED(self);
 
-    if(error_data[0] != 0x20U)
+    if (error_data[0] != 0x20U)
     {
-        ret_val.code = UCS_RES_ERR_MOST_STANDARD;
+        ret_val.code = UCS_RES_ERR_STANDARD;
     }
     else
     {
@@ -1811,7 +2089,7 @@ Ucs_Network_Availability_t Inic_GetAvailability(CInic *self)
     return self->network_status.availability;
 }
 
-uint16_t Inic_GetTargetAddress (CInic *self)
+uint16_t Inic_GetTargetAddress(CInic *self)
 {
     return self->target_address;
 }

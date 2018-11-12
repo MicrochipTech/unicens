@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -43,7 +43,6 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Includes                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
-#include "ucs_inic_pb.h"
 #include "ucs_obs.h"
 #include "ucs_fsm.h"
 #include "ucs_dec.h"
@@ -66,13 +65,14 @@ extern "C"
 #define EXC_FID_HELLO               0x200U
 #define EXC_FID_WELCOME             0x201U
 #define EXC_FID_SIGNATURE           0x202U
-#define EXC_FID_DEVICE_INIT         0x203U
-#define EXC_FID_ENABLEPORT          0x210U        
+#define EXC_FID_INIT                0x203U
+#define EXC_FID_ALIVE_MESSAGE       0x204U
+#define EXC_FID_ENABLEPORT          0x210U
 #define EXC_FID_CABLE_LINK_DIAG     0x211U
 #define EXC_FID_PHY_LAY_TEST        0x220U
 #define EXC_FID_PHY_LAY_TEST_RES    0x221U
-#define EXC_FID_BC_DIAG             0x222U
-#define EXC_FID_BC_ENABLE_TX        0x223U
+#define EXC_FID_REVERSE_REQ         0x222U
+#define EXC_FID_ENABLE_TX           0x223U
 #define EXC_FID_MEM_SESSION_OPEN    0x300U
 #define EXC_FID_MEM_SESSION_CLOSE   0x301U
 #define EXC_FID_MEMORY_READ         0x302U
@@ -84,6 +84,8 @@ extern "C"
 
 
 
+/*! \brief max. number of elements used in MemoryWrite and MemoryWrite messages */
+#define MAX_MEM_DATA_LEN                    18U
 
 
 
@@ -106,17 +108,19 @@ typedef struct Exc_Ssubjects_
     CSingleSubject hello;               /*!< \brief Subject for the Hello.Status and Hello.Error messages */
     CSingleSubject welcome;             /*!< \brief Subject for the Welcome.ResultAck and Welcome.ErrorAck messages */
     CSingleSubject signature;           /*!< \brief Subject for the Signature.Status and Signature.Error messages */
-    CSingleSubject deviceinit;          /*!< \brief Subject for the DeviceInit.Error message */
+    CSingleSubject init;                /*!< \brief Subject for the Init.Error message */
+    CSingleSubject alivemessage;        /*!< \brief Subject fir the AliveMessage.Status and AliveMessage.Error messages */
     CSingleSubject enableport;          /*!< \brief Subject for the EnablePort.ResultAck  and EnablePort.ErrorAck messages */
     CSingleSubject cablelinkdiag;       /*!< \brief Subject for the CableLinkDiagnosis.ResultAck and CableLinkDiagnosis.ErrorAck messages */
     CSingleSubject phylaytest;          /*!< \brief Subject for the PhysicalLayerTestResult.Status and PhysicalLayerTest.Error messages */
     CSingleSubject phylaytestresult;    /*!< \brief Subject for the PhysicalLayerTestResult.Status and PhysicalLayerTestResult.Error messages */
+    CSingleSubject reverse_request;     /*!< \brief Subject for the ReverseRequest.Result and Error messages */
+    CSingleSubject enabletx;            /*!< \brief Subject for the EnableTx.Status and Error messages  */
     CSingleSubject memsessionopen;      /*!< \brief Subject for the MemorySessionOpen.Result and MemorySessionOpen.Error messages */
     CSingleSubject memsessionclose;     /*!< \brief Subject for the MemorySessionClose.Result and MemorySessionClose.Error messages */
     CSingleSubject memoryread;          /*!< \brief Subject for the MemoryRead.Result and MemoryRead.Error messages */
     CSingleSubject memorywrite;         /*!< \brief Subject for the MemoryWrite.Result and MemoryWrite.Error messages */
-    CSingleSubject bcdiag;              /*!< \brief Subject for the BCdiag.Result and Error messages */
-    CSingleSubject enabletx;            /*!< \brief Subject for the BC_EnableTx.Status and Error messages  */
+
 } Exc_Ssubjects_t;
 
 
@@ -126,19 +130,22 @@ typedef struct Exc_Ssubjects_
 typedef struct CExc_
 {
     /*! \brief pointer to the FktID/OPType list */
-    Dec_FktOpIsh_t const *fkt_op_list_ptr;  
+    Dec_FktOpIsh_t const *fkt_op_list_ptr;
 
     /*! \brief Subjects for single-observer */
     Exc_Ssubjects_t       ssubs;
 
     /*! \brief Parameters for API locking */
-    Exc_ApiLock_t         lock;                 
+    Exc_ApiLock_t         lock;
 
     /*! \brief Reference to base instance */
     CBase *base_ptr;
 
     /*! \brief Reference to a Transceiver instance */
-    CTransceiver         *xcvr_ptr;             
+    CTransceiver         *xcvr_ptr;
+
+    /*! \brief Provides exclusive execution of Node Discovery, Programming, HalfDuplex and FullDuplex Diagnosis */
+    bool service_locked;
 
 } CExc;
 
@@ -159,29 +166,106 @@ typedef struct Exc_StdResult_
 /*! \brief   This structure provides information on the Physical layer test result */
 typedef struct Exc_PhyTestResult_
 {
-    uint8_t   port_number;      /*!< \brief Port Number */ 
+    uint8_t   port_number;      /*!< \brief Port Number */
     bool      lock_status;      /*!< \brief Lock status */
     uint16_t  err_count;        /*!< \brief Number of Coding Errors */
 
 } Exc_PhyTestResult_t;
 
 
-/*! \brief  Result values of the BCDiag command*/
-typedef enum Exc_BCDiagResValue_
+/*! \brief Request Identifier values of the ReverseRequest command.
+ *         Each identifer has its own type for the RequestList parameter.
+ */
+typedef enum Exc_ReverseReq_ID_t_
 {
-    DUT_SLAVE       = 0x01U,     /*!< \brief Slave answered. No break on this segment. */
-    DUT_MASTER      = 0x02U,     /*!< \brief TimingMaster answered: ring is closed. */
-    DUT_NO_ANSWER   = 0x03U,     /*!< \brief Ring break found. */
-    DUT_TIMEOUT     = 0x04U      /*!< \brief No answer on back channel */
+    EXC_REV_REQ_HDX     = 0U,        /*!< \brief Identifier for HalfDuplex Diagnosis */
+    EXC_REV_REQ_FBP     = 1U         /*!< \brief Identifier for FallBack Protection */
 
-} Exc_BCDiagResValue;
+} Exc_ReverseReq_ID_t;
 
-/*! \brief  Provides BackChannel Diagnosis result */
-typedef struct Exc_BCDiagResult_
+/*! \brief Type definition of the HalfDuplex Diagnosis RequestList.
+ */
+typedef struct Exc_ReverseReq0_List_t_
 {
-    Exc_BCDiagResValue  diag_result;
-    uint16_t            admin_addr;
-} Exc_BCDiagResult;
+    uint16_t t_wait;                /*!< \brief t_wait */
+    uint16_t admin_node_address;    /*!< \brief Admin Node Address */
+    uint8_t  version_limit;         /*!< \brief version limit  */
+
+} Exc_ReverseReq0_List_t;
+
+/*! \brief Type definition of the FBP RequestList.
+ */
+typedef struct Exc_ReverseReq1_List_t_
+{
+    uint16_t t_neg_guard;
+    uint16_t t_neg_initiator;
+
+} Exc_ReverseReq1_List_t;
+
+/*! \brief Tester Result values of the HalfDuplex Diagnosis.
+ */
+typedef enum Exc_ReverseReq0_ResID_t_
+{
+    EXC_REVREQ0_RES_SLAVE_OK        = 0x00U,       /*!< \brief SlaveOK */
+    EXC_REVREQ0_RES_SLAVE_WRONG_POS = 0x01U,       /*!< \brief SlaveWrongNodePosition */
+    EXC_REVREQ0_RES_MASTER_NO_RX    = 0x10U,       /*!< \brief MasterNoRxSignal */
+    EXC_REVREQ0_RES_MASTER_RX_LOCK  = 0x11U,       /*!< \brief MasterRxLock */
+    EXC_REVREQ0_RES_NO_RESULT       = 0xFFU        /*!< \brief NoResult */
+
+} Exc_ReverseReq0_ResID_t;
+
+
+
+/*! \brief Type definition of the HalfDuplex Diagnosis ResultList.
+ */
+typedef struct Exc_ReverseReq0_ResultList_t_
+{
+    Exc_ReverseReq0_ResID_t tester_result;
+    uint8_t                 cable_diag_result;
+    uint8_t                 version;
+    Ucs_Signature_t         signature;
+
+} Exc_ReverseReq0_ResultList_t;
+
+
+
+/*! \brief  Provides HalfDuplex Diagnosis result */
+typedef struct Exc_ReverseReq0_Result_t_
+{
+    Exc_ReverseReq_ID_t     req_id;
+    Exc_ReverseReq0_ResultList_t  result_list;
+
+} Exc_ReverseReq0_Result_t;
+
+
+/*! \brief Result values of the Fallback Protection Mode
+ */
+typedef enum Exc_ReverseReq1_ResID_t_
+{
+    EXC_REVREQ1_RES_SUCCESS         = 0x00U,       /*!< \brief Success */
+    EXC_REVREQ1_RES_NOSUCCESS       = 0x01U        /*!< \brief NoSuccess */
+
+} Exc_ReverseReq1_ResID_t;
+
+
+/*! \brief Type definition of the Fallback Protection  ResultList.
+ */
+typedef struct Exc_ReverseReq1_ResultList_t_
+{
+    Exc_ReverseReq1_ResID_t           result;  
+
+} Exc_ReverseReq1_ResultList_t;
+
+
+
+
+/*! \brief  Provides FBP Diagnosis result */
+typedef struct Exc_ReverseReq1_Result_t_
+{
+    Exc_ReverseReq_ID_t req_id;
+    Exc_ReverseReq1_ResultList_t    result_list;
+
+} Exc_ReverseReq1_Result_t;
 
 
 /*! \brief   This structure provides information on the Coax Diagnosis */
@@ -242,76 +326,83 @@ typedef struct Exc_MemWriteResult_
 /* Prototypes                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 extern void Exc_Ctor(CExc *self, CBase *base_ptr, CTransceiver *rcm_ptr);
-extern void Exc_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr);
+extern void Exc_OnRcmRxFilter(void *self, Ucs_Message_t *tel_ptr);
 
-extern Ucs_Return_t Exc_Hello_Get(CExc *self, 
-                                  uint16_t target_address, 
+extern Ucs_Return_t Exc_Hello_Get(CExc *self,
+                                  uint16_t target_address,
                                   uint8_t version_limit,
                                   CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_Welcome_Sr(CExc *self, 
-                                   uint16_t target_address, 
+extern Ucs_Return_t Exc_Welcome_Sr(CExc *self,
+                                   uint16_t target_address,
                                    uint16_t admin_node_address,
                                    uint8_t version,
                                    Ucs_Signature_t signature,
                                    CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_Signature_Get(CExc *self, 
-                                      uint16_t target_address, 
-                                      uint8_t version_limit, 
+extern Ucs_Return_t Exc_Signature_Get(CExc *self,
+                                      uint16_t target_address,
+                                      uint8_t version_limit,
                                       CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_DeviceInit_Start(CExc *self, 
-                                  uint16_t target_address, 
-                                  CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_EnablePort_Sr(CExc *self, 
-                                      uint16_t target_address, 
-                                      uint8_t port_number, 
-                                      bool enabled, 
+extern Ucs_Return_t Exc_Init_Start(CExc *self,
+                                   uint16_t target_address,
+                                   CSingleObserver *obs_ptr);
+extern Ucs_Return_t Exc_EnablePort_Sr(CExc *self,
+                                      uint16_t target_address,
+                                      uint8_t port_number,
+                                      bool enabled,
                                       CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_CableLinkDiagnosis_Start (CExc *self, 
-                                                  uint16_t target_address, 
-                                                  uint8_t port_number, 
+extern Ucs_Return_t Exc_CableLinkDiagnosis_Start (CExc *self,
+                                                  uint16_t target_address,
+                                                  uint8_t port_number,
                                                   CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_PhyTest_Start(CExc *self, 
-                                      uint8_t port_number, 
-                                      Ucs_Diag_PhyTest_Type_t type, 
-                                      uint16_t lead_in, 
-                                      uint32_t duration, 
+extern Ucs_Return_t Exc_PhyTest_Start(CExc *self,
+                                      uint8_t port_number,
+                                      Ucs_Diag_PhyTest_Type_t type,
+                                      uint16_t lead_in,
+                                      uint32_t duration,
                                       uint16_t lead_out,
                                       CSingleObserver *obs_ptr);
-extern Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self, 
+extern Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self,
                                            CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_BCDiag_Start(CExc *self, 
-                                     uint8_t position, 
-                                     uint16_t admin_na,
-                                     uint16_t t_send,
-                                     uint16_t t_wait4dut, 
-                                     uint16_t t_switch,
-                                     uint16_t t_back,
-                                     bool     autoback,
-                                     CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_BCEnableTx_StartResult(CExc *self, 
-                                               uint8_t port,
-                                               CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self, 
+extern Ucs_Return_t Exc_ReverseRequest0_Start(CExc *self,
+                                              uint8_t  master_position,
+                                              uint16_t t_switch,
+                                              uint16_t t_send,
+                                              uint16_t t_back,
+                                              Exc_ReverseReq0_List_t req_list,
+                                              CSingleObserver *obs_ptr);
+extern Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
+                                              uint8_t  master_position,
+                                              uint16_t t_switch,
+                                              uint16_t t_send,
+                                              uint16_t t_back,
+                                              Exc_ReverseReq1_List_t req_list,
+                                              CSingleObserver *obs_ptr,
+                                              CSingleObserver *alive_obs_ptr);
+extern Ucs_Return_t Exc_EnableTx_StartResult(CExc *self,
+                                             uint8_t port,
+                                             CSingleObserver *obs_ptr);
+extern Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self,
                                           uint16_t target_address,
-                                          uint8_t session_type,
+                                          Ucs_Prg_SessionType_t session_type,
                                           CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self, 
+extern Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self,
                                            uint16_t target_address,
                                            uint16_t session_handle,
                                            CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_MemoryRead_Sr(CExc *self, 
+extern Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
                                       uint16_t target_address,
                                       uint16_t session_handle,
                                       uint8_t  mem_id,
                                       uint32_t address,
                                       uint8_t  unit_len,
                                       CSingleObserver *obs_ptr);
-extern Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self, 
+extern Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self,
                                        uint16_t target_address,
                                        uint16_t session_handle,
-                                       uint8_t  mem_id,
+                                       Ucs_Prg_MemId_t mem_id,
                                        uint32_t address,
-                                       uint8_t  unit_len,
+                                       uint8_t  unit_size,
+                                       uint8_t  data_length,
                                        uint8_t  unit_data[],
                                        CSingleObserver *obs_ptr);
 

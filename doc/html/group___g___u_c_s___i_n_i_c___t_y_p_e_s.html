@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -108,6 +108,12 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___gpio___pin_configuration__t.html">Ucs_Gpio_PinConfiguration_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This structure contains information on the GPIO pin configuration.  <a href="struct_ucs___gpio___pin_configuration__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___signature__t.html">Ucs_Signature_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This structure holds the signature of the Hello, Welcome and Signature messages. It supports the signature v1 only.  <a href="struct_ucs___signature__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ident_string__t.html">Ucs_IdentString_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This structure holds the elements of an IdentString.  <a href="struct_ucs___ident_string__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
@@ -141,32 +147,6 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ga132c4c68227062e63ffb99b321b9a677"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current power state of the INICs power management interface (PS0/PS1).  <a href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga132c4c68227062e63ffb99b321b9a677.html#ga132c4c68227062e63ffb99b321b9a677">More...</a><br/></td></tr>
 <tr class="separator:ga132c4c68227062e63ffb99b321b9a677"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4d4ad405b114eba3e3a2e5581a0b5d9c"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#ga4d4ad405b114eba3e3a2e5581a0b5d9c">Ucs_Sd_ResCode_t</a> { <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca863e9f716a0aaaa31a88e2362e0b20c9">UCS_SD_TARGET_FOUND</a> = 0x01U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca4bb8732a74d1e48108c59ee15b99f2dc">UCS_SD_FINISHED</a> = 0x02U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca6905a0a0e360528a3a8bc2a019b83f5e">UCS_SD_CABLE_LINK_RES</a> = 0x03U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca24eb65098a000880b49bdec23df59875">UCS_SD_ABORTED</a> = 0x04U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9caf1cfc47eb0bb457e7627178aa04ec292">UCS_SD_ERROR</a> = 0x05U
-<br/>
- }</td></tr>
-<tr class="memdesc:ga4d4ad405b114eba3e3a2e5581a0b5d9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of System Diagnosis Report.  <a href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#ga4d4ad405b114eba3e3a2e5581a0b5d9c">More...</a><br/></td></tr>
-<tr class="separator:ga4d4ad405b114eba3e3a2e5581a0b5d9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad0e1473ecd96b8d94131cb5d81295fc3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#gad0e1473ecd96b8d94131cb5d81295fc3">Ucs_Sd_ErrCode_t</a> { <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a93dead118b00c19d7d17401be8ce72cd">UCS_SD_ERR_UNSPECIFIED</a> = 0x01U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a6702bd287f88f76e4d13ac87f8b3c721">UCS_SD_ERR_WELCOME_NO_SUCCESS</a> = 0x02U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a2e4d4e1fe5f54e2f5855e26483670aea">UCS_SD_ERR_STOP_SYSDIAG_FAILED</a> = 0x03U, 
-<br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3aa90c57ed3372954deabffda0100a2da3">UCS_SD_ERR_TERMINATED</a> = 0x04U
-<br/>
- }</td></tr>
-<tr class="memdesc:gad0e1473ecd96b8d94131cb5d81295fc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of System Diagnosis Error Codes.  <a href="group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#gad0e1473ecd96b8d94131cb5d81295fc3">More...</a><br/></td></tr>
-<tr class="separator:gad0e1473ecd96b8d94131cb5d81295fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>INIC related types. </p>
@@ -175,12 +155,12 @@ Enumerations</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

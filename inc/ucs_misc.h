@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -110,7 +110,7 @@ extern "C"
 /*! \brief Checks if a value is inside a certain range */
 #define MISC_IS_VALUE_IN_RANGE(val, min, max)   ((((val) >= (min)) && ((val) <= (max))) ? true : false)
 
-/*! \brief Checks if the given size is a multiple of 4. If not, the given size is corrected 
+/*! \brief Checks if the given size is a multiple of 4. If not, the given size is corrected
  *         by that macro.
  */
 #define MISC_QUADLET_ALGINED_SIZE(size)         (((((size)+4U)-1U)/4U)*4U)
@@ -123,6 +123,7 @@ extern "C"
 extern void Misc_MemSet(void *dst_ptr, int32_t value, uint32_t size);
 extern void Misc_MemCpy(void *dst_ptr, void *src_ptr, uint32_t size);
 
+
 /*!
  * @}
  * \endcond
@@ -134,7 +135,7 @@ extern void Misc_MemCpy(void *dst_ptr, void *src_ptr, uint32_t size);
  *  \details By defining the macro UCS_MEM_SET the application is able to specify its own memset
  *           function to be used by UNICENS. If the macro is not set will use byte wise write operations.
  *  \ingroup G_UCS_MISC_CFG
- */ 
+ */
 #ifndef UCS_MEM_SET
 #define UCS_MEM_SET
 #endif
@@ -145,7 +146,7 @@ extern void Misc_MemCpy(void *dst_ptr, void *src_ptr, uint32_t size);
  *  \details By defining the macro UCS_MEM_CPY the application is able to specify its own memcpy
  *           function to be used by UNICENS. If the macro is not set UNICENS will use byte wise copy operations.
  *  \ingroup G_UCS_MISC_CFG
- */ 
+ */
 #ifndef UCS_MEM_CPY
 #define UCS_MEM_CPY
 #endif

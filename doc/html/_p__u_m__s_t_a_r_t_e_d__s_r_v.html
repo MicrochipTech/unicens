@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -150,7 +150,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="line"></div>
 <div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a7d2541cf63dfcea750c0d0ec2ef563c0.html#a7d2541cf63dfcea750c0d0ec2ef563c0" title="Callback function requesting the application to call Ucs_Service(). Mandatory callback function in ev...">request_service_fptr</a> = &amp;App_OnServiceRequest;     <span class="comment">/* assign SERVICE event callback functions */</span></div>
 <div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a9de73ec82699e45173702e9b0ccc917a.html#a9de73ec82699e45173702e9b0ccc917a" title="Callback function requesting the application to call Ucs_ReportTimeout() after a certain time...">set_application_timer_fptr</a> = &amp;App_OnSetAppTimer;  <span class="comment">/* assign TIMER event callback function */</span></div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a4e1140be3951f0e14d4071840f4ebc8e.html#a4e1140be3951f0e14d4071840f4ebc8e" title="Mandatory callback function querying the actual system tick count.">get_tick_count_fptr</a> = App_OnGetTickCount;         <span class="comment">/* tick count requires the same timer </span></div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a4e1140be3951f0e14d4071840f4ebc8e.html#a4e1140be3951f0e14d4071840f4ebc8e" title="Mandatory callback function querying the actual system tick count.">get_tick_count_fptr</a> = App_OnGetTickCount;         <span class="comment">/* tick count requires the same timer</span></div>
 <div class="line"><span class="comment">                                                                           reference/resolution as the application timer</span></div>
 <div class="line"><span class="comment">                                                                         */</span></div>
 <div class="line">    <span class="comment">/* .. further initialization .. */</span></div>
@@ -170,7 +170,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="line">            <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga369c86a27ffee30a3af3423f6b3f3e59.html#ga369c86a27ffee30a3af3423f6b3f3e59" title="The application must call this function if the application timer expires.">Ucs_ReportTimeout</a>();</div>
 <div class="line">        }</div>
 <div class="line"></div>
-<div class="line">        <span class="keywordflow">if</span>(event_service != <span class="keyword">false</span>)</div>
+<div class="line">        <span class="keywordflow">if</span> (event_service != <span class="keyword">false</span>)</div>
 <div class="line">        {</div>
 <div class="line">            event_service = <span class="keyword">false</span>;</div>
 <div class="line">            <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga649fb9128df6f634fc86aa03b374d822.html#ga649fb9128df6f634fc86aa03b374d822" title="The application must call this function cyclically to drive UNICENS.">Ucs_Service</a>();</div>
@@ -208,7 +208,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="line"></div>
 <div class="line"><span class="keywordtype">void</span> App_OnSetAppTimer(uint16_t timeout)</div>
 <div class="line">{</div>
-<div class="line">    </div>
+<div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (timer_id != 0U)                                     <span class="comment">/* stop reference timer if it is still running */</span></div>
 <div class="line">    {</div>
 <div class="line">        (void)timeKillEvent(timer_id);</div>
@@ -234,12 +234,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -46,6 +46,8 @@
 #include "ucs_base.h"
 #include "ucs_amsmessage.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -79,7 +81,9 @@ extern Ucs_AmsTx_Msg_t* Amtp_AllocMsg(CAmtp *self);
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMD_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_AMD_H */
 
 /*!
  * @}

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -42,6 +42,8 @@
 #include "ucs_smm.h"
 #include "ucs_misc.h"
 #include "ucs_trace.h"
+
+#ifndef SMM_FOOTPRINT_NOAMS
 
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
@@ -197,7 +199,7 @@ static void Smm_Free(void *self, void *mem_ptr, Ams_MemUsage_t type, void* custo
  *  \param  self        The instance
  *  \param  rx_cnt_ptr  Application provided reference to write the current number of unused Rx message objects.
  *  \param  tx_cnt_ptr  Application provided reference to write the current number of unused Tx message objects.
- *  \return Returns \c UCS_RET_ERR_PARAM if \c NULL is provided otherwise \c UCS_RET_SUCCESS. 
+ *  \return Returns \c UCS_RET_ERR_PARAM if \c NULL is provided otherwise \c UCS_RET_SUCCESS.
  */
 Ucs_Return_t Smm_GetFreeBufferCnt(CStaticMemoryManager *self, uint16_t *rx_cnt_ptr, uint16_t *tx_cnt_ptr)
 {
@@ -216,6 +218,7 @@ Ucs_Return_t Smm_GetFreeBufferCnt(CStaticMemoryManager *self, uint16_t *rx_cnt_p
     return ret;
 }
 
+#endif /* ifndef SMM_FOOTPRINT_NOAMS */
 
 /*!
  * @}

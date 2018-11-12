@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -47,6 +47,8 @@
 #include "ucs_message.h"
 #include "ucs_dl.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -70,14 +72,14 @@ typedef enum Amsg_TxIntStatus_
 
 } Amsg_TxIntStatus_t;
 
-/*! \brief  Assignable function which is invoked as soon as an application message is received 
+/*! \brief  Assignable function which is invoked as soon as an application message is received
  *          completely and available in the Rx message queue
  *  \param  self            The instance (optional)
  *  \param  msg_ptr         Reference to the received message
  */
 typedef void (*Amsg_RxCompleteCb_t)(void* self, Ucs_AmsRx_Msg_t* msg_ptr);
 
-/*! \brief  Callback function type which is fired as soon as an AMS transmission was finished 
+/*! \brief  Callback function type which is fired as soon as an AMS transmission was finished
  *  \param  msg_ptr         Reference to the related message object
  *  \param  result          Transmission result
  *  \param  info            Detailed INIC transmission result
@@ -85,14 +87,14 @@ typedef void (*Amsg_RxCompleteCb_t)(void* self, Ucs_AmsRx_Msg_t* msg_ptr);
  */
 typedef void (*Amsg_TxCompleteCb_t)(Ucs_AmsTx_Msg_t* msg_ptr, Ucs_AmsTx_Result_t result, Ucs_AmsTx_Info_t info, void* self);
 
-/*! \brief  Single instance API callback function type which is fired as soon as an AMS transmission was finished 
+/*! \brief  Single instance API callback function type which is fired as soon as an AMS transmission was finished
  *  \param  msg_ptr         Reference to the related message object
  *  \param  result          Transmission result
  *  \param  info            Detailed INIC transmission result
  */
 typedef void (*Amsg_TxCompleteSiaCb_t)(Ucs_AmsTx_Msg_t* msg_ptr, Ucs_AmsTx_Result_t result, Ucs_AmsTx_Info_t info);
 
-/*! \brief  Callback function which is invoked to free a Tx message object to the owning pool 
+/*! \brief  Callback function which is invoked to free a Tx message object to the owning pool
  *  \param  owner_ptr       The owning pool of the message object
  *  \param  msg_ptr         Reference to the related message object
  */
@@ -117,10 +119,10 @@ typedef struct Amsg_IntMsgTx_
     uint16_t            next_segment_cnt;       /*!< \brief Specifies the next segment count. '0xFF' means size prefixed */
     uint8_t             follower_id;            /*!< \brief Identifier of segmented messages and corresponding telegrams  */
     Ucs_MsgTxStatus_t   temp_result;            /*!< \brief Stores the temporary result that is notified when then transmission
-                                                 *          has completed 
+                                                 *          has completed
                                                  */
     uint16_t            backup_dest_address;    /*!< \brief Backup of replaced target address. */
-    bool                ignore_wrong_target;    /*!< \brief Forces the message to report transmission result "success", although 
+    bool                ignore_wrong_target;    /*!< \brief Forces the message to report transmission result "success", although
                                                  *          the INIC has reported transmission error "wrong target"
                                                  */
     CDlNode             node;                   /*!< \brief Node required for message pool */
@@ -129,7 +131,7 @@ typedef struct Amsg_IntMsgTx_
                                                  *          after transmission completed
                                                  */
     Amsg_TxCompleteCb_t    complete_fptr;       /*!< \brief Callback function which is invoked after transmission
-                                                 *          completed 
+                                                 *          completed
                                                  */
     void                  *complete_inst_ptr;   /*!< \brief Instance pointer which is required to invoke complete_fptr */
 
@@ -149,7 +151,7 @@ typedef struct Amsg_IntMsgRx_
 
     uint8_t             exp_tel_cnt;            /*!< \brief The expected TelCnt used for segmented transfer */
     bool                gc_marker;              /*!< \brief Identifies message objects that were already
-                                                 *          marked by the garbage collector. 
+                                                 *          marked by the garbage collector.
                                                  */
 } Amsg_IntMsgRx_t;
 
@@ -160,7 +162,7 @@ typedef struct Amsg_IntMsgRx_
 extern void Amsg_TxCtor(Ucs_AmsTx_Msg_t *self, void *info_ptr, Amsg_TxFreedCb_t free_fptr, void *free_inst_ptr);
 extern void Amsg_TxSetInternalPayload(Ucs_AmsTx_Msg_t *self, uint8_t *mem_ptr, uint16_t mem_size, void *mem_info_ptr);
 extern void Amsg_TxReuse(Ucs_AmsTx_Msg_t *self);
-extern void Amsg_TxSetCompleteCallback(Ucs_AmsTx_Msg_t *self, Amsg_TxCompleteSiaCb_t compl_sia_fptr, 
+extern void Amsg_TxSetCompleteCallback(Ucs_AmsTx_Msg_t *self, Amsg_TxCompleteSiaCb_t compl_sia_fptr,
                                 Amsg_TxCompleteCb_t compl_fptr, void* compl_inst_ptr);
 extern void Amsg_TxNotifyComplete(Ucs_AmsTx_Msg_t *self, Ucs_AmsTx_Result_t result, Ucs_AmsTx_Info_t info);
 extern void Amsg_TxFreeUnused(Ucs_AmsTx_Msg_t *self);
@@ -182,11 +184,11 @@ extern void Amsg_RxCtor(Ucs_AmsRx_Msg_t *self, void *info_ptr);
 extern void Amsg_RxBuildFromTx(Ucs_AmsRx_Msg_t *self, Ucs_AmsTx_Msg_t *tx_ptr, uint16_t source_address);
 extern void Amsg_RxHandleSetup(Ucs_AmsRx_Msg_t *self);
 extern void Amsg_RxHandleSetMemory(Ucs_AmsRx_Msg_t *self, uint8_t *mem_ptr, uint16_t mem_size, void *info_ptr);
-extern bool Amsg_RxHandleIsIdentical(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t *tel_ptr);
-extern void Amsg_RxCopySignatureFromTel(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr);
-extern void Amsg_RxCopySignatureToTel(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* target_ptr);
+extern bool Amsg_RxHandleIsIdentical(Ucs_AmsRx_Msg_t *self, Ucs_Message_t *tel_ptr);
+extern void Amsg_RxCopySignatureFromTel(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* src_ptr);
+extern void Amsg_RxCopySignatureToTel(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* target_ptr);
 extern void Amsg_RxCopyToPayload(Ucs_AmsRx_Msg_t *self, uint8_t data[], uint8_t data_sz);
-extern bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr);
+extern bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* src_ptr);
 extern bool Amsg_RxHasExternalPayload(Ucs_AmsRx_Msg_t *self);
 extern void Amsg_RxEnqueue(Ucs_AmsRx_Msg_t* self, CDlList* list_ptr);
 extern void Amsg_RxSetGcMarker(Ucs_AmsRx_Msg_t* self, bool value);
@@ -200,7 +202,9 @@ extern Ucs_AmsRx_Msg_t* Amsg_RxDequeue(CDlList* list_ptr);
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMSMESSAGE_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_AMSMESSAGE_H */
 
 /*!
  * @}

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -30,7 +30,7 @@
 
 /*!
  * \file
- * \brief Public header file of the Extended Resource Manager.
+ * \brief Public header file of the Remote Sync Manager.
  * \cond UCS_INTERNAL_DOC
  * \addtogroup G_RSM
  * @{
@@ -52,7 +52,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Enumerators                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief SyncLost Causes 
+/*! \brief SyncLost Causes
  *  \ingroup G_UCS_RSM_TYPES
  */
 typedef enum Rsm_SyncLostCause_
@@ -63,7 +63,7 @@ typedef enum Rsm_SyncLostCause_
 
 } Rsm_SyncLostCause_t;
 
-/*! \brief  RSM Sync states 
+/*! \brief  RSM Sync states
  *  \ingroup G_UCS_RSM_TYPES
  */
 typedef enum Rsm_DevSyncState_
@@ -74,7 +74,7 @@ typedef enum Rsm_DevSyncState_
 
 } Rsm_DevSyncState_t;
 
-/*! \brief Result codes of the Extended Resource Manager. 
+/*! \brief Result codes of the Extended Resource Manager.
  *  \ingroup G_UCS_RSM_TYPES
  */
 typedef enum Rsm_ResultCode_
@@ -110,7 +110,7 @@ typedef struct Rsm_Result_
 /*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Callback function type to retrieve a RSM result 
+/*! \brief  Callback function type to retrieve a RSM result.
  *  \param  self          The instance (optional)
  *  \param  result        The result message object
  *  \ingroup G_UCS_RSM_TYPES
@@ -125,22 +125,22 @@ typedef void (*Rsm_ResultCb_t)(void * self, Rsm_Result_t result);
 /*!
  *  \def     UCS_NUM_REMOTE_DEVICES
  *  \brief   Customer assignment for number of remote devices required by Resources Management modules.
- *  \details If the macro is not defined, the UNICENS library will use a default value of 0. The user 
- *           can overwrite this default value by defining the macro. Valid values are in the range 
- *           from 0 to 63. 
+ *  \details If the macro is not defined, the UNICENS library will use a default value of 0. The user
+ *           can overwrite this default value by defining the macro. Valid values are in the range
+ *           from 0 to 63.
   *  \ingroup G_UCS_XRM_CFG
- */ 
+ */
 #ifndef UCS_NUM_REMOTE_DEVICES
 #    define UCS_NUM_REMOTE_DEVICES   0U
 #endif
 
-/*! \def UCS_ADDR_LOCAL_DEV
+/*! \def UCS_ADDR_LOCAL_NODE
  *  \brief      Defines the address of the local device.
- *  \details    This macro is used to define the address of the local device. It should be used by 
- *              the application to trigger jobs on the local device. 
+ *  \details    This macro is used to define the address of the local device. It should be used by
+ *              the application to trigger jobs on the local device.
  *  \ingroup    G_UCS_IRM
  */
-#define UCS_ADDR_LOCAL_DEV    0x0001U
+#define UCS_ADDR_LOCAL_NODE    0x0001U
 
 #ifdef __cplusplus
 }   /* extern "C" */

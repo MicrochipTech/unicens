@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -77,20 +77,20 @@ typedef struct Net_InitData_
 
 } Net_InitData_t;
 
-/*! \brief Parameter structure for MOST Network Status */
+/*! \brief Parameter structure for Network Status */
 typedef struct Net_NetworkStatusParam_
 {
     /*! \brief Indicates if parameters have been changed since last update */
     uint16_t change_mask;
-    /*! \brief Indicates if the MOST network is available and ready for control/packet
+    /*! \brief Indicates if the network is available and ready for control/packet
                data transmission */
     Ucs_Network_Availability_t availability;
     /*! \brief Indicates the sub state to parameter Availability */
     Ucs_Network_AvailInfo_t avail_info;
-    /*! \brief Indicates the transition cause of the MOST network going from Available to 
+    /*! \brief Indicates the transition cause of the network going from Available to
                NotAvailable or vice versa */
     Ucs_Network_AvailTransCause_t avail_trans_cause;
-    /*! \brief Contains events relating to the functionality for the MOST Network Interface */
+    /*! \brief Contains events relating to the functionality for the Network Interface */
     uint16_t events;
     /*! \brief Current size of packet bandwidth */
     uint16_t packet_bw;
@@ -103,21 +103,21 @@ typedef struct Net_NetworkStatusParam_
 
 } Net_NetworkStatusParam_t;
 
-/*! \brief Structure holds the parameters of property INIC.MOSTNetworkStatus */
+/*! \brief Structure holds the parameters of property INIC.NetworkStatus */
 typedef struct Net_NetworkStatus_
 {
-    /*! \brief Parameters of MOST Network Status */
+    /*! \brief Parameters of Network Status */
     Net_NetworkStatusParam_t param;
-    /*! \brief Observe MOST Network status in INIC module */
+    /*! \brief Observe Network status in INIC module */
     CObserver observer;
-    /*! \brief Subject to notify MOST Network Status the first time a observer has been added */
+    /*! \brief Subject to notify Network Status the first time a observer has been added */
     CSubject pre_subject;
-    /*! \brief Subject to notify MOST Network Status */
+    /*! \brief Subject to notify Network Status */
     CSubject subject;
 
 } Net_NetworkStatus_t;
 
-/*! \brief Parameter structure for MOST Network Configuration */
+/*! \brief Parameter structure for Network Configuration */
 typedef struct Net_NetworkConfigParam_
 {
     /*! \brief Indicates if parameters have been changed since last update */
@@ -131,16 +131,16 @@ typedef struct Net_NetworkConfigParam_
 
 } Net_NetworkConfigParam_t;
 
-/*! \brief Structure holds the parameters of property INIC.MOSTNetworkConfiguration */
+/*! \brief Structure holds the parameters of property INIC.NetworkConfiguration */
 typedef struct Net_NetworkConfiguration_
 {
-    /*! \brief Parameters of MOST Network Configuration */
+    /*! \brief Parameters of Network Configuration */
     Net_NetworkConfigParam_t param;
-    /*! \brief Observe MOST Network Configuration in INIC module */
+    /*! \brief Observe Network Configuration in INIC module */
     CObserver observer;
-    /*! \brief Subject to notify MOST Network Configuration the first time a observer has been added */
+    /*! \brief Subject to notify Network Configuration the first time a observer has been added */
     CSubject pre_subject;
-    /*! \brief Subject to notify MOST Network Configuration */
+    /*! \brief Subject to notify Network Configuration */
     CSubject subject;
 
 } Net_NetworkConfiguration_t;
@@ -148,9 +148,9 @@ typedef struct Net_NetworkConfiguration_
 /*! \brief  Class structure of the Network Management. */
 typedef struct CNetworkManagement_
 {
-    /*! \brief Parameters of property INIC.MOSTNetworkStatus */
+    /*! \brief Parameters of property INIC.NetworkStatus */
     Net_NetworkStatus_t network_status;
-    /*! \brief Parameters of property INIC.MOSTNetworkConfig. */
+    /*! \brief Parameters of property INIC.NetworkConfig. */
     Net_NetworkConfiguration_t network_configuration;
     /*! \brief Reference to INIC instance */
     CInic *inic_ptr;

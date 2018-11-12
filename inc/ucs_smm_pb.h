@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -52,14 +52,14 @@ extern "C"
 /* Default configuration                                                                          */
 /*------------------------------------------------------------------------------------------------*/
 /*! \def     UCS_AMS_NUM_RX_MSGS
- *  \brief   Defines the number of reserved Rx message objects. 
+ *  \brief   Defines the number of reserved Rx message objects.
  *           Valid values: 5..255. Default value: 20.
  */
 #ifndef UCS_AMS_NUM_RX_MSGS
 #   define UCS_AMS_NUM_RX_MSGS  20
 #else
 #  if (UCS_AMS_NUM_RX_MSGS < 5) || (UCS_AMS_NUM_RX_MSGS > 255)
-#    error "UCS_AMS_NUM_RX_MSGS is not properly defined. Choose a value between: 10 and 255."
+#    error "UCS_AMS_NUM_RX_MSGS is not properly defined. Choose a value between: 5 and 255."
 #  endif
 #endif
 
@@ -87,7 +87,7 @@ extern "C"
 #   define UCS_AMS_NUM_TX_MSGS  20
 #else
 #  if (UCS_AMS_NUM_TX_MSGS < 5) || (UCS_AMS_NUM_TX_MSGS > 255)
-#    error "UCS_AMS_NUM_TX_MSGS is not properly defined. Choose a value between: 10 and 255."
+#    error "UCS_AMS_NUM_TX_MSGS is not properly defined. Choose a value between: 5 and 255."
 #  endif
 #endif
 

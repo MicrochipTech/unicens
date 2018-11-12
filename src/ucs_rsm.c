@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -69,17 +69,17 @@ static void Rsm_ProcessJob (CRemoteSyncManagement *self);
 static Ucs_Return_t Rsm_SendSync (CRemoteSyncManagement *self);
 static Ucs_Return_t Rsm_RequestNtfDevId (CRemoteSyncManagement *self);
 static Ucs_Return_t Rsm_ClearLastNtfDevId (CRemoteSyncManagement *self);
-static Ucs_Return_t Rsm_SetNotificationAll (CRemoteSyncManagement * self);
-static Ucs_Return_t Rsm_SetNotificationGpio (CRemoteSyncManagement * self);
+static Ucs_Return_t Rsm_SetNotificationAll (CRemoteSyncManagement *self);
+static Ucs_Return_t Rsm_SetNotificationGpio (CRemoteSyncManagement *self);
 static Ucs_Return_t Rsm_ProcessDeviceJob (CRemoteSyncManagement *self);
-static bool Rsm_IsLocal (CRemoteSyncManagement * self);
-static void Rsm_MnsInitSucceededCb(void *self, void *event_ptr);
-static void Rsm_MnsNwStatusInfosCb(void *self, void *event_ptr);
+static bool Rsm_IsLocal (CRemoteSyncManagement *self);
+static void Rsm_UcsInitSucceededCb(void *self, void *event_ptr);
+static void Rsm_NwStatusInfosCb(void *self, void *event_ptr);
 static void Rsm_SyncResultCb(void *self, void *result_ptr);
 static void Rsm_MsgObjAvailCb(void *self, void *result_ptr);
-static void Rsm_SignalSyncCompleted (CRemoteSyncManagement * self);
-static void Rsm_SignalSyncError (CRemoteSyncManagement * self);
-static void Rsm_SignalSyncLost (CRemoteSyncManagement * self);
+static void Rsm_SignalSyncCompleted (CRemoteSyncManagement *self);
+static void Rsm_SignalSyncError (CRemoteSyncManagement *self);
+static void Rsm_SignalSyncLost (CRemoteSyncManagement *self);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class CRemoteSyncManager                                                     */
@@ -89,8 +89,8 @@ static void Rsm_SignalSyncLost (CRemoteSyncManagement * self);
 /* Initialization Methods                                                                         */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Constructor of the Remote Sync Manager class.
- *  \param self        Instance pointer
- *  \param init_ptr    init data_ptr
+ *  \param self        RSM instance pointer
+ *  \param init_ptr    Pointer to initialization data
  */
 void Rsm_Ctor(CRemoteSyncManagement *self, Rsm_InitData_t *init_ptr)
 {
@@ -102,7 +102,7 @@ void Rsm_Ctor(CRemoteSyncManagement *self, Rsm_InitData_t *init_ptr)
     self->net_ptr  = init_ptr->net_ptr;
 
     /* Init observer */
-    Mobs_Ctor(&self->event_param.ucsinit_observer, self, EH_E_INIT_SUCCEEDED, &Rsm_MnsInitSucceededCb);
+    Mobs_Ctor(&self->event_param.ucsinit_observer, self, EH_E_INIT_SUCCEEDED, &Rsm_UcsInitSucceededCb);
     Sobs_Ctor(&self->event_param.stdresult_observer, self, &Rsm_SyncResultCb);
     Obs_Ctor(&self->event_param.txavailability_observer, self, &Rsm_MsgObjAvailCb);
 
@@ -121,34 +121,34 @@ void Rsm_Ctor(CRemoteSyncManagement *self, Rsm_InitData_t *init_ptr)
 /* Service                                                                                        */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Add an observer to the SyncLost Event subject
- *  \param self   Instance pointer
- *  \param obs    init data_ptr
+ *  \param self   RSM instance pointer
+ *  \param obs    Observer to be added
  */
-void Rsm_AddObserver(CRemoteSyncManagement * self, CObserver * obs)
+void Rsm_AddObserver(CRemoteSyncManagement *self, CObserver *obs)
 {
-    (void)Sub_AddObserver(&self->event_param.subject, obs);   
+    (void)Sub_AddObserver(&self->event_param.subject, obs);
 }
 
 /*! \brief Removes an observer registered by Rsm_AddObserver
- *  \param self       Instance pointer
- *  \param obs_ptr    observer to be removed
+ *  \param self       RSM instance pointer
+ *  \param obs_ptr    Observer to be removed
  */
-void Rsm_DelObserver(CRemoteSyncManagement * self, CObserver * obs_ptr)
+void Rsm_DelObserver(CRemoteSyncManagement *self, CObserver *obs_ptr)
 {
-    (void)Sub_RemoveObserver(&self->event_param.subject, obs_ptr);  
+    (void)Sub_RemoveObserver(&self->event_param.subject, obs_ptr);
 }
 
 /*! \brief Synchronizes to the given device
- *  \param self                  Instance pointer
- *  \param user_data             reference to the user data that'll be attached in the sync_complete_fptr callback function 
- *  \param sync_complete_fptr    result callback function to the device to be synchronized
- *  \return Possible return values are
- *          - \c UCS_RET_ERR_API_LOCKED the API is locked. 
+ *  \param self                  RSM instance pointer
+ *  \param user_data             Reference to the user data that'll be attached in the sync_complete_fptr callback function
+ *  \param sync_complete_fptr    Result callback function to the device to be synchronized
+ *  \return Possible return values are:
+ *          - \c UCS_RET_ERR_API_LOCKED the API is locked.
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  *          - \c UCS_RET_ERR_PARAM parameter exceeds its admissible range
  */
-Ucs_Return_t Rsm_SyncDev(CRemoteSyncManagement * self, void* user_data, Rsm_ResultCb_t sync_complete_fptr)
+Ucs_Return_t Rsm_SyncDev(CRemoteSyncManagement *self, void* user_data, Rsm_ResultCb_t sync_complete_fptr)
 {
     Ucs_Return_t result = UCS_RET_ERR_API_LOCKED;
 
@@ -159,12 +159,10 @@ Ucs_Return_t Rsm_SyncDev(CRemoteSyncManagement * self, void* user_data, Rsm_Resu
         if (self->dev_infos.sync_state == RSM_DEV_SYNCED)
         {
             self->dev_infos.next_st = RSM_ST_SYNC_SUCC;
-            Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
-            result = UCS_RET_SUCCESS;
         }
         else
         {
-            if (Rsm_IsLocal(self))
+            if (Rsm_IsLocal(self) != false)
             {
                 self->dev_infos.next_st = RSM_ST_NTF_GPIO;
             }
@@ -172,26 +170,28 @@ Ucs_Return_t Rsm_SyncDev(CRemoteSyncManagement * self, void* user_data, Rsm_Resu
             {
                 self->dev_infos.next_st = RSM_ST_SYNC_REQ;
             }
-            result = Rsm_ProcessDeviceJob (self);
         }
+
+        Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
+        result = UCS_RET_SUCCESS;
     }
 
     return result;
 }
 
 /*! \brief Returns the state (ready or busy) of the given device.
- *  \param self   Instance pointer.
- *  \return state of the given device.
+ *  \param self   RSM instance pointer
+ *  \return State of the given device.
  */
-Rsm_DevSyncState_t Rsm_GetDevState(CRemoteSyncManagement * self)
+Rsm_DevSyncState_t Rsm_GetDevState(CRemoteSyncManagement *self)
 {
     return self->dev_infos.sync_state;
 }
 
 /*! \brief Reports SyncLost for the given RSM instance.
- *  \param self     Reference to the instance ptr
+ *  \param self     RSM instance pointer
  */
-void Rsm_ReportSyncLost (CRemoteSyncManagement * self)
+void Rsm_ReportSyncLost (CRemoteSyncManagement *self)
 {
     self->last_synclost_cause = RSM_SLC_CFGNOTOK;
     Srv_SetEvent(&self->rsm_srv, RSM_EVENT_SIG_SYNCLOST);
@@ -201,7 +201,7 @@ void Rsm_ReportSyncLost (CRemoteSyncManagement * self)
 /* Private Methods                                                                                */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Service function of the Sync management.
- *  \param self    Instance pointer
+ *  \param self    RSM instance pointer
  */
 static void Rsm_Service (void *self)
 {
@@ -209,35 +209,57 @@ static void Rsm_Service (void *self)
     Srv_Event_t event_mask;
     Srv_GetEvent(&self_->rsm_srv, &event_mask);
 
+    /* Handle event to signal "SyncLost", and clear all other events */
+    if ((event_mask & RSM_EVENT_SIG_SYNCLOST) == RSM_EVENT_SIG_SYNCLOST)
+    {
+        Srv_ClearEvent(&self_->rsm_srv, (RSM_EVENT_SIG_SYNCLOST | RSM_EVENT_PROCESS_DEV));
+        event_mask = 0U;
+        Rsm_SignalSyncLost(self_);
+    }    
+    
     /* Handle event to process jobs within devices */
-    if((event_mask & RSM_EVENT_PROCESS_DEV) == RSM_EVENT_PROCESS_DEV)
+    if ((event_mask & RSM_EVENT_PROCESS_DEV) == RSM_EVENT_PROCESS_DEV)
     {
         Srv_ClearEvent(&self_->rsm_srv, RSM_EVENT_PROCESS_DEV);
         Rsm_ProcessJob(self_);
     }
-
-    /* Handle event to signal "SyncLost" */
-    if((event_mask & RSM_EVENT_SIG_SYNCLOST) == RSM_EVENT_SIG_SYNCLOST)
-    {
-        Srv_ClearEvent(&self_->rsm_srv, RSM_EVENT_SIG_SYNCLOST);
-        Rsm_SignalSyncLost(self_);
-    }
 }
 
 /*! \brief  Processes the next job, if available, in a device.
- *  \param  self        Instance pointer
+ *  \param  self        RSM instance pointer
  */
 static void Rsm_ProcessJob (CRemoteSyncManagement *self)
 {
+    Ucs_Return_t ret = UCS_RET_SUCCESS;
     if (self->dev_infos.next_st != RSM_ST_IDLE)
     {
-        (void)Rsm_ProcessDeviceJob(self);
+        ret = Rsm_ProcessDeviceJob(self);
+    }
+
+    if (ret != UCS_RET_SUCCESS)
+    {
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_ProcessJob() failed: ret=0x%02X, next_st=0x%02X, node=0x%03X", 3U, ret, self->dev_infos.next_st, Inic_GetTargetAddress(self->inic_ptr)));
+        if (ret == UCS_RET_ERR_BUFFER_OVERFLOW)
+        {
+            /* schedule retry as soon as buffers are available again */
+            Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+        }
+        else
+        {
+            /* abort & signal sync result and sync lost if pre-conditions met  */
+            Rsm_SignalSyncLost(self);
+        }
+        /* OR RETRY THE PROCESS 
+        else
+        {
+            Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
+        } */
     }
 }
 
 /*! \brief  Processes the next job for the given device.
- *  \param  self       Instance pointer
- *  \return Possible return values are
+ *  \param  self       RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  *          - \c UCS_RET_ERR_API_LOCKED The INIC API is locked
@@ -279,6 +301,7 @@ static Ucs_Return_t Rsm_ProcessDeviceJob (CRemoteSyncManagement *self)
 
         default:
             TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Unexpected State Transition: 0x%02X", 1U, (Rsm_StateTransition_t)(self->dev_infos.next_st)));
+            result = UCS_RET_ERR_PARAM;
             break;
     }
 
@@ -286,8 +309,8 @@ static Ucs_Return_t Rsm_ProcessDeviceJob (CRemoteSyncManagement *self)
 }
 
 /*! \brief  Sends a Sync command to the given device.
- *  \param  self    Instance pointer
- *  \return Possible return values are
+ *  \param  self    RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  */
@@ -298,22 +321,22 @@ static Ucs_Return_t Rsm_SendSync (CRemoteSyncManagement *self)
     result = Inic_DeviceSync (self->inic_ptr,
                               &self->event_param.stdresult_observer);
 
-    if(result == UCS_RET_SUCCESS)
+    self->dev_infos.sync_state = RSM_DEV_SYNCING;
+    if (result == UCS_RET_SUCCESS)
     {
-        self->dev_infos.sync_state = RSM_DEV_SYNCING;
         TR_INFO((self->base_ptr->ucs_user_ptr, "[RSM]", "Start synchronization to remote device", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else
     {
-        Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_SendSync() failed: node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
 
     return result;
 }
 
 /*! \brief  Retrieves the ID of the device that has notified to the INIC.DeviceStatus() FktIDs on the given remote device.
- *  \param  self    Instance pointer
- *  \return Possible return values are
+ *  \param  self    RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  *          - \c UCS_RET_ERR_API_LOCKED The INIC API is locked
@@ -324,25 +347,21 @@ static Ucs_Return_t Rsm_RequestNtfDevId (CRemoteSyncManagement *self)
     uint16_t funcid_devstatus = (uint16_t)0x0220;
 
     result = Inic_Notification_Get(self->inic_ptr, funcid_devstatus, &self->event_param.stdresult_observer);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[RSM]", "DeviceId Request for INIC.DeviceStatus() succeeded", 0U));
     }
-    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
-    {
-        Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
-    }
     else
     {
-        Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_RequestNtfDevId() failed: node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
 
     return result;
 }
 
 /*! \brief  Clears the current DevId of all remote functions on the given remote device.
- *  \param  self    Instance pointer
- *  \return Possible return values are
+ *  \param  self    RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  *          - \c UCS_RET_ERR_PARAM parameter exceeds its admissible range
@@ -356,28 +375,28 @@ static Ucs_Return_t Rsm_ClearLastNtfDevId (CRemoteSyncManagement *self)
     rm_fktid_list.num_fktids = 0U;
 
     result = Inic_Notification_Set(self->inic_ptr, control, self->event_param.own_device_address, rm_fktid_list);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         self->dev_infos.next_st = RSM_ST_NTF_ALL;
         Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
         TR_INFO((self->base_ptr->ucs_user_ptr, "[RSM]", "Clear DevId for all Remote functions succeeded", 0U));
     }
-    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else
     {
-        Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_ClearLastNtfDevId() failed: node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
 
     return result;
 }
 
 /*! \brief  Sets all notification for the given remote device.
- *  \param  self          Instance pointer
- *  \return Possible return values are
+ *  \param  self          RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  *          - \c UCS_RET_ERR_PARAM parameter exceeds its admissible range
  */
-static Ucs_Return_t Rsm_SetNotificationAll (CRemoteSyncManagement * self)
+static Ucs_Return_t Rsm_SetNotificationAll (CRemoteSyncManagement *self)
 {
     Ucs_Return_t result;
     Ucs_Inic_NotificationCtrl_t control = UCS_INIC_NTF_SET_FUNC;
@@ -388,27 +407,27 @@ static Ucs_Return_t Rsm_SetNotificationAll (CRemoteSyncManagement * self)
     rm_fktid_list.num_fktids = 2U;
 
     result = Inic_Notification_Set(self->inic_ptr, control, self->event_param.own_device_address, rm_fktid_list);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         self->dev_infos.next_st = RSM_ST_SYNC_SUCC;
         Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
         TR_INFO((self->base_ptr->ucs_user_ptr, "[RSM]", "Set Notification for All Remote functions succeeded", 0U));
     }
-    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else
     {
-        Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_SetNotificationAll() failed: node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
 
     return result;
 }
 
-/*! \brief  Sets Gpio notification for the local device.
- *  \param  self          Instance pointer
- *  \return Possible return values are
+/*! \brief  Sets the GPIO notification for the local device.
+ *  \param  self    RSM instance pointer
+ *  \return Possible return values are:
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_BUFFER_OVERFLOW if no TxHandles available
  */
-static Ucs_Return_t Rsm_SetNotificationGpio (CRemoteSyncManagement * self)
+static Ucs_Return_t Rsm_SetNotificationGpio (CRemoteSyncManagement *self)
 {
     Ucs_Return_t result;
     /*! \brief GPIO TriggerEvent function id */
@@ -423,36 +442,36 @@ static Ucs_Return_t Rsm_SetNotificationGpio (CRemoteSyncManagement * self)
     rm_fktid_list.num_fktids = 1U;
 
     result = Inic_Notification_Set(self->inic_ptr, control, RSM_EHC_ADDRESS, rm_fktid_list);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         self->dev_infos.next_st = RSM_ST_SYNC_SUCC;
         Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
     }
-    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else
     {
-        Inic_AddObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Rsm_SetNotificationGpio() failed: node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
     }
 
     return result;
 }
 
 /*! \brief  Check whether the given device is local or remote.
- *  \param  self          Instance pointer
+ *  \param  self    RSM instance pointer
  *  \return Returns \c true if the device is local, otherwise \c false.
  */
 static bool Rsm_IsLocal (CRemoteSyncManagement *self)
 {
-    return (Inic_GetTargetAddress(self->inic_ptr) == UCS_ADDR_LOCAL_DEV);
+    return (Inic_GetTargetAddress(self->inic_ptr) == UCS_ADDR_LOCAL_NODE);
 }
 
 /*------------------------------------------------------------------------------------------------*/
 /* Callback Functions                                                                             */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Called if MNS initialization has been succeeded.
- *  \param  self        Instance pointer
- *  \param  event_ptr  Reference to reported event
+/*! \brief  Called if UCS initialization has been succeeded.
+ *  \param  self        RSM instance pointer
+ *  \param  event_ptr   Reference to reported event
  */
-static void Rsm_MnsInitSucceededCb(void *self, void *event_ptr)
+static void Rsm_UcsInitSucceededCb(void *self, void *event_ptr)
 {
     CRemoteSyncManagement *self_ = (CRemoteSyncManagement *)self;
     MISC_UNUSED(event_ptr);
@@ -461,21 +480,22 @@ static void Rsm_MnsInitSucceededCb(void *self, void *event_ptr)
     Eh_DelObsrvInternalEvent(&self_->base_ptr->eh, &self_->event_param.ucsinit_observer);
 
     /* Add network status observer */
-    Mobs_Ctor(&self_->event_param.nwstatus_observer, self, RSM_MASK_NETWORK_NODE_ADDRESS, &Rsm_MnsNwStatusInfosCb);
+    Mobs_Ctor(&self_->event_param.nwstatus_observer, self, RSM_MASK_NETWORK_NODE_ADDRESS, &Rsm_NwStatusInfosCb);
     Net_AddObserverNetworkStatus(self_->net_ptr, &self_->event_param.nwstatus_observer);
 }
 
 /*! \brief  Result callback for the "Sync Request".
- *  \param  self               Instance pointer
- *  \param  result_ptr         Reference to the result.
+ *  \param  self               RSM instance pointer
+ *  \param  result_ptr         Reference to the result
  */
 static void Rsm_SyncResultCb(void *self, void *result_ptr)
 {
     CRemoteSyncManagement *self_ = (CRemoteSyncManagement *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-    Inic_NotificationResult_t * res_inf = NULL;
-
-    if(result_ptr_->result.code == UCS_RES_SUCCESS)
+    Inic_NotificationResult_t *res_inf = NULL;
+    
+    /* note: only schedule events in state syncing */
+    if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         if (self_->dev_infos.sync_state == RSM_DEV_SYNCING)
         {
@@ -507,7 +527,7 @@ static void Rsm_SyncResultCb(void *self, void *result_ptr)
             Srv_SetEvent(&self_->rsm_srv, RSM_EVENT_PROCESS_DEV);
         }
     }
-    else
+    else if (self_->dev_infos.sync_state == RSM_DEV_SYNCING)
     {
         self_->dev_infos.next_st = RSM_ST_SYNC_ERR;
         self_->dev_infos.curr_result.code = RSM_RES_ERR_SYNC;
@@ -531,61 +551,57 @@ static void Rsm_SyncResultCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Event Callback function for the network status.
- *  \param  self          Instance pointer
- *  \param  event_ptr     Reference to the events
+ *  \param  self          RSM instance pointer
+ *  \param  event_ptr     Reference to the event
+ *  \details Sync-lost shall be triggered by Rsm_ReportSyncLost()
  */
-static void Rsm_MnsNwStatusInfosCb(void *self, void *event_ptr)
+static void Rsm_NwStatusInfosCb(void *self, void *event_ptr)
 {
     CRemoteSyncManagement *self_ = (CRemoteSyncManagement *)self;
     Net_NetworkStatusParam_t *result_ptr_ = (Net_NetworkStatusParam_t *)event_ptr;
-    bool signal_synclost = false;
 
     if ((RSM_MASK_NETWORK_NODE_ADDRESS & result_ptr_->change_mask) == RSM_MASK_NETWORK_NODE_ADDRESS)
     {
         if (result_ptr_->node_address != 0xFFFFU)
         {
-            if ((self_->event_param.own_device_address != RSM_INVALID_NODE_ADDRESS)  && 
+            if ((self_->event_param.own_device_address != RSM_INVALID_NODE_ADDRESS)  &&
                 (result_ptr_->node_address != self_->event_param.own_device_address))
             {
                 self_->last_synclost_cause = RSM_SLC_SYSMODIF;
-                signal_synclost = true;
             }
 
             self_->event_param.own_device_address = result_ptr_->node_address;
         }
     }
-
-    if (signal_synclost)
-    {
-        Srv_SetEvent(&self_->rsm_srv, RSM_EVENT_SIG_SYNCLOST);
-    }
 }
 
 /*! \brief  Event Callback function that signals that a TxMsgObj is now available.
- *  \param  self          Instance pointer
+ *  \param  self          RSM instance pointer
  *  \param  result_ptr    Reference to the results
  */
 static void Rsm_MsgObjAvailCb(void *self, void *result_ptr)
 {
     CRemoteSyncManagement *self_ = (CRemoteSyncManagement *)self;
     MISC_UNUSED(result_ptr);
-
-    Srv_SetEvent(&self_->rsm_srv, RSM_EVENT_PROCESS_DEV);
-
-    /* delete observer */
-    Inic_DelObsrvOnTxMsgObjAvail(self_->inic_ptr, &self_->event_param.txavailability_observer);
+    
+    if (self_->dev_infos.sync_state == RSM_DEV_SYNCING) /* robustness check */
+    {
+        Srv_SetEvent(&self_->rsm_srv, RSM_EVENT_PROCESS_DEV);
+        /* delete observer */
+        Inic_DelObsrvOnTxMsgObjAvail(self_->inic_ptr, &self_->event_param.txavailability_observer);
+    }
 }
 
 /*------------------------------------------------------------------------------------------------*/
 /* Notification Functions                                                                         */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Signals the successful synchronization to a remote device.
- *  \param  self        Instance pointer
+ *  \param  self    RSM instance pointer
  */
-static void Rsm_SignalSyncCompleted (CRemoteSyncManagement * self)
+static void Rsm_SignalSyncCompleted (CRemoteSyncManagement *self)
 {
     Rsm_ResultCb_t tmp_res_cb = self->dev_infos.curr_res_cb_fptr;
-    void * data = self->dev_infos.curr_user_data;
+    void *data = self->dev_infos.curr_user_data;
     Rsm_Result_t res = {RSM_RES_SUCCESS, {UCS_MSG_STAT_OK, {UCS_RES_SUCCESS, NULL, 0}}};
 
     self->dev_infos.sync_state = RSM_DEV_SYNCED;
@@ -600,12 +616,12 @@ static void Rsm_SignalSyncCompleted (CRemoteSyncManagement * self)
 }
 
 /*! \brief  Signals that the synchronization to a remote device failed.
- *  \param  self        Instance pointer
+ *  \param  self    RSM instance pointer
  */
-static void Rsm_SignalSyncError (CRemoteSyncManagement * self)
+static void Rsm_SignalSyncError (CRemoteSyncManagement *self)
 {
     Rsm_ResultCb_t tmp_res_cb = self->dev_infos.curr_res_cb_fptr;
-    void * data = self->dev_infos.curr_user_data;
+    void *data = self->dev_infos.curr_user_data;
 
     self->dev_infos.sync_state = RSM_DEV_UNSYNCED;
     self->dev_infos.next_st    = RSM_ST_IDLE;
@@ -619,19 +635,39 @@ static void Rsm_SignalSyncError (CRemoteSyncManagement * self)
 }
 
 /*! \brief  Signals that the synchronization to a remote device has been lost.
- *  \param  self        Instance pointer
+ *  \param  self    RSM instance pointer
  */
-static void Rsm_SignalSyncLost (CRemoteSyncManagement * self)
+static void Rsm_SignalSyncLost (CRemoteSyncManagement *self)
 {
-    if ((self->dev_infos.sync_state == RSM_DEV_SYNCED) &&
-        (!Rsm_IsLocal(self)))
+                                                    /* compare with temporary value since the instruction below may change the value */
+    Rsm_DevSyncState_t curr_state = self->dev_infos.sync_state;
+                                                    /* remove observer (if registered) */
+    Inic_DelObsrvOnTxMsgObjAvail(self->inic_ptr, &self->event_param.txavailability_observer);
+
+    if (curr_state == RSM_DEV_SYNCING)
+    {
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RSM]", "Synchronization lost in state RSM_DEV_SYNCING. node=0x%03X", 1U, Inic_GetTargetAddress(self->inic_ptr)));
+        
+        self->dev_infos.curr_result.code = RSM_RES_ERR_SYNC;
+        self->dev_infos.curr_result.details.inic_result.code = UCS_RES_ERR_PROCESSING;
+        self->dev_infos.curr_result.details.inic_result.info_ptr = NULL;
+        self->dev_infos.curr_result.details.inic_result.info_size = 0U;
+        self->dev_infos.curr_result.details.tx_result = UCS_MSG_STAT_OK;
+        Rsm_SignalSyncError(self);
+    }
+
+    if ((curr_state == RSM_DEV_SYNCED) &&
+        (Rsm_IsLocal(self) == false))
     {
         self->dev_infos.sync_state = RSM_DEV_UNSYNCED;
-        if(Sub_GetNumObservers(&self->event_param.subject) > 0U)
+        if (Sub_GetNumObservers(&self->event_param.subject) > 0U)
         {
             Sub_Notify(&self->event_param.subject, &self->last_synclost_cause);
         }
     }
+    
+    self->dev_infos.next_st = RSM_ST_IDLE;
+    self->dev_infos.sync_state = RSM_DEV_UNSYNCED;
 }
 
 /*!

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -37,7 +37,7 @@
  * @{
  */
 
- 
+
 
 #ifndef UCS_CMD_H
 #define UCS_CMD_H
@@ -48,14 +48,12 @@
 #include "ucs_cmd_pb.h"
 #include "ucs_base.h"
 
+#ifndef CMD_FOOTPRINT_NOAMS
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-
-
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
@@ -65,12 +63,12 @@ extern "C"
  */
 typedef struct CCmd_
 {
-    Ucs_Cmd_MsgId_t *msg_id_tab_ptr;    /*!< \brief Pointer to table of MessageIds */ 
+    Ucs_Cmd_MsgId_t *msg_id_tab_ptr;    /*!< \brief Pointer to table of MessageIds. */
+    uint16_t        msg_id_tab_len;     /*!< \brief Number of entries of table of MessageIds. */
+    void *ucs_user_ptr;                 /*!< \brief User reference for API callback functions. */
 
-    void *ucs_user_ptr;                 /*!< \brief User reference for API callback functions */
 
-
-} CCmd; 
+} CCmd;
 
 
 
@@ -79,22 +77,22 @@ typedef struct CCmd_
 /* Prototypes                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 void Cmd_Ctor(CCmd *self, CBase *base_ptr);
-Ucs_Cmd_Return_t Cmd_AddMsgIdTable(CCmd *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr);
-Ucs_Cmd_Return_t Cmd_RemoveMsgIdTable(CCmd *self);
-Ucs_Cmd_Return_t Cmd_DecodeMsg(CCmd *self, Ucs_AmsRx_Msg_t *msg_rx_ptr);
-
-
+Ucs_Return_t Cmd_AddMsgIdTable(CCmd *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr, uint16_t length);
+Ucs_Return_t Cmd_RemoveMsgIdTable(CCmd *self);
+Ucs_Cmd_Handler_Function_t Cmd_DecodeMsg(CCmd *self, Ucs_AmsRx_Msg_t *msg_rx_ptr);
 
 #ifdef __cplusplus
-}   /* extern "C" */
+}           /* extern "C" */
 #endif
+
+#endif      /* ifndef CMD_FOOTPRINT_NOAMS */
+
+#endif      /* ifndef UCS_CMD_H */
 
 /*!
  * @}
  * \endcond
  */
-
-#endif  /* #ifndef UCS_CMD_H */
 
 /*------------------------------------------------------------------------------------------------*/
 /* End of file                                                                                    */

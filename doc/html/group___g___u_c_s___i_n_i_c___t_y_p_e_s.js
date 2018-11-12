@@ -16,6 +16,31 @@ var group___g___u_c_s___i_n_i_c___t_y_p_e_s =
       [ "mode", "struct_ucs___gpio___pin_configuration__t_a9f9602aa82b7dc511dfd57447039c1ab.html#a9f9602aa82b7dc511dfd57447039c1ab", null ],
       [ "pin", "struct_ucs___gpio___pin_configuration__t_ab40a673fb19c1e650e1f79de91788aa5.html#ab40a673fb19c1e650e1f79de91788aa5", null ]
     ] ],
+    [ "Ucs_Signature_t", "struct_ucs___signature__t.html", [
+      [ "chip_id", "struct_ucs___signature__t_a88e300db221e7a0382f2a4c289b9557d.html#a88e300db221e7a0382f2a4c289b9557d", null ],
+      [ "cs_major", "struct_ucs___signature__t_a0d446be5f898a8ae0738b2cefb0b8b37.html#a0d446be5f898a8ae0738b2cefb0b8b37", null ],
+      [ "cs_minor", "struct_ucs___signature__t_afd22089496c4f8c46afc7eabcbe3b8f7.html#afd22089496c4f8c46afc7eabcbe3b8f7", null ],
+      [ "cs_release", "struct_ucs___signature__t_a85df7718b1da0f0b195926db0f22e24f.html#a85df7718b1da0f0b195926db0f22e24f", null ],
+      [ "diagnosis_id", "struct_ucs___signature__t_ab98cc6d6cb5cc92d5f6633419daa643e.html#ab98cc6d6cb5cc92d5f6633419daa643e", null ],
+      [ "fw_build", "struct_ucs___signature__t_a1149e000267e8c93bed1aa393c09c047.html#a1149e000267e8c93bed1aa393c09c047", null ],
+      [ "fw_major", "struct_ucs___signature__t_ac99479d164f096f8c3bc3c2c9043a75f.html#ac99479d164f096f8c3bc3c2c9043a75f", null ],
+      [ "fw_minor", "struct_ucs___signature__t_a15ea388e2fbe80fafdd20a6d8302ad05.html#a15ea388e2fbe80fafdd20a6d8302ad05", null ],
+      [ "fw_release", "struct_ucs___signature__t_a837edc8b3982713e064919786095b18d.html#a837edc8b3982713e064919786095b18d", null ],
+      [ "group_address", "struct_ucs___signature__t_a20ed5721c4d2a493d8abd061950bd675.html#a20ed5721c4d2a493d8abd061950bd675", null ],
+      [ "mac_15_0", "struct_ucs___signature__t_ade0e080bbfc75844b7cbcc3dd13c48cb.html#ade0e080bbfc75844b7cbcc3dd13c48cb", null ],
+      [ "mac_31_16", "struct_ucs___signature__t_a2139c6a8e2f491cdfbb8f3ce11ee39cb.html#a2139c6a8e2f491cdfbb8f3ce11ee39cb", null ],
+      [ "mac_47_32", "struct_ucs___signature__t_a64f511e7134a5ebcab4fe44d180c2245.html#a64f511e7134a5ebcab4fe44d180c2245", null ],
+      [ "node_address", "struct_ucs___signature__t_a550e0ded0fb13bc58b087d3a162d43c7.html#a550e0ded0fb13bc58b087d3a162d43c7", null ],
+      [ "node_pos_addr", "struct_ucs___signature__t_a0057a5f105488012ba3448bbb1099ebe.html#a0057a5f105488012ba3448bbb1099ebe", null ],
+      [ "num_ports", "struct_ucs___signature__t_a8584c5e1f2a1ec30387f93538bdf2b00.html#a8584c5e1f2a1ec30387f93538bdf2b00", null ]
+    ] ],
+    [ "Ucs_IdentString_t", "struct_ucs___ident_string__t.html", [
+      [ "group_address", "struct_ucs___ident_string__t_a20ed5721c4d2a493d8abd061950bd675.html#a20ed5721c4d2a493d8abd061950bd675", null ],
+      [ "mac_15_0", "struct_ucs___ident_string__t_ade0e080bbfc75844b7cbcc3dd13c48cb.html#ade0e080bbfc75844b7cbcc3dd13c48cb", null ],
+      [ "mac_31_16", "struct_ucs___ident_string__t_a2139c6a8e2f491cdfbb8f3ce11ee39cb.html#a2139c6a8e2f491cdfbb8f3ce11ee39cb", null ],
+      [ "mac_47_32", "struct_ucs___ident_string__t_a64f511e7134a5ebcab4fe44d180c2245.html#a64f511e7134a5ebcab4fe44d180c2245", null ],
+      [ "node_address", "struct_ucs___ident_string__t_a550e0ded0fb13bc58b087d3a162d43c7.html#a550e0ded0fb13bc58b087d3a162d43c7", null ]
+    ] ],
     [ "Ucs_Inic_PowerStateCb_t", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gaca78cd7da871ae21b1d546c31e604772.html#gaca78cd7da871ae21b1d546c31e604772", null ],
     [ "Ucs_Inic_LastResetReason_t", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga17139fe9e7d72bdb5a09d5a1ab39de4e.html#ga17139fe9e7d72bdb5a09d5a1ab39de4e", [
       [ "UCS_INIC_RST_STARTUP", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga17139fe9e7d72bdb5a09d5a1ab39de4e.html#gga17139fe9e7d72bdb5a09d5a1ab39de4ea68f49058a3c2aa114b5648ebd5913127", null ],
@@ -28,18 +53,5 @@ var group___g___u_c_s___i_n_i_c___t_y_p_e_s =
       [ "UCS_INIC_PWS_STP", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga132c4c68227062e63ffb99b321b9a677.html#gga132c4c68227062e63ffb99b321b9a677abca288e1dc24d1dae285b7be73abe1d2", null ],
       [ "UCS_INIC_PWS_U_CRITICAL", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga132c4c68227062e63ffb99b321b9a677.html#gga132c4c68227062e63ffb99b321b9a677a64b91caa822c22017b4aca60d38c78c8", null ],
       [ "UCS_INIC_PWS_NO_MONITORING", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga132c4c68227062e63ffb99b321b9a677.html#gga132c4c68227062e63ffb99b321b9a677aa33c9585db02ba2136a5214e9a0fc72e", null ]
-    ] ],
-    [ "Ucs_Sd_ErrCode_t", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#gad0e1473ecd96b8d94131cb5d81295fc3", [
-      [ "UCS_SD_ERR_UNSPECIFIED", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a93dead118b00c19d7d17401be8ce72cd", null ],
-      [ "UCS_SD_ERR_WELCOME_NO_SUCCESS", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a6702bd287f88f76e4d13ac87f8b3c721", null ],
-      [ "UCS_SD_ERR_STOP_SYSDIAG_FAILED", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3a2e4d4e1fe5f54e2f5855e26483670aea", null ],
-      [ "UCS_SD_ERR_TERMINATED", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_gad0e1473ecd96b8d94131cb5d81295fc3.html#ggad0e1473ecd96b8d94131cb5d81295fc3aa90c57ed3372954deabffda0100a2da3", null ]
-    ] ],
-    [ "Ucs_Sd_ResCode_t", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#ga4d4ad405b114eba3e3a2e5581a0b5d9c", [
-      [ "UCS_SD_TARGET_FOUND", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca863e9f716a0aaaa31a88e2362e0b20c9", null ],
-      [ "UCS_SD_FINISHED", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca4bb8732a74d1e48108c59ee15b99f2dc", null ],
-      [ "UCS_SD_CABLE_LINK_RES", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca6905a0a0e360528a3a8bc2a019b83f5e", null ],
-      [ "UCS_SD_ABORTED", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9ca24eb65098a000880b49bdec23df59875", null ],
-      [ "UCS_SD_ERROR", "group___g___u_c_s___i_n_i_c___t_y_p_e_s_ga4d4ad405b114eba3e3a2e5581a0b5d9c.html#gga4d4ad405b114eba3e3a2e5581a0b5d9caf1cfc47eb0bb457e7627178aa04ec292", null ]
     ] ]
 ];

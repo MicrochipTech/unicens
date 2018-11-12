@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -101,39 +101,43 @@ $(document).ready(function(){initNavTree('struct_ucs___rm___node__t.html','');})
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
 <tr class="memitem:ae619e45bed87dee01aaf280635cf3911"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_ucs___signature__t.html">Ucs_Signature_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_ae619e45bed87dee01aaf280635cf3911.html#ae619e45bed87dee01aaf280635cf3911">signature_ptr</a></td></tr>
-<tr class="memdesc:ae619e45bed87dee01aaf280635cf3911"><td class="mdescLeft">&#160;</td><td class="mdescRight">node signature.  <a href="#ae619e45bed87dee01aaf280635cf3911"></a><br/></td></tr>
+<tr class="memdesc:ae619e45bed87dee01aaf280635cf3911"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signature of the node.  <a href="#ae619e45bed87dee01aaf280635cf3911"></a><br/></td></tr>
 <tr class="separator:ae619e45bed87dee01aaf280635cf3911"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a321da5e56aadf970749f66cfd284bb04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_ucs___ns___script__t.html">Ucs_Ns_Script_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_a321da5e56aadf970749f66cfd284bb04.html#a321da5e56aadf970749f66cfd284bb04">script_list_ptr</a></td></tr>
-<tr class="memdesc:a321da5e56aadf970749f66cfd284bb04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to a list of configuration scripts.  <a href="#a321da5e56aadf970749f66cfd284bb04"></a><br/></td></tr>
-<tr class="separator:a321da5e56aadf970749f66cfd284bb04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12545084e0e46ea49b48c93385f75650"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_a12545084e0e46ea49b48c93385f75650.html#a12545084e0e46ea49b48c93385f75650">script_list_size</a></td></tr>
-<tr class="memdesc:a12545084e0e46ea49b48c93385f75650"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of the scripts table.  <a href="#a12545084e0e46ea49b48c93385f75650"></a><br/></td></tr>
-<tr class="separator:a12545084e0e46ea49b48c93385f75650"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea359c78b2aa39d41fe2e846a38be6ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___m_i_s_c_ga0f98f94a438e5b2e7a28c49025b99954.html#ga0f98f94a438e5b2e7a28c49025b99954">UCS_NS_CONST</a> <a class="el" href="struct_ucs___ns___script__t.html">Ucs_Ns_Script_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_aea359c78b2aa39d41fe2e846a38be6ec.html#aea359c78b2aa39d41fe2e846a38be6ec">init_script_list_ptr</a></td></tr>
+<tr class="memdesc:aea359c78b2aa39d41fe2e846a38be6ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to a list of init scripts. This script list is executed automatically by the Manager after a device is welcomed and synchronized successfully. The value must be <code>NULL</code> if no scripts shall be executed automatically.  <a href="#aea359c78b2aa39d41fe2e846a38be6ec"></a><br/></td></tr>
+<tr class="separator:aea359c78b2aa39d41fe2e846a38be6ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3df4b5dff28f09a1ccd110bed9fc69f6"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_a3df4b5dff28f09a1ccd110bed9fc69f6.html#a3df4b5dff28f09a1ccd110bed9fc69f6">init_script_list_size</a></td></tr>
+<tr class="memdesc:a3df4b5dff28f09a1ccd110bed9fc69f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The size of the list of init scripts. The value must be <code>0</code> if no scripts shall be executed automatically.  <a href="#a3df4b5dff28f09a1ccd110bed9fc69f6"></a><br/></td></tr>
+<tr class="separator:a3df4b5dff28f09a1ccd110bed9fc69f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83b42042de7afe0e4e421de3e82ba5d6"><td class="memItemLeft" align="right" valign="top">Ucs_Rm_NodeInt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___node__t_a83b42042de7afe0e4e421de3e82ba5d6.html#a83b42042de7afe0e4e421de3e82ba5d6">internal_infos</a></td></tr>
 <tr class="memdesc:a83b42042de7afe0e4e421de3e82ba5d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal information of this node object.  <a href="#a83b42042de7afe0e4e421de3e82ba5d6"></a><br/></td></tr>
 <tr class="separator:a83b42042de7afe0e4e421de3e82ba5d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configuration structure of a Node. </p>
-<dl class="section attention"><dt>Attention</dt><dd>Use the <a class="el" href="group___g___u_c_s___i_r_m_ga17bc521c78b99dc17f16161199cd4c1a.html#ga17bc521c78b99dc17f16161199cd4c1a">UCS_ADDR_LOCAL_DEV</a> macro to address your local device when specifying routes to/from It. <br/>
+<dl class="section attention"><dt>Attention</dt><dd>Use the <a class="el" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56">UCS_ADDR_LOCAL_NODE</a> macro to address your local device when specifying routes to/from It. <br/>
  The following address ranges are supported:<ul>
 <li>[0x10 ... 0x2FF]</li>
 <li>[0x500 ... 0xFEF]</li>
-<li>UCS_ADDR_LOCAL_DEV </li>
+<li>UCS_ADDR_LOCAL_NODE</li>
 </ul>
 </dd></dl>
+<table  class="mns_ic_table">
+<tr>
+<td id="mns_ic_started">&#160;</td><td>See also section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r_i_p_t.html">Node Scripting</a> for more description and an example implementation. </td></tr>
+</table>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a></li>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

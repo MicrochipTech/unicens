@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -42,6 +42,8 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_amtp.h"
 #include "ucs_misc.h"
+
+#ifndef AMS_FOOTPRINT_NOAMS
 
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
@@ -101,7 +103,7 @@ Ucs_AmsTx_Msg_t* Amtp_AllocMsg(CAmtp *self)
 /*! \brief  Callback function which is invoked if the message object is freed
  *          by the AMS
  *  \param  self     The instance
- *  \param  msg_ptr  Reference to the freed application Tx message object 
+ *  \param  msg_ptr  Reference to the freed application Tx message object
  */
 static void Amtp_OnMsgFreed(void *self, Ucs_AmsTx_Msg_t* msg_ptr)
 {
@@ -111,6 +113,7 @@ static void Amtp_OnMsgFreed(void *self, Ucs_AmsTx_Msg_t* msg_ptr)
     Amsg_TxEnqueue(msg_ptr, &self_->msg_queue);
 }
 
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

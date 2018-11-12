@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -42,6 +42,9 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_misc.h"
 
+
+#define CRC16 0x8005U
+
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
@@ -55,7 +58,7 @@ void Misc_MemSet(void *dst_ptr, int32_t value, uint32_t size)
     uint8_t *dst_ptr_ = (uint8_t *)dst_ptr;
     uint32_t i;
 
-    for(i=0U; i<size; i++)
+    for (i=0U; i<size; i++)
     {
         dst_ptr_[i] = (uint8_t)value;   /* parasoft-suppress  MISRA2004-17_4 "void pointer required for memset-function signature (stdlib)" */
     }
@@ -72,11 +75,13 @@ void Misc_MemCpy(void *dst_ptr, void *src_ptr, uint32_t size)
     uint8_t *src_ptr_ = (uint8_t *)src_ptr;
     uint32_t i;
 
-    for(i=0U; i<size; i++)
+    for (i=0U; i<size; i++)
     {
         dst_ptr_[i] = src_ptr_[i];  /* parasoft-suppress  MISRA2004-17_4 "void pointers required for memcpy-function signature (stdlib)" */
     }
 }
+
+
 
 /*!
  * @}

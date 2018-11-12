@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -59,12 +59,12 @@ extern "C"
 /* Maximum number of remote devices used by Resources Management modules.
  * Valid range: 0..63. Default value: 0.
  */
-/* #define UCS_NUM_REMOTE_DEVICES            0U */
+/* #define UCS_NUM_REMOTE_DEVICES           0 */
 
 /*------------------------------------------------------------------------------------------------*/
 /* Application Messages                                                                           */
 /*------------------------------------------------------------------------------------------------*/
-/* Defines the number of reserved Rx message objects. 
+/* Defines the number of reserved Rx message objects.
  * Valid values: 5..255. Default value: 20.
  */
 /* #define UCS_AMS_NUM_RX_MSGS              20 */
@@ -87,18 +87,28 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Memory Optimization                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-/* Define the following macros to reduces the RAM and ROM size of the UNICENS software by disabling 
+/* Define the following macros to reduces the RAM and ROM size of the UNICENS software by disabling
  * certain features. If this macro is defined the following changes apply:
  * - Reduction of low-level buffers
  * - AMS does not support segmentation (payload > 45 bytes)
  */
 /* #define UCS_FOOTPRINT_TINY */
 
+/* Define the following macro to reduce the RAM and ROM size by disabling the all AMS features.
+ * It is possible to define UCS_FOOTPRINT_DISABLE_AMS in addition to macro with UCS_FOOTPRINT_TINY.
+ */
+/* #define UCS_FOOTPRINT_DISABLE_AMS */
+
+/* Define the following macro as \c const to reduce the RAM space and use the ROM instead.
+ * Default value: not defined (RAM)
+ */
+ /* #define UCS_NS_CONST const */
+
 /*------------------------------------------------------------------------------------------------*/
 /* Tracing & Debugging                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-/* Define the following macros to map info and error trace output to user defined functions. 
- * The purpose of these functions is debugging. It is not recommended to define these functions 
+/* Define the following macros to map info and error trace output to user defined functions.
+ * The purpose of these functions is debugging. It is not recommended to define these functions
  * in a production system.
  */
 /* #define UCS_TR_ERROR     App_TraceError */

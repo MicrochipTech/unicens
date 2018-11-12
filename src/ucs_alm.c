@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -73,7 +73,7 @@ static bool Alm_ResetApi(void *current_alm_ptr, void *alm_inst_ptr);
 void Alm_Ctor(CApiLockingManager *self,
               CTimerManagement *tm_ptr,
               CEventHandler *eh_ptr,
-              void * ucs_user_ptr)
+              void *ucs_user_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     T_Ctor(&self->garbage_collector);
@@ -99,7 +99,7 @@ static void Alm_HandleInternalErrors(void *self, void *error_code_ptr)
     Alm_ResetRegisteredApis(self_);                             /* Reset all registered APIs */
 }
 
-/*! \brief  Checks for API locking timeouts. This method is the callback function of timer 
+/*! \brief  Checks for API locking timeouts. This method is the callback function of timer
  *          \c garbage_collector.
  *  \param  self    Instance pointer
  */
@@ -120,12 +120,12 @@ static bool Alm_CheckRegisteredApi(void *current_alm_ptr, void *alm_inst_ptr)
     CApiLocking *alm_ptr_ = (CApiLocking *)current_alm_ptr;
     MISC_UNUSED(self);
 
-    if(alm_ptr_->timeout_mask != 0U)
+    if (alm_ptr_->timeout_mask != 0U)
     {
         Alm_ModuleMask_t tmp_mask = 1U;
-        while(alm_ptr_->timeout_mask != 0U)
+        while (alm_ptr_->timeout_mask != 0U)
         {
-            if(tmp_mask == (tmp_mask & alm_ptr_->timeout_mask))
+            if (tmp_mask == (tmp_mask & alm_ptr_->timeout_mask))
             {
                 Ssub_Notify(&alm_ptr_->subject, &tmp_mask, false);
                 alm_ptr_->method_mask &= ~tmp_mask;
@@ -135,7 +135,7 @@ static bool Alm_CheckRegisteredApi(void *current_alm_ptr, void *alm_inst_ptr)
         }
         Alm_ClearTimeout(self);
     }
-    if(alm_ptr_->method_mask != 0U)
+    if (alm_ptr_->method_mask != 0U)
     {
         alm_ptr_->timeout_mask = alm_ptr_->method_mask;
     }
@@ -158,7 +158,7 @@ void Alm_RegisterApi(CApiLockingManager *self, CApiLocking *al_ptr)
  */
 static void Alm_StartTimeout(CApiLockingManager *self)
 {
-    if(T_IsTimerInUse(&self->garbage_collector) == false)
+    if (T_IsTimerInUse(&self->garbage_collector) == false)
     {
         Tm_SetTimer(self->tm_ptr,
                     &self->garbage_collector,
@@ -169,13 +169,13 @@ static void Alm_StartTimeout(CApiLockingManager *self)
     }
 }
 
-/*! \brief  Clears the garbage collecting timer. The timer is clear if no API locking flag is 
+/*! \brief  Clears the garbage collecting timer. The timer is clear if no API locking flag is
  *          currently pending.
  *  \param  self    Instance pointer
  */
 static void Alm_ClearTimeout(CApiLockingManager *self)
 {
-    if(Dl_Foreach(&self->api_list, &Alm_SearchLockedApi, self) == NULL)
+    if (Dl_Foreach(&self->api_list, &Alm_SearchLockedApi, self) == NULL)
     {
         Tm_ClearTimer(self->tm_ptr, &self->garbage_collector);
     }
@@ -192,7 +192,7 @@ static bool Alm_SearchLockedApi(void *current_alm_ptr, void *alm_inst_ptr)
     bool ret_val = false;
     MISC_UNUSED(alm_inst_ptr);
 
-    if(alm_ptr_->method_mask != 0U)
+    if (alm_ptr_->method_mask != 0U)
     {
         ret_val = true;
     }
@@ -231,12 +231,12 @@ static bool Alm_ResetApi(void *current_alm_ptr, void *alm_inst_ptr)
  *  \param  obs_ptr         Observer to signal locked API methods
  *  \param  ucs_user_ptr     User reference that needs to be passed in every callback function
  */
-void Al_Ctor(CApiLocking *self, CSingleObserver *obs_ptr, void * ucs_user_ptr)
+void Al_Ctor(CApiLocking *self, CSingleObserver *obs_ptr, void *ucs_user_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     self->ucs_user_ptr = ucs_user_ptr;
     Dln_Ctor(&self->node, NULL);
-    if(obs_ptr != NULL)
+    if (obs_ptr != NULL)
     {
         Ssub_Ctor(&self->subject, self->ucs_user_ptr);
         (void)Ssub_AddObserver(&self->subject, obs_ptr);
@@ -252,7 +252,7 @@ void Al_Ctor(CApiLocking *self, CSingleObserver *obs_ptr, void * ucs_user_ptr)
 bool Al_Lock(CApiLocking *self, Alm_ModuleMask_t method)
 {
     bool ret_val = false;
-    if((self->method_mask & method) == 0U)
+    if ((self->method_mask & method) == 0U)
     {
         ret_val = true;
         self->method_mask |= method;

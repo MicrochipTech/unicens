@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -41,7 +41,6 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Includes                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
-#include "ucs_inic_pb.h"
 #include "ucs_nodedis.h"
 #include "ucs_misc.h"
 
@@ -55,9 +54,9 @@
 
 #define ND_TIMEOUT_PERIODIC     5000U   /*!< \brief 5s timeout */
 #define ND_TIMEOUT_WELCOME       100U   /*!< \brief Supervises EXC.Welcome.StartResult command */
-#define ND_TIMEOUT_SIGNATURE     300U   /*!< \brief Supervises EXC.Signature.Get command, takes 
+#define ND_TIMEOUT_SIGNATURE     300U   /*!< \brief Supervises EXC.Signature.Get command, takes
                                                     LLRs into account. */
-#define ND_TIMEOUT_DEBOUNCE      200U   /*!< \brief Prevents Hello.Get being sent while waiting for 
+#define ND_TIMEOUT_DEBOUNCE      200U   /*!< \brief Prevents Hello.Get being sent while waiting for
                                                     answers of a previous Hello.Get command. */
 
 #define ND_SIGNATURE_VERSION       1U   /*!< \brief Signature version used for Node Discovery. */
@@ -80,7 +79,7 @@ typedef enum Nd_Events_
     ND_E_NIL                = 0U,      /*!< \brief NIL Event */
     ND_E_START              = 1U,      /*!< \brief API start command was called. */
     ND_E_STOP               = 2U,      /*!< \brief Stop request occurred. */
-    ND_E_CHECK              = 3U,      /*!< \brief Check conditions in CHECK_HELLO state. */ 
+    ND_E_CHECK              = 3U,      /*!< \brief Check conditions in CHECK_HELLO state. */
     ND_E_NET_OFF            = 4U,      /*!< \brief NetOff occurred. */
     ND_E_HELLO_STATUS       = 5U,      /*!< \brief Hello.Status message available to be processed. */
     ND_E_RES_NODE_OK        = 6U,      /*!< \brief Evaluation result of node: ok. */
@@ -90,7 +89,7 @@ typedef enum Nd_Events_
     ND_E_WELCOME_NOSUCCESS  = 10U,     /*!< \brief Welcome command was not successful. */
     ND_E_SIGNATURE_SUCCESS  = 11U,     /*!< \brief Signature command was successful. */
     ND_E_TIMEOUT            = 12U,     /*!< \brief Timeout occurred. */
-    ND_E_ERROR              = 13U      /*!< \brief An unexpected error occurred. */ 
+    ND_E_SIGNATURE_ERROR    = 13U      /*!< \brief A Signature.Error message was received. */ 
 
 } Nd_Events_t;
 
@@ -103,6 +102,7 @@ typedef enum Nd_State_
     ND_S_WAIT_EVAL       =  2U,     /*!< \brief Evaluate next Hello.Status message */
     ND_S_WAIT_WELCOME    =  3U,     /*!< \brief Wait for Welcome.Status */
     ND_S_WAIT_PING       =  4U      /*!< \brief Wait for Signature.Status */
+
 } Nd_State_t;
 
 
@@ -116,16 +116,16 @@ static void Nd_Service(void *self);
 static void Nd_HelloStatusCb(void *self, void *result_ptr);
 static void Nd_WelcomeResultCb(void *self, void *result_ptr);
 static void Nd_SignatureStatusCb(void *self, void *result_ptr);
-static void Nd_InitCb(void *self, void *result_ptr);
 static void Nd_TimerCb(void *self);
 static void Nd_DebounceTimerCb(void *self);
 static void Nd_OnTerminateEventCb(void *self, void *result_ptr);
 static void Nd_NetworkStatusCb(void *self, void *result_ptr);
 
-static void Nd_Reset_Lists(void *self);
+static void Nd_Reset_Lists(CNodeDiscovery *self);
 
 static void Nd_A_Start(void *self);
 static void Nd_A_Stop(void *self);
+static void Nd_A_CheckStart(void *self);
 static void Nd_A_CheckConditions(void *self);
 static void Nd_A_Eval_Hello(void *self);
 static void Nd_A_Welcome(void *self);
@@ -134,17 +134,18 @@ static void Nd_A_CheckUnique(void *self);
 static void Nd_A_WelcomeSuccess(void *self);
 static void Nd_A_WelcomeNoSuccess(void *self);
 static void Nd_A_WelcomeTimeout(void *self);
-static void Nd_A_Timeout_Hello(void *self);
+static void Nd_A_Hello_Timeout(void *self);
 static void Nd_A_NetOff(void *self);
 static void Nd_A_Signature_Timeout(void *self);
 static void Nd_A_Signature_Success(void *self);
-static void Nd_A_Error(void *self);
+static void Nd_A_Signature_Error(void *self);
 
-static void Nd_Send_Hello_Get(void *self);
-static void Nd_Start_Periodic_Timer(void *self);
-static void Nd_Start_Debounce_Timer(void *self);
-static void Nd_Send_Welcome_SR(void *self, Ucs_Signature_t *signature);
-static void Nd_Send_Signature_Get(void *self, uint16_t target_address);
+static void Nd_Send_Hello_Get(CNodeDiscovery *self);
+static void Nd_Start_Periodic_Timer(CNodeDiscovery *self);
+static void Nd_Stop_Periodic_Timer(CNodeDiscovery *self);
+static void Nd_Start_Debounce_Timer(CNodeDiscovery *self);
+static void Nd_Send_Welcome_Sr(CNodeDiscovery *self);
+static void Nd_Send_Signature_Get(CNodeDiscovery *self);
 
 
 /*------------------------------------------------------------------------------------------------*/
@@ -156,9 +157,9 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
     { /* State ND_S_IDLE */
         /* ND_E_NIL                */ {NULL,                          ND_S_IDLE            },
         /* ND_E_START              */ {&Nd_A_Start,                   ND_S_CHECK_HELLO     },
-        /* ND_E_STOP               */ {NULL,                          ND_S_IDLE            },
-        /* ND_E_CHECK              */ {NULL,                          ND_S_IDLE            },
-        /* ND_E_NET_OFF            */ {NULL,                          ND_S_IDLE            },
+        /* ND_E_STOP               */ {&Nd_A_CheckStart,              ND_S_IDLE            },
+        /* ND_E_CHECK              */ {&Nd_A_CheckStart,              ND_S_IDLE            },
+        /* ND_E_NET_OFF            */ {&Nd_A_CheckStart,              ND_S_IDLE            },
         /* ND_E_HELLO_STATUS       */ {NULL,                          ND_S_IDLE            },
         /* ND_E_RES_NODE_OK        */ {NULL,                          ND_S_IDLE            },
         /* ND_E_RES_UNKNOWN        */ {NULL,                          ND_S_IDLE            },
@@ -167,7 +168,7 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
         /* ND_E_WELCOME_NOSUCCESS  */ {NULL,                          ND_S_IDLE            },
         /* ND_E_SIGNATURE_SUCCESS  */ {NULL,                          ND_S_IDLE            },
         /* ND_E_TIMEOUT            */ {NULL,                          ND_S_IDLE            },
-        /* ND_E_ERROR              */ {NULL,                          ND_S_IDLE            }
+        /* ND_E_SIGNATURE_ERROR    */ {NULL,                          ND_S_IDLE            }
 
     },
     { /* State ND_S_CHECK_HELLO */
@@ -183,8 +184,8 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
         /* ND_E_WELCOME_SUCCESS    */ {NULL,                          ND_S_CHECK_HELLO     },
         /* ND_E_WELCOME_NOSUCCESS  */ {NULL,                          ND_S_CHECK_HELLO     },
         /* ND_E_SIGNATURE_SUCCESS  */ {NULL,                          ND_S_CHECK_HELLO     },
-        /* ND_E_TIMEOUT            */ {&Nd_A_Timeout_Hello,           ND_S_CHECK_HELLO     },
-        /* ND_E_ERROR              */ {&Nd_A_Error,                   ND_S_IDLE            }
+        /* ND_E_TIMEOUT            */ {&Nd_A_Hello_Timeout,           ND_S_CHECK_HELLO     },
+        /* ND_E_SIGNATURE_ERROR    */ {NULL,                          ND_S_CHECK_HELLO     }
     },
     { /* State ND_S_WAIT_EVAL */
         /* ND_E_NIL                */ {NULL,                          ND_S_WAIT_EVAL       },
@@ -200,10 +201,10 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
         /* ND_E_WELCOME_NOSUCCESS  */ {NULL,                          ND_S_WAIT_EVAL       },
         /* ND_E_SIGNATURE_SUCCESS  */ {NULL,                          ND_S_WAIT_EVAL       },
         /* ND_E_TIMEOUT            */ {NULL,                          ND_S_WAIT_EVAL       },
-        /* ND_E_ERROR              */ {&Nd_A_Error,                   ND_S_IDLE            }
-    },                             
+        /* ND_E_SIGNATURE_ERROR    */ {NULL,                          ND_S_WAIT_EVAL       }
+    },
 
-    {/* ND_S_WAIT_WELCOME */       
+    {/* ND_S_WAIT_WELCOME */
         /* ND_E_NIL                */ {NULL,                          ND_S_WAIT_WELCOME    },
         /* ND_E_START              */ {NULL,                          ND_S_WAIT_WELCOME    },
         /* ND_E_STOP               */ {NULL,                          ND_S_WAIT_WELCOME    },
@@ -217,9 +218,9 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
         /* ND_E_WELCOME_NOSUCCESS  */ {&Nd_A_WelcomeNoSuccess,        ND_S_CHECK_HELLO     },
         /* ND_E_SIGNATURE_SUCCESS  */ {NULL,                          ND_S_WAIT_WELCOME    },
         /* ND_E_TIMEOUT            */ {&Nd_A_WelcomeTimeout,          ND_S_CHECK_HELLO     },
-        /* ND_E_ERROR              */ {&Nd_A_Error,                   ND_S_IDLE            }
-    },                             
-    {/* ND_S_WAIT_PING */          
+        /* ND_E_SIGNATURE_ERROR    */ {NULL,                          ND_S_WAIT_WELCOME    }
+    },
+    {/* ND_S_WAIT_PING */
         /* ND_E_NIL                */ {NULL,                          ND_S_WAIT_PING       },
         /* ND_E_START              */ {NULL,                          ND_S_WAIT_PING       },
         /* ND_E_STOP               */ {NULL,                          ND_S_WAIT_PING       },
@@ -233,7 +234,7 @@ static const Fsm_StateElem_t nd_trans_tab[ND_NUM_STATES][ND_NUM_EVENTS] =    /* 
         /* ND_E_WELCOME_NOSUCCESS  */ {NULL,                          ND_S_WAIT_PING       },
         /* ND_E_SIGNATURE_SUCCESS  */ {&Nd_A_Signature_Success,       ND_S_CHECK_HELLO     },
         /* ND_E_TIMEOUT            */ {&Nd_A_Signature_Timeout,       ND_S_WAIT_WELCOME    },
-        /* ND_E_ERROR              */ {&Nd_A_Error,                   ND_S_IDLE            }
+        /* ND_E_SIGNATURE_ERROR    */ {&Nd_A_Signature_Error,         ND_S_IDLE            }
     }
 };
 
@@ -262,14 +263,13 @@ void Nd_Ctor(CNodeDiscovery *self, CInic *inic, CBase *base, CExc *exc, Nd_InitD
     self->report_fptr = init_ptr->report_fptr;
     self->eval_fptr   = init_ptr->eval_fptr;
 
-    Fsm_Ctor(&self->fsm, self, &(nd_trans_tab[0][0]), ND_NUM_EVENTS, ND_E_NIL);
+    Fsm_Ctor(&self->fsm, self, &(nd_trans_tab[0][0]), ND_NUM_EVENTS, ND_S_IDLE);
 
     Nd_Reset_Lists(self);
 
     Sobs_Ctor(&self->nd_hello,          self, &Nd_HelloStatusCb);
     Sobs_Ctor(&self->nd_welcome,        self, &Nd_WelcomeResultCb);
     Sobs_Ctor(&self->nd_signature,      self, &Nd_SignatureStatusCb);
-    Sobs_Ctor(&self->nd_init,           self, &Nd_InitCb);
 
     /* register termination events */
     Mobs_Ctor(&self->nd_terminate, self, EH_M_TERMINATION_EVENTS, &Nd_OnTerminateEventCb);
@@ -296,7 +296,7 @@ static void Nd_Service(void *self)
     CNodeDiscovery *self_ = (CNodeDiscovery *)self;
     Srv_Event_t event_mask;
     Srv_GetEvent(&self_->service, &event_mask);
-    if(ND_EVENT_SERVICE == (event_mask & ND_EVENT_SERVICE))   /* Is event pending? */
+    if (ND_EVENT_SERVICE == (event_mask & ND_EVENT_SERVICE))   /* Is event pending? */
     {
         Fsm_State_t result;
         Srv_ClearEvent(&self_->service, ND_EVENT_SERVICE);
@@ -315,7 +315,7 @@ static void Nd_Service(void *self)
 /**************************************************************************************************/
 /*! \brief Start the Node Discovery
  *
- * \param  *self    Reference to Node Discovery object
+ * \param  self     Reference to Node Discovery object
  * \return UCS_RET_SUCCESS              Operation successful
  * \return UCS_RET_ERR_API_LOCKED       Node Discovery was already started
  */
@@ -324,30 +324,27 @@ Ucs_Return_t Nd_Start(CNodeDiscovery *self)
     Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
 
-    if (self->running == false)
+    if (self->exc->service_locked == false)
     {
         Fsm_SetEvent(&self->fsm, ND_E_START);
         Srv_SetEvent(&self->service, ND_EVENT_SERVICE);
-        self->running = true;
+        self->exc->service_locked = true;
+        self->start_request = true;
         self->debounce_flag = false;
         TR_INFO((self->base->ucs_user_ptr, "[ND]", "Nd_Start", 0U));
     }
     else
     {
         ret_val = UCS_RET_ERR_API_LOCKED;
-        TR_INFO((self->base->ucs_user_ptr, "[ND]", "Nd_Start failed", 0U));
+        TR_INFO((self->base->ucs_user_ptr, "[ND]", "Nd_Start failed: API locked", 0U));
     }
 
     return ret_val;
-
-
-
-
 }
 
 /*! \brief Stops the Node Discovery
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  * \return UCS_RET_SUCCESS              Operation successful
  * \return UCS_RET_ERR_NOT_AVAILABLE    Node Discovery not running
  */
@@ -355,7 +352,7 @@ Ucs_Return_t Nd_Stop(CNodeDiscovery *self)
 {
     Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
-    if (self->running == true)       /* check if Node Discovery was started */
+    if (self->exc->service_locked == true)       /* check if Node Discovery was started */
     {
         self->stop_request = true;
         Fsm_SetEvent(&self->fsm, ND_E_CHECK);
@@ -373,15 +370,15 @@ Ucs_Return_t Nd_Stop(CNodeDiscovery *self)
 }
 
 
-/*! \brief Sends the Init command to all nodes 
+/*! \brief Sends the Init command to all nodes
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 void Nd_InitAll(CNodeDiscovery *self)
 {
     Ucs_Return_t result;
 
-    result = Exc_DeviceInit_Start(self->exc, UCS_ADDR_BROADCAST_BLOCKING, NULL);
+    result = Exc_Init_Start(self->exc, UCS_ADDR_BROADCAST_BLOCKING, NULL);
     if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base->ucs_user_ptr, "[ND]", "Nd_InitAll", 0U));
@@ -401,7 +398,7 @@ void Nd_InitAll(CNodeDiscovery *self)
 /**************************************************************************************************/
 /*! \brief Action on start event
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Start(void *self)
 {
@@ -412,8 +409,7 @@ static void Nd_A_Start(void *self)
 
     Nd_Send_Hello_Get(self_);
 
-    Nd_Start_Periodic_Timer(self_);
-    
+    self_->start_request = false;
     self_->stop_request  = false;
     self_->hello_mpr_request   = false;
     self_->hello_neton_request = false;
@@ -421,7 +417,7 @@ static void Nd_A_Start(void *self)
 
 /*! \brief Action on stop event
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Stop(void *self)
 {
@@ -432,12 +428,29 @@ static void Nd_A_Stop(void *self)
     {
         self_->report_fptr(self_->cb_inst_ptr, UCS_ND_RES_STOPPED, dummy);
     }
-    self_->running = false;
+    self_->exc->service_locked = false;
 }
 
-/*! \brief Check conditions 
+
+/*! \brief Check if a start was required
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
+ */
+static void Nd_A_CheckStart(void *self)
+{
+    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
+
+    if (self_->start_request == true)
+    {
+        Fsm_SetEvent(&self_->fsm, ND_E_START);
+        Srv_SetEvent(&self_->service, ND_EVENT_SERVICE);
+    }
+}
+
+
+/*! \brief Check conditions
+ *
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_CheckConditions(void *self)
 {
@@ -453,7 +466,6 @@ static void Nd_A_CheckConditions(void *self)
     {
         Nd_Reset_Lists(self_);
         Nd_Send_Hello_Get(self_);
-        Nd_Start_Periodic_Timer(self_);
         self_->hello_mpr_request   = false;
         self_->hello_neton_request = false;
     }
@@ -461,7 +473,6 @@ static void Nd_A_CheckConditions(void *self)
              && (self_->debounce_flag       == false) )
     {
         Nd_Send_Hello_Get(self_);
-        Nd_Start_Periodic_Timer(self_);
         self_->hello_neton_request = false;
     }
     else if (Dl_GetSize(&(self_->new_list)) > 0U)
@@ -479,7 +490,7 @@ static void Nd_A_CheckConditions(void *self)
 
 /*! \brief Evaluate the signature of the next node
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Eval_Hello(void *self)
 {
@@ -517,8 +528,9 @@ static void Nd_A_Eval_Hello(void *self)
                 service_flag = true;
                 break;
 
-            default: 
-                Fsm_SetEvent(&self_->fsm, ND_E_ERROR);
+            default:
+                TR_FAILED_ASSERT(self_->base->ucs_user_ptr, "[ND]");    /* Announce invalid return value of eval_fptr. */ 
+                Fsm_SetEvent(&self_->fsm, ND_E_RES_UNKNOWN);            /* Node is treated as if it was unknown. */
                 service_flag = true;
                 break;
             }
@@ -534,19 +546,17 @@ static void Nd_A_Eval_Hello(void *self)
 
 /*! \brief Sends a Welcome message to the current node
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Welcome(void *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
-
-    Nd_Send_Welcome_SR(self, &self_->current_sig);
+    Nd_Send_Welcome_Sr((CNodeDiscovery *)self);
 }
 
 
 /*! \brief Report the current node as unknown
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Unknown(void *self)
 {
@@ -565,20 +575,17 @@ static void Nd_A_Unknown(void *self)
 
 /*! \brief Check if the current node has already got a Welcome message
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_CheckUnique(void *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
-
-    Nd_Send_Signature_Get(self, self_->current_sig.node_address);
-
+    Nd_Send_Signature_Get((CNodeDiscovery *)self);
 }
 
 
 /*! \brief Report a successful Welcome.Result
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_WelcomeSuccess(void *self)
 {
@@ -595,7 +602,6 @@ static void Nd_A_WelcomeSuccess(void *self)
     if (self_->current_sig.node_pos_addr == 0x0400U)
     {
         Nd_Send_Hello_Get(self_);
-        Nd_Start_Periodic_Timer(self_);
     }
 
     Fsm_SetEvent(&self_->fsm, ND_E_CHECK);
@@ -605,7 +611,7 @@ static void Nd_A_WelcomeSuccess(void *self)
 
 /*! \brief Report an unsuccessful Welcome.Result
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_WelcomeNoSuccess(void *self)
 {
@@ -619,9 +625,9 @@ static void Nd_A_WelcomeNoSuccess(void *self)
 }
 
 
-/*! \brief Reaction on a timeout for the Welcome messsage
+/*! \brief Reaction on a timeout for the Welcome message
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_WelcomeTimeout(void *self)
 {
@@ -637,20 +643,21 @@ static void Nd_A_WelcomeTimeout(void *self)
 
 /*! \brief The periodic timer elapsed
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_A_Timeout_Hello(void *self)
+static void Nd_A_Hello_Timeout(void *self)
 {
     CNodeDiscovery *self_ = (CNodeDiscovery *)self;
 
     Nd_Send_Hello_Get(self_);
-    Nd_Start_Periodic_Timer(self_);
+
+    Fsm_SetEvent(&self_->fsm, ND_E_CHECK);
 }
 
 
 /*! \brief  Reaction on a NetOff event
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_NetOff(void *self)
 {
@@ -663,25 +670,25 @@ static void Nd_A_NetOff(void *self)
     }
 
     Nd_Reset_Lists(self_);
+    Nd_Stop_Periodic_Timer(self_);
 
+    Fsm_SetEvent(&self_->fsm, ND_E_CHECK);
 }
 
 
 /*! \brief Reaction on a timeout of the Signature command
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Signature_Timeout(void *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
-
-    Nd_Send_Welcome_SR(self, &self_->current_sig);
+    Nd_Send_Welcome_Sr((CNodeDiscovery *)self);
 }
 
 
 /*! \brief Reaction on a successful Signature answer
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Nd_A_Signature_Success(void *self)
 {
@@ -693,14 +700,17 @@ static void Nd_A_Signature_Success(void *self)
         temp_sig = self_->current_sig;                 /* provide only a copy to the application */
         self_->report_fptr(self_->cb_inst_ptr, UCS_ND_RES_MULTI, &temp_sig);
     }
+
+    Fsm_SetEvent(&self_->fsm, ND_E_CHECK);
+    Srv_SetEvent(&self_->service, ND_EVENT_SERVICE);
 }
 
 
-/*! \brief An unecpected error occurred
+/*! \brief A Signature.Error message was received.
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_A_Error(void *self)
+static void Nd_A_Signature_Error(void *self)
 {
     CNodeDiscovery *self_ = (CNodeDiscovery *)self;
     Ucs_Signature_t *dummy = NULL;
@@ -709,7 +719,7 @@ static void Nd_A_Error(void *self)
     {
         self_->report_fptr(self_->cb_inst_ptr, UCS_ND_RES_ERROR, dummy);
     }
-    self_->running = false;
+    self_->exc->service_locked = false;
 }
 
 
@@ -719,8 +729,8 @@ static void Nd_A_Error(void *self)
 
 /*! Callback function for the Exc.Hello.Status message
  *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Result of the Exc_Hello_Get() command
+ * \param self          Reference to Node Discovery object
+ * \param result_ptr    Result of the Exc_Hello_Get() command
  */
 static void Nd_HelloStatusCb(void *self, void *result_ptr)
 {
@@ -747,15 +757,14 @@ static void Nd_HelloStatusCb(void *self, void *result_ptr)
     }
     else
     {
-        Fsm_SetEvent(&self_->fsm, ND_E_ERROR); 
-        TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_HelloStatusCb ND_E_ERROR", 0U));
+        TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_HelloStatusCb Error", 0U));
     }
 
     Srv_SetEvent(&self_->service, ND_EVENT_SERVICE);
 }
 
 
-/*! \brief  Function is called on reception of the Welcome.Result messsage
+/*! \brief  Function is called on reception of the Welcome.Result message
  *  \param  self        Reference to Node Discovery object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -785,21 +794,11 @@ static void Nd_WelcomeResultCb(void *self, void *result_ptr)
     {
         uint8_t i;
 
-        if (    (result_ptr_->result.info_size   == 3U)
-             && (result_ptr_->result.info_ptr[0] == 0x20U)
-             && (result_ptr_->result.info_ptr[1] == 0x03U)
-             && (result_ptr_->result.info_ptr[2] == 0x31U))
-        {   /* Device has not yet received an ExtendedNetworkControl.Hello.Get() message. */
-            Fsm_SetEvent(&self_->fsm, ND_E_WELCOME_NOSUCCESS);
-        }
-        else
+        Fsm_SetEvent(&self_->fsm, ND_E_WELCOME_NOSUCCESS);
+        TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeResultCb Error (code) 0x%x", 1U, result_ptr_->result.code));
+        for (i=0U; i< result_ptr_->result.info_size; ++i)
         {
-            Fsm_SetEvent(&self_->fsm, ND_E_ERROR);
-            TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeResultCb Error (code) 0x%x", 1U, result_ptr_->result.code));
-            for (i=0U; i< result_ptr_->result.info_size; ++i)
-            {
-                TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeResultCb Error (info) 0x%x", 1U, result_ptr_->result.info_ptr[i]));
-            }
+            TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeResultCb Error (info) 0x%x", 1U, result_ptr_->result.info_ptr[i]));
         }
     }
 
@@ -809,8 +808,8 @@ static void Nd_WelcomeResultCb(void *self, void *result_ptr)
 
 /*! \brief Callback function for Signature status and error messages
  *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Pointer to the result of the Signature message
+ * \param self          Reference to Node Discovery object
+ * \param result_ptr    Pointer to the result of the Signature message
  */
 static void Nd_SignatureStatusCb(void *self, void *result_ptr)
 {
@@ -827,27 +826,11 @@ static void Nd_SignatureStatusCb(void *self, void *result_ptr)
     }
     else
     {
-        Fsm_SetEvent(&self_->fsm, ND_E_ERROR);
+        Fsm_SetEvent(&self_->fsm, ND_E_SIGNATURE_ERROR);
         TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_SignatureStatusCb Error  0x%x", 1U, result_ptr_->result.code));
     }
 
     Srv_SetEvent(&self_->service, ND_EVENT_SERVICE);
-}
-
-
-/*! \brief Callback function for Init error messages
- *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Pointer to the result of the Init message
- */
-static void Nd_InitCb(void *self, void *result_ptr)
-{
-    CNodeDiscovery *self_        = (CNodeDiscovery *)self;
-    Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *)result_ptr;
-
-    MISC_UNUSED(self_);
-    MISC_UNUSED(result_ptr_);
-
 }
 
 
@@ -882,8 +865,8 @@ static void Nd_DebounceTimerCb(void *self)
 
 /*! \brief Function is called on severe internal errors
  *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Reference to data
+ * \param self          Reference to Node Discovery object
+ * \param result_ptr    Reference to data
  */
 static void Nd_OnTerminateEventCb(void *self, void *result_ptr)
 {
@@ -906,8 +889,8 @@ static void Nd_OnTerminateEventCb(void *self, void *result_ptr)
 
 /*! \brief Callback function for the INIC.NetworkStatus status and error messages
  *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Pointer to the result of the INIC.NetworkStatus message
+ * \param self          Reference to Node Discovery object
+ * \param result_ptr    Pointer to the result of the INIC.NetworkStatus message
  */
 static void Nd_NetworkStatusCb(void *self, void *result_ptr)
 {
@@ -917,14 +900,14 @@ static void Nd_NetworkStatusCb(void *self, void *result_ptr)
     if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_NetworkStatusCb  0x%x", 1U, result_ptr_->result.code));
-        /* check for NetOn/NetOff events */
+        /* check for NetOff event */
         if (    (self_->neton == true)
              && ((((Inic_NetworkStatus_t *)(result_ptr_->data_info))->availability) == UCS_NW_NOT_AVAILABLE) )
         {
             self_->neton = false;
             Fsm_SetEvent(&self_->fsm, ND_E_NET_OFF);
         }
-        /* check for NetOn/NetOff events */
+        /* check for NetOn event */
         else if (    (self_->neton == false)
              && ((((Inic_NetworkStatus_t *)(result_ptr_->data_info))->availability) == UCS_NW_AVAILABLE) )
         {
@@ -951,134 +934,138 @@ static void Nd_NetworkStatusCb(void *self, void *result_ptr)
 /**************************************************************************************************/
 /*! \brief Reset the list of new detected nodes
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_Reset_Lists(void *self)
+static void Nd_Reset_Lists(CNodeDiscovery *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
     uint16_t i;
 
-    Dl_Ctor(&self_->new_list, self_->base->ucs_user_ptr);
-    Dl_Ctor(&self_->unused_list, self_->base->ucs_user_ptr);
+    Dl_Ctor(&self->new_list, self->base->ucs_user_ptr);
+    Dl_Ctor(&self->unused_list, self->base->ucs_user_ptr);
 
-    for(i=0U; i < ND_NUM_NODES; ++i)
+    for (i=0U; i < ND_NUM_NODES; ++i)
     {
-        Dln_Ctor(&(self_->nodes[i]).node, &(self_->nodes[i]));
-        Dl_InsertTail(&(self_->unused_list), &(self_->nodes[i]).node);
+        Dln_Ctor(&(self->nodes[i]).node, &(self->nodes[i]));
+        Dl_InsertTail(&(self->unused_list), &(self->nodes[i]).node);
     }
 }
 
 
 /*! \brief Send the Hello.Get message
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_Send_Hello_Get(void *self)
+static void Nd_Send_Hello_Get(CNodeDiscovery *self)
 {
     Ucs_Return_t ret_val;
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
 
-    Nd_Reset_Lists(self_);  /* clear list to avoid double entries */
+    Nd_Reset_Lists(self);  /* clear list to avoid double entries */
 
-    ret_val = Exc_Hello_Get(self_->exc, UCS_ADDR_BROADCAST_BLOCKING, 
-                            ND_SIGNATURE_VERSION, &self_->nd_hello);
-    self_->debounce_flag = true;
-    Nd_Start_Debounce_Timer(self_);
+    ret_val = Exc_Hello_Get(self->exc, UCS_ADDR_BROADCAST_BLOCKING,
+                            ND_SIGNATURE_VERSION, &self->nd_hello);
+    self->debounce_flag = true;
+    Nd_Start_Debounce_Timer(self);
+    Nd_Start_Periodic_Timer(self);
 
-    TR_ASSERT(self_->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
+    TR_ASSERT(self->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
     MISC_UNUSED(ret_val);
 }
 
 
 /*! \brief Send the Welcome.StartResult message
  *
- * \param *self Reference to Node Discovery object
- * \param *signature signature parameter
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_Send_Welcome_SR(void *self, Ucs_Signature_t *signature)
+static void Nd_Send_Welcome_Sr(CNodeDiscovery *self)
 {
     Ucs_Return_t    ret_val;
-    CNodeDiscovery  *self_ = (CNodeDiscovery *)self;
     uint16_t        target_address;
 
-    if (signature->node_pos_addr == 0x0400U)
+    if (self->current_sig.node_pos_addr == 0x0400U)
     {
         target_address = 0x0001U;
     }
     else
     {
-        target_address = signature->node_pos_addr;
+        target_address = self->current_sig.node_pos_addr;
     }
 
-    ret_val = Exc_Welcome_Sr(self_->exc,
+    ret_val = Exc_Welcome_Sr(self->exc,
                              target_address,
                              0xFFFFU,
                              ND_SIGNATURE_VERSION,
-                             *signature,
-                             &self_->nd_welcome);
-    Tm_SetTimer(&self_->base->tm,
-                &self_->timer,
+                             self->current_sig,
+                             &self->nd_welcome);
+    Tm_SetTimer(&self->base->tm, 
+                &self->timer,
                 &Nd_TimerCb,
-                self_,
+                self,
                 ND_TIMEOUT_WELCOME,
                 0U);
-    TR_ASSERT(self_->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
+    TR_ASSERT(self->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
     MISC_UNUSED(ret_val);
 }
 
 
-/*! \brief Send the Signature.Get message
+/*! \brief Request the signature from the current node
  *
- * \param *self          Reference to Node Discovery object
- * \param target_address target address for the command
+ * \param self           Reference to Node Discovery object
  */
-static void Nd_Send_Signature_Get(void *self, uint16_t target_address)
+static void Nd_Send_Signature_Get(CNodeDiscovery *self)
 {
     Ucs_Return_t   ret_val;
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
 
-    ret_val = Exc_Signature_Get(self_->exc, target_address, ND_SIGNATURE_VERSION, &self_->nd_signature);
-    Tm_SetTimer(&self_->base->tm,
-                &self_->timer,
+    ret_val = Exc_Signature_Get(self->exc, 
+                                self->current_sig.node_address, 
+                                ND_SIGNATURE_VERSION, 
+                                &self->nd_signature);
+    Tm_SetTimer(&self->base->tm,
+                &self->timer,
                 &Nd_TimerCb,
-                self_,
+                self,
                 ND_TIMEOUT_SIGNATURE,
                 0U);
-    TR_ASSERT(self_->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
+    TR_ASSERT(self->base->ucs_user_ptr, "[ND]", ret_val == UCS_RET_SUCCESS);
     MISC_UNUSED(ret_val);
 }
 
 /*! \brief  Starts the periodic timer
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_Start_Periodic_Timer(void *self)
+static void Nd_Start_Periodic_Timer(CNodeDiscovery *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
-
-    Tm_SetTimer(&self_->base->tm,
-                &self_->timer,
+    Tm_SetTimer(&self->base->tm,
+                &self->timer,
                 &Nd_TimerCb,
                 self,
                 ND_TIMEOUT_PERIODIC,
                 0U);
 }
 
+/*! \brief  Stops the periodic timer
+ *
+ * \param self  Reference to Node Discovery object
+ */
+static void Nd_Stop_Periodic_Timer(CNodeDiscovery *self)
+{
+    Tm_ClearTimer(&self->base->tm, &self->timer);
+}
+
 /*! \brief  Starts the debounce timer
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
-static void Nd_Start_Debounce_Timer(void *self)
+static void Nd_Start_Debounce_Timer(CNodeDiscovery *self)
 {
-    CNodeDiscovery *self_ = (CNodeDiscovery *)self;
-
-    Tm_SetTimer(&self_->base->tm,
-                &self_->debounce_timer,
+    Tm_SetTimer(&self->base->tm,
+                &self->debounce_timer,
                 &Nd_DebounceTimerCb,
                 self,
                 ND_TIMEOUT_DEBOUNCE,
                 0U);
 }
+
 
 /*!
  * @}

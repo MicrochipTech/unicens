@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -81,7 +81,7 @@ typedef struct CAttachService_
                                                         results */
     CMaskedObserver internal_error_obs;     /*!< \brief Error observer to handle INIC errors
                                                         during the attach process */
-    CTimer timer;                           /*!< \brief Timer to check for init timeout */ 
+    CTimer timer;                           /*!< \brief Timer to check for init timeout */
     CSingleSubject ats_result_subject;      /*!< \brief Subject to report the result of the
                                                         attach process */
     Ucs_InitResult_t report_result;         /*!< \brief Internal result/error code memory */

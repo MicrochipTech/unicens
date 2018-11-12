@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -60,7 +60,7 @@ extern "C"
 struct CJob_;
 typedef struct CJob_ CJob;
 
-/*! \brief   Starts up the MOST Network
+/*! \brief   Starts up the Network
  *  \param   self       The instance
  */
 typedef void (*Job_StartCb_t)(void *self);
@@ -126,7 +126,7 @@ typedef struct CJobQ_
     Job_Result_t    result;
     CJob**          job_list;
     CJobService*    job_service_ptr;
-    
+
     uint8_t         index;          /*! \brief The index of current job */
     CSingleObserver result_obs;     /*! \brief Required to get the job result */
     CSingleSubject  q_subject;      /*! \brief Notifies the JobQ result */

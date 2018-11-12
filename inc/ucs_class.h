@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -33,7 +33,7 @@
  * \brief Internal header file of UNICENS API class
  * \cond UCS_INTERNAL_DOC
  * \addtogroup G_UCS_CLASS
- * @{
+ * @{*self_
  */
 #ifndef UCS_CLASS_H
 #define UCS_CLASS_H
@@ -49,19 +49,20 @@
 #include "ucs_transceiver.h"
 #include "ucs_factory.h"
 #include "ucs_rtm.h"
-#include "ucs_epm.h"
 #include "ucs_net.h"
 #include "ucs_attach.h"
 #include "ucs_nodedis.h"
-#include "ucs_bc_diag.h"   
-#include "ucs_sys_diag.h"
+#include "ucs_diag_hdx.h"
+#include "ucs_diag_fdx.h"
 #include "ucs_prog.h"
 #include "ucs_exc.h"
 #include "ucs_smm.h"
 #include "ucs_amd.h"
 #include "ucs_cmd.h"
-#include "ucs_mgr.h"
+#include "ucs_netstarter.h"
 #include "ucs_nodeobserver.h"
+#include "ucs_fbp.h"
+#include "ucs_nm.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -73,15 +74,15 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   Assignable callback function which is invoked to filter Rx messages
  *  \details Filtering is a synchronous operation. Hence, it is not possible to keep a message
- *           object for delayed processing. The invoked function has to decide whether a 
- *           message shall be discarded and freed to the Rx pool. Therefore, it has to return 
+ *           object for delayed processing. The invoked function has to decide whether a
+ *           message shall be discarded and freed to the Rx pool. Therefore, it has to return
  *           \c true. By returning \ false, the message will be received in the usual way.
  *  \param   tel_ptr  Reference to the message object
  *  \param   user_ptr User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \return  Returns \c true to discard the message and free it to the pool (no-pass). Otherwise, returns 
+ *  \return  Returns \c true to discard the message and free it to the pool (no-pass). Otherwise, returns
  *           \c false (pass).
  */
-typedef bool (*Ucs_RxFilterCb_t)(Msg_MostTel_t *tel_ptr, void *user_ptr);
+typedef bool (*Ucs_RxFilterCb_t)(Ucs_Message_t *tel_ptr, void *user_ptr);
 
 /*! \brief This structure holds instance and related parameters of the base component */
 typedef struct Ucs_GeneralData_
@@ -124,12 +125,12 @@ typedef struct Ucs_InicData_
 /*! \brief This structure holds the Resources Management callback functions */
 typedef struct Ucs_UcsXrm_
 {
-    /*! \brief Callback function that reports streaming-related information for the MOST Network 
+    /*! \brief Callback function that reports streaming-related information for the Network
      *         Port, including the state of the port and available streaming bandwidth.
      */
-    Ucs_Xrm_Most_PortStatusCb_t most_port_status_fptr;
-    /*! \brief Observer to proxy callback most_port_status_fptr() */
-    CObserver most_port_status_obs;
+    Ucs_Xrm_NetworkPortStatusCb_t nw_port_status_fptr;
+    /*! \brief Observer to proxy callback nw_port_status_fptr() */
+    CObserver nw_port_status_obs;
 
 } Ucs_UcsXrm_t;
 
@@ -158,12 +159,6 @@ typedef struct Ucs_NetData_
     Ucs_Network_StatusCb_t status_fptr;
     /*! \brief Observer to proxy callback status_fptr() */
     CMaskedObserver status_obs;
-#if 0
-    /*! \brief Application callback for NetworkForceNotAvailable() */
-    Ucs_StdResultCb_t force_na_fptr;
-    /*! \brief Observer to proxy callback force_na_fptr() */
-    CSingleObserver force_na_obs;
-#endif
 
 } Ucs_NetData_t;
 
@@ -181,6 +176,58 @@ typedef struct Ucs_AtsData_
 } Ucs_AtsData_t;
 #endif
 
+
+/* --------------------------------------------- */
+/* Hide RBD functions and types from public API. */
+/* --------------------------------------------- */
+
+/*------------------------------------------------------------------------------------------------*/
+/*  Ring Break Diagnosis                                                                          */
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief Triggers the Ring Break Diagnosis.
+ *
+ *  \param   self        The instance
+ *  \param   type        Specifies whether the INIC shall execute the Ring Break Diagnosis as a
+ *                       TimingMaster or a TimingSlave.
+ *  \param   result_fptr Result callback.
+ *  \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
+ *  \ingroup G_UCS_DIAG
+ */
+extern Ucs_Return_t Ucs_Diag_TriggerRbd(Ucs_Inst_t *self,
+                                        Ucs_Diag_RbdType_t type,
+                                        Ucs_StdResultCb_t result_fptr);
+
+/*! \brief   Retrieves the result of the Ring Break Diagnosis and the position on which the ring
+ *           break has been detected.
+ *  \mns_func_inic{NetworkRBDResult,MNSH3-NetworkRBDResult527}
+ *  \param   self                The UNICENS instance
+ *  \param   result_fptr Result callback.
+ *  \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_PARAM           | Invalid callback pointer
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
+ *  \ingroup G_UCS_DIAG
+ */
+extern Ucs_Return_t Ucs_Diag_GetRbdResult(Ucs_Inst_t *self,  Ucs_Diag_RbdResultCb_t result_fptr);
+
+/* --------------------------------------------- */
+/* End of hidden RBD functions and types.        */
+/* --------------------------------------------- */
+
+
+#ifndef UCS_FOOTPRINT_NOAMS
 typedef struct Ucs_MsgData_
 {
     /*! \brief The MCM FIFO */
@@ -199,7 +246,7 @@ typedef struct Ucs_MsgData_
     CStaticMemoryManager smm;
     /*! \brief Observer to proxy callback tx_message_freed_fptr() */
     CObserver ams_tx_freed_obs;
-    /*! \brief Signals that tx_message_freed_fptr() must be called as soon as 
+    /*! \brief Signals that tx_message_freed_fptr() must be called as soon as
      *         a Tx message object is freed the next time.
      */
     bool ams_tx_alloc_failed;
@@ -207,6 +254,27 @@ typedef struct Ucs_MsgData_
     CCmd cmd;
 
 } Ucs_MsgData_t;
+#endif
+
+
+/*! \brief This structure holds diagnosis related parameters */
+typedef struct Ucs_Diag_
+{
+    /*! \brief Application callback for Ucs_Diag_TriggerRbd() */
+    Ucs_StdResultCb_t trigger_rbd_fptr;
+    /*! \brief Observer to proxy callback trigger_rbd_fptr() */
+    CSingleObserver trigger_rbd_obs;
+    /*! \brief Application callback for Ucs_Diag_GetRbdResult() */
+    Ucs_Diag_RbdResultCb_t rbd_result_fptr;
+    /*! \brief Observer to proxy callback rbd_result_fptr() */
+    CSingleObserver rbd_result_obs;
+    /*! \brief Application callback for Ucs_Diag_StartFdxDiagnosis() */
+    Ucs_Diag_FdxReportCb_t diag_fdx_report_fptr;
+    /*! \brief Observer to proxy callback diag_fdx_report_fptr() */
+    CSingleObserver diag_fdx_report_obs;
+
+
+} Ucs_Diag_t;
 
 
 /*------------------------------------------------------------------------------------------------*/
@@ -230,7 +298,7 @@ typedef struct CUcs_
     /*! \brief Observer to proxy callback uninit_result_fptr() */
     CMaskedObserver uninit_result_obs;
     /*! \brief General data required for base component */
-    Ucs_GeneralData_t general;              
+    Ucs_GeneralData_t general;
 
     /*! \brief Instance of port message channel (service) */
     CPmChannel pmch;
@@ -254,6 +322,8 @@ typedef struct CUcs_
     CXrmPool xrmp;
     /*!< \brief The Routes Management instance */
     CRouteManagement rtm;
+    /*!< \brief The Node Management instance */
+    CNodeManagement nm;
     /*!< \brief The EndPoints Management instance */
     CEndpointManagement epm;
     /*! \brief FBlock INIC instance and related parameters */
@@ -261,23 +331,29 @@ typedef struct CUcs_
     /*! \brief Network Management instance and related parameters */
     Ucs_NetData_t net;
     /*! \brief FBlock EXC component instance and related parameters */
-    CExc exc; 
-    /*! \brief System diagnosis component instance and related parameters */
-    CSysDiag sys_diag; 
+    CExc exc;
+    /*! \brief FullDuplex Diagnosis component instance and related parameters */
+    CFdx diag_fdx;
     /*! \brief Node Discovery instance and related parameters */
-    CNodeDiscovery nd; 
-    /*! \brief BackChannel Diagnosis instance and related parameters */
-    CBackChannelDiag bcd;
+    CNodeDiscovery nd;
+    /*! \brief HalfDuplex Diagnosis instance and related parameters */
+    CHdx diag_hdx;
     /*! \brief Programming Interface instance and parameters */
     CProgramming prg;
+    /*! \brief Diagnosis related parameters */
+    Ucs_Diag_t diag;
+#ifndef UCS_FOOTPRINT_NOAMS
     /*! \brief Application Message related Data */
     Ucs_MsgData_t msg;
+#endif
     /*! \brief The manager instance */
-    CManager mgr;
+    CNetStarter starter;
     /*! \brief The node observer instance */
     CNodeObserver nobs;
     /*! \brief Filter callback required for unit testing*/
     Ucs_RxFilterCb_t rx_filter_fptr;
+    /*! \brief Fallback protection interface and parameters */
+    CFbackProt fbp;
 
     /*! \brief Is \c true if initialization completed successfully */
     bool init_complete;
@@ -288,6 +364,11 @@ typedef struct CUcs_
 /* Unit tests only                                                                                */
 /*------------------------------------------------------------------------------------------------*/
 extern void Ucs_AssignRxFilter(Ucs_Inst_t *self, Ucs_RxFilterCb_t callback_fptr);
+extern Ucs_Return_t Ucs_Rm_GetAttachedRoutes(Ucs_Inst_t *self, Ucs_Rm_EndPoint_t * ep_ptr,
+                                             Ucs_Rm_Route_t * ls_found_routes[], uint16_t ls_size);
+extern Ucs_Return_t Ucs_Diag_StopFdxDiagnosis(Ucs_Inst_t *self);
+
+
 
 #ifdef __cplusplus
 }   /* extern "C" */

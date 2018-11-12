@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -48,6 +48,8 @@
 #include "ucs_amspool.h"
 #include "ucs_base.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -68,7 +70,7 @@ typedef enum Segm_Error_
     SEGM_ERR_1 = 1,     /*!< \brief  The first segment is missing. */
 
     SEGM_ERR_2 = 2,     /*!< \brief  The device is not able to receive a message of this size.
-                         *           MNS specific: The allocation of user provided payload failed. 
+                         *           MNS specific: The allocation of user provided payload failed.
                          */
     SEGM_ERR_3 = 3,     /*!< \brief  Unexpected segment number. */
 
@@ -77,11 +79,11 @@ typedef enum Segm_Error_
     SEGM_ERR_5 = 5,     /*!< \brief  A timeout occurred while waiting for the next segment. */
 
     SEGM_ERR_6 = 6,     /*!< \brief  The Device is not capable to handle segmented messages.
-                         *           MNS specific: The application did not assign the payload allocation 
+                         *           MNS specific: The application did not assign the payload allocation
                          *           function in Ucs_Ams_InitData_t prior calling Ucs_Init().
                          */
-    SEGM_ERR_7 = 7      /*!< \brief  Segmented message has not been finished before the arrival of 
-                         *           another message with the identical FBlockID, InstID, FktID, and 
+    SEGM_ERR_7 = 7      /*!< \brief  Segmented message has not been finished before the arrival of
+                         *           another message with the identical FBlockID, InstID, FktID, and
                          *           OPType sent by the same node.
                          */
 } Segm_Error_t;
@@ -99,7 +101,7 @@ typedef enum Segm_Result_
  *  \param  tel_ptr The affected telegram
  *  \param  error   The segmentation error code (1..7)
  */
-typedef void (*Segm_OnError_t)(void *self, Msg_MostTel_t *tel_ptr, Segm_Error_t error);
+typedef void (*Segm_OnError_t)(void *self, Ucs_Message_t *tel_ptr, Segm_Error_t error);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Class                                                                                          */
@@ -132,15 +134,17 @@ extern void Segm_Cleanup(CSegmentation *self);
 /*------------------------------------------------------------------------------------------------*/
 /* Public method prototypes                                                                       */
 /*------------------------------------------------------------------------------------------------*/
-extern bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t *msg_ptr, Msg_MostTel_t *tel_ptr);
-extern Ucs_AmsRx_Msg_t* Segm_RxExecuteSegmentation(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr);
+extern bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t *msg_ptr, Ucs_Message_t *tel_ptr);
+extern Ucs_AmsRx_Msg_t* Segm_RxExecuteSegmentation(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr);
 extern void Segm_RxGcScanProcessingHandles(void *self);
 
 #ifdef __cplusplus
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_SEGMENTATION_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_SEGMENTATION_H */
 
 /*!
  * @}

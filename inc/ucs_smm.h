@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -47,6 +47,8 @@
 #include "ucs_dl.h"
 #include "ucs_amsmessage.h"
 #include "ucs_amsallocator.h"
+
+#ifndef SMM_FOOTPRINT_NOAMS
 
 #ifdef __cplusplus
 extern "C"
@@ -142,10 +144,12 @@ extern Ucs_Return_t Smm_LoadPlugin(CStaticMemoryManager *self, Ams_MemAllocator_
 extern Ucs_Return_t Smm_GetFreeBufferCnt(CStaticMemoryManager *self, uint16_t *rx_cnt_ptr, uint16_t *tx_cnt_ptr);
 
 #ifdef __cplusplus
-}   /* extern "C" */
+}           /* extern "C" */
 #endif
 
-#endif  /* #ifndef UCS_SMM_H */
+#endif      /* ifndef SMM_FOOTPRINT_NOAMS */
+
+#endif      /* ifndef UCS_SMM_H */
 
 /*!
  * @}

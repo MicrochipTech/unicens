@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___i_r_m.html','');})
 <div class="ingroups"><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g.html">Routing Management</a></div></div><!--header-->
 <div class="contents">
 
-<p>Provides data type to manage MOST data resources.  
+<p>Provides data type to manage network data resources.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
@@ -114,32 +114,32 @@ Topics</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga17bc521c78b99dc17f16161199cd4c1a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_r_m_ga17bc521c78b99dc17f16161199cd4c1a.html#ga17bc521c78b99dc17f16161199cd4c1a">UCS_ADDR_LOCAL_DEV</a>&#160;&#160;&#160;0x0001U</td></tr>
-<tr class="memdesc:ga17bc521c78b99dc17f16161199cd4c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the address of the local device.  <a href="#ga17bc521c78b99dc17f16161199cd4c1a"></a><br/></td></tr>
-<tr class="separator:ga17bc521c78b99dc17f16161199cd4c1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga290ae87b9fb8fb7e084368b9e2567d56"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56">UCS_ADDR_LOCAL_NODE</a>&#160;&#160;&#160;0x0001U</td></tr>
+<tr class="memdesc:ga290ae87b9fb8fb7e084368b9e2567d56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the address of the local device.  <a href="#ga290ae87b9fb8fb7e084368b9e2567d56"></a><br/></td></tr>
+<tr class="separator:ga290ae87b9fb8fb7e084368b9e2567d56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
-<tr class="memitem:gae689267958c19afd9f9a097c36d017d3"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_r_m_gae689267958c19afd9f9a097c36d017d3.html#gae689267958c19afd9f9a097c36d017d3">Ucs_Xrm_Most_PortStatusCb_t</a> )(uint16_t most_port_handle, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga902951b9083ff58a88e19e151b57106a.html#ga902951b9083ff58a88e19e151b57106a">Ucs_Most_PortAvail_t</a> availability, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga24bf81b4e52fc1fb01deba9165d7c79e.html#ga24bf81b4e52fc1fb01deba9165d7c79e">Ucs_Most_PortAvailInfo_t</a> avail_info, uint16_t free_streaming_bw, void *user_ptr)</td></tr>
-<tr class="memdesc:gae689267958c19afd9f9a097c36d017d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the MOST Port status.  <a href="#gae689267958c19afd9f9a097c36d017d3"></a><br/></td></tr>
-<tr class="separator:gae689267958c19afd9f9a097c36d017d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93926696001970c4b7a00dde9a4a7f87"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_r_m_ga93926696001970c4b7a00dde9a4a7f87.html#ga93926696001970c4b7a00dde9a4a7f87">Ucs_Xrm_NetworkPortStatusCb_t</a> )(uint16_t nw_port_handle, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga6e02e7a2dd0e71f0edf6a5663d7ca550.html#ga6e02e7a2dd0e71f0edf6a5663d7ca550">Ucs_Network_PortAvail_t</a> availability, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga1c3239d96b20d50866035c62d8b0fa05.html#ga1c3239d96b20d50866035c62d8b0fa05">Ucs_Network_PortAvailInfo_t</a> avail_info, uint16_t free_streaming_bw, void *user_ptr)</td></tr>
+<tr class="memdesc:ga93926696001970c4b7a00dde9a4a7f87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the Network Port status.  <a href="#ga93926696001970c4b7a00dde9a4a7f87"></a><br/></td></tr>
+<tr class="separator:ga93926696001970c4b7a00dde9a4a7f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8d92898b48eeef24ac44a6e3ebdff460"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___i_r_m_ga8d92898b48eeef24ac44a6e3ebdff460.html#ga8d92898b48eeef24ac44a6e3ebdff460">Ucs_Xrm_CheckUnmuteCb_t</a> )(uint16_t node_address, void *user_ptr)</td></tr>
 <tr class="memdesc:ga8d92898b48eeef24ac44a6e3ebdff460"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the check unmute callback.  <a href="#ga8d92898b48eeef24ac44a6e3ebdff460"></a><br/></td></tr>
 <tr class="separator:ga8d92898b48eeef24ac44a6e3ebdff460"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Provides data type to manage MOST data resources. </p>
+<p>Provides data type to manage network data resources. </p>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -80,7 +80,7 @@
 /* Macro like functions                                                                           */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Sets the port message length within a given message header
- *  \param header The message header 
+ *  \param header The message header
  *  \param length The port message length
  */
 void Pmp_SetPml(uint8_t header[], uint8_t length)
@@ -90,7 +90,7 @@ void Pmp_SetPml(uint8_t header[], uint8_t length)
 }
 
 /*! \brief Sets the port message header length within a given message header
- *  \param header The message header 
+ *  \param header The message header
  *  \param length The port message header length. Valid values: 3..5.
  *                Invalid values will set the PMHL to \c 0.
  */
@@ -105,7 +105,7 @@ void Pmp_SetPmhl(uint8_t header[], uint8_t length)
 }
 
 /*! \brief Sets the FIFO protocol header within a given message header
- *  \param header The message header 
+ *  \param header The message header
  *  \param id   The FIFO id
  *  \param type The port message type
  */
@@ -115,17 +115,17 @@ void Pmp_SetFph(uint8_t header[], Pmp_FifoId_t id, Pmp_MsgType_t type)
 }
 
 /*! \brief Sets the field ExtType within a given message header
- *  \param header The message header 
+ *  \param header The message header
  *  \param type   The command or status type
  *  \param code   The command or status code
  */
 void Pmp_SetExtType(uint8_t header[], uint8_t type, uint8_t code)
 {
-    header[PMP_IDX_EXT_TYPE] = (uint8_t)((type << PMP_EXT_TYPE_POS) & PMP_EXT_TYPE_MASK) | (uint8_t)(code & PMP_EXT_CODE_MASK);
+    header[PMP_IDX_EXT_TYPE] = (uint8_t)((uint8_t)((uint8_t)(type << PMP_EXT_TYPE_POS) & PMP_EXT_TYPE_MASK) | (uint8_t)(code & PMP_EXT_CODE_MASK));
 }
 
 /*! \brief Sets the sequence id within a given message header
- *  \param header The message header 
+ *  \param header The message header
  *  \param sid    The sequence id
  */
 void Pmp_SetSid(uint8_t header[], uint8_t sid)
@@ -133,7 +133,7 @@ void Pmp_SetSid(uint8_t header[], uint8_t sid)
     header[PMP_IDX_SID] = sid;
 }
 
-/*! \brief  Retrieves the port message length of a given port message buffer 
+/*! \brief  Retrieves the port message length of a given port message buffer
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \return The port message length in bytes or 0 if the PML is greater than 255.
@@ -153,7 +153,7 @@ uint8_t Pmp_GetPml(uint8_t header[])
     return pml;
 }
 
-/*! \brief  Retrieves the port message header length of a given port message buffer 
+/*! \brief  Retrieves the port message header length of a given port message buffer
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \return The port message header length in bytes
@@ -163,7 +163,7 @@ uint8_t Pmp_GetPmhl(uint8_t header[])
     return ((uint8_t)(header[PMP_IDX_PMHL] & (uint8_t)PMP_PMHL_MASK));
 }
 
-/*! \brief  Retrieves the FIFO number of a given port message buffer 
+/*! \brief  Retrieves the FIFO number of a given port message buffer
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \return The FIFO number
@@ -173,7 +173,7 @@ Pmp_FifoId_t Pmp_GetFifoId(uint8_t header[])
     return (Pmp_FifoId_t)(((uint8_t)PMP_FPH_ID_MASK & (header)[PMP_IDX_FPH]) >> PMP_FPH_ID_POS);
 }
 
-/*! \brief  Retrieves the FIFO Type of a given port message buffer 
+/*! \brief  Retrieves the FIFO Type of a given port message buffer
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \return The FIFO type
@@ -183,7 +183,7 @@ Pmp_MsgType_t Pmp_GetMsgType(uint8_t header[])
     return ((Pmp_MsgType_t)((PMP_FPH_TYPE_MASK & (header)[PMP_IDX_FPH]) >> PMP_FPH_TYPE_POS));
 }
 
-/*! \brief  Retrieves the SequenceID of a given port message buffer 
+/*! \brief  Retrieves the SequenceID of a given port message buffer
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \return The SequenceID
@@ -213,10 +213,10 @@ uint8_t Pmp_GetData(uint8_t header[], uint8_t index)
  */
 uint8_t Pmp_GetDataSize(uint8_t header[])
 {
-    return Pmp_GetPml(header) - (Pmp_GetPmhl(header) + 1U);
+    return (uint8_t)(Pmp_GetPml(header) - (Pmp_GetPmhl(header) + 1U));
 }
 
-/*! \brief  Checks if header length fields are set to valid values 
+/*! \brief  Checks if header length fields are set to valid values
  *  \param  header  Data buffer containing the port message.
  *                  The required size of this buffer is 6 bytes.
  *  \param  buf_len Length of the complete port message in bytes
@@ -242,7 +242,7 @@ bool Pmp_VerifyHeader(uint8_t header[], uint8_t buf_len)
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Creates a Port Message Header instance 
+/*! \brief  Creates a Port Message Header instance
  *  \param  self  The instance
  */
 void Pmh_Ctor(CPmh *self)
@@ -250,7 +250,7 @@ void Pmh_Ctor(CPmh *self)
     MISC_MEM_SET(self, 0, sizeof(*self));
 }
 
-/*! \brief  Inserts a port message header of the specified size into a given buffer 
+/*! \brief  Inserts a port message header of the specified size into a given buffer
  *  \param  self        Header content to be written to the buffer (source)
  *  \param  data        Data buffer the header shall be written to (target)
  */
@@ -273,7 +273,7 @@ void Pmh_BuildHeader(CPmh *self, uint8_t data[])
     }
 }
 
-/*! \brief  Decodes a given data buffer into a provided port message header structure 
+/*! \brief  Decodes a given data buffer into a provided port message header structure
  *  \param  self        Header content structure (target)
  *  \param  data        Data buffer containing the port message with a minimum size
  *                      of 6 bytes (source)
@@ -337,7 +337,7 @@ Pmp_StatusCode_t Pmh_GetExtStatusCode(CPmh *self)
     return ((Pmp_StatusCode_t)(uint8_t)(PMP_EXT_CODE_MASK & self->ext_type));
 }
 
-/*! \brief      Sets the ExtType field by passing the values for type and code 
+/*! \brief      Sets the ExtType field by passing the values for type and code
  *  \details    The function is applicable for status and command
  *  \param      self    The Instance
  *  \param      type    The status or command type
@@ -345,7 +345,7 @@ Pmp_StatusCode_t Pmh_GetExtStatusCode(CPmh *self)
  */
 void Pmh_SetExtType(CPmh *self, uint8_t type, uint8_t code)
 {
-    self->ext_type = (uint8_t)((type << PMP_EXT_TYPE_POS) & PMP_EXT_TYPE_MASK) | (uint8_t)(code & PMP_EXT_CODE_MASK);
+    self->ext_type = (uint8_t)((uint8_t)((uint8_t)(type << PMP_EXT_TYPE_POS) & PMP_EXT_TYPE_MASK) | (uint8_t)(code & PMP_EXT_CODE_MASK));
 }
 
 /*!

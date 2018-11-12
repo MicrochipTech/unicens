@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -44,6 +44,8 @@
 #include "ucs_ams.h"
 #include "ucs_misc.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 /*------------------------------------------------------------------------------------------------*/
 /* Internal constants                                                                             */
 /*------------------------------------------------------------------------------------------------*/
@@ -57,15 +59,15 @@ static const uint16_t SEGM_GC_TIMEOUT = 5000U;  /* parasoft-suppress  MISRA2004-
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-static Ucs_AmsRx_Msg_t *Segm_RxRetrieveProcessingHandle(CSegmentation *self, Msg_MostTel_t *tel_ptr);
+static Ucs_AmsRx_Msg_t *Segm_RxRetrieveProcessingHandle(CSegmentation *self, Ucs_Message_t *tel_ptr);
 static void Segm_RxStoreProcessingHandle(CSegmentation *self, Ucs_AmsRx_Msg_t *msg_ptr);
 static bool Segm_RxSearchProcessingHandle(void *current_data, void *search_data);
 static bool Segm_RxGcSetLabel(void *current_data, void *search_data);
-static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId0(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr);
-static void             Segm_RxProcessTelId1(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr);
-static void             Segm_RxProcessTelId2(CSegmentation *self, Msg_MostTel_t *tel_ptr);
-static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Msg_MostTel_t *tel_ptr);
-static void             Segm_RxProcessTelId4(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr);
+static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId0(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr);
+static void             Segm_RxProcessTelId1(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr);
+static void             Segm_RxProcessTelId2(CSegmentation *self, Ucs_Message_t *tel_ptr);
+static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Ucs_Message_t *tel_ptr);
+static void             Segm_RxProcessTelId4(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Initialization methods                                                                         */
@@ -74,7 +76,7 @@ static void             Segm_RxProcessTelId4(CSegmentation *self, Msg_MostTel_t 
  *  \param self              The instance
  *  \param base_ptr          Reference to base services
  *  \param pool_ptr          Reference to the (Rx) message pool
- *  \param rx_def_payload_sz Default memory size that is allocated when receiving segmented messages 
+ *  \param rx_def_payload_sz Default memory size that is allocated when receiving segmented messages
  *                           without size prefix
  */
 void Segm_Ctor(CSegmentation *self, CBase *base_ptr, CAmsMsgPool *pool_ptr, uint16_t rx_def_payload_sz)
@@ -88,10 +90,10 @@ void Segm_Ctor(CSegmentation *self, CBase *base_ptr, CAmsMsgPool *pool_ptr, uint
     Dl_Ctor(&self->processing_list, self->base_ptr->ucs_user_ptr);
     T_Ctor(&self->gc_timer);
     Tm_SetTimer(&self->base_ptr->tm,            /* start garbage collector timer */
-                &self->gc_timer, 
-                &Segm_RxGcScanProcessingHandles, 
-                self, 
-                SEGM_GC_TIMEOUT, 
+                &self->gc_timer,
+                &Segm_RxGcScanProcessingHandles,
+                self,
+                SEGM_GC_TIMEOUT,
                 SEGM_GC_TIMEOUT
                 );
 }
@@ -126,13 +128,13 @@ void Segm_Cleanup(CSegmentation *self)
 /*------------------------------------------------------------------------------------------------*/
 /* Tx segmentation                                                                                */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Builds next MOST telegram according to given Application Messages
+/*! \brief  Builds next telegram according to given Application Messages
  *  \param  self    The instance
  *  \param  msg_ptr Reference to the Application Message Tx handle
- *  \param  tel_ptr Reference to the MOST Telegram handle
+ *  \param  tel_ptr Reference to the telegram object
  *  \return Returns \c True if segmentation was completed for the Application Message. Otherwise \c false.
  */
-bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t* msg_ptr, Msg_MostTel_t *tel_ptr)
+bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t* msg_ptr, Ucs_Message_t *tel_ptr)
 {
     bool finished = false;
     MISC_UNUSED(self);
@@ -161,8 +163,8 @@ bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t* msg_ptr, Msg_Most
         }
         else                                                        /* further segments: TelId = "1,2,3" */
         {
-            uint16_t index = next_segm_cnt * ((uint16_t)SEGM_MAX_SIZE_TEL - 1U);
-            uint16_t remaining_sz = msg_ptr->data_size - index;
+            uint16_t index = (uint16_t)(next_segm_cnt * ((uint16_t)SEGM_MAX_SIZE_TEL - 1U));
+            uint16_t remaining_sz = (uint16_t)(msg_ptr->data_size - index);
             uint8_t tel_sz = SEGM_MAX_SIZE_TEL - 1U;
 
             if (remaining_sz < SEGM_MAX_SIZE_TEL)
@@ -196,13 +198,13 @@ bool Segm_TxBuildSegment(CSegmentation *self, Ucs_AmsTx_Msg_t* msg_ptr, Msg_Most
 /*------------------------------------------------------------------------------------------------*/
 /* Rx pools                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Retrieves a processing Rx Application message object to a corresponding MOST telegram
+/*! \brief  Retrieves a processing Rx Application Message object to a corresponding telegram object
  *  \param  self    The instance
- *  \param  tel_ptr Reference to the MOST telegram
- *  \return The reference to the corresponding Rx Application Message or \c NULL if no appropriate 
+ *  \param  tel_ptr Reference to the telegram object
+ *  \return The reference to the corresponding Rx Application Message or \c NULL if no appropriate
  *          Rx Application Message is available.
  */
-static Ucs_AmsRx_Msg_t* Segm_RxRetrieveProcessingHandle(CSegmentation *self, Msg_MostTel_t *tel_ptr)
+static Ucs_AmsRx_Msg_t* Segm_RxRetrieveProcessingHandle(CSegmentation *self, Ucs_Message_t *tel_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = NULL;
     CDlNode *result_node_ptr = Dl_Foreach(&self->processing_list, &Segm_RxSearchProcessingHandle, tel_ptr);
@@ -225,7 +227,7 @@ static Ucs_AmsRx_Msg_t* Segm_RxRetrieveProcessingHandle(CSegmentation *self, Msg
 static void Segm_RxStoreProcessingHandle(CSegmentation *self, Ucs_AmsRx_Msg_t *msg_ptr)
 {
     Amsg_RxSetGcMarker(msg_ptr, false);
-    Amsg_RxEnqueue(msg_ptr, &self->processing_list);        /* insert at tail, since garbage collector starts at head */ 
+    Amsg_RxEnqueue(msg_ptr, &self->processing_list);        /* insert at tail, since garbage collector starts at head */
 }
 
 /*! \brief  Performs garbage collection of outdated message objects
@@ -237,13 +239,13 @@ void Segm_RxGcScanProcessingHandles(void *self)
                                                                             /* first remove outdated messages */
     CDlNode *node_ptr = Dl_PeekHead(&self_->processing_list);               /* get first candidate from head */
 
-    while (node_ptr != NULL) 
+    while (node_ptr != NULL)
     {
         Ucs_AmsRx_Msg_t *msg_ptr = (Ucs_AmsRx_Msg_t*)Dln_GetData(node_ptr);
 
         if (Amsg_RxGetGcMarker(msg_ptr) != false)
         {
-            Msg_MostTel_t tel;
+            Ucs_Message_t tel;
 
             Amsg_RxCopySignatureToTel(msg_ptr, &tel);
             self_->error_fptr(self_->error_inst, &tel, SEGM_ERR_5);
@@ -276,16 +278,16 @@ static bool Segm_RxGcSetLabel(void *current_data, void *search_data)
     return false;
 }
 
-/*! \brief  Search routine to identify message objects with the same signature
- *          than a given MOST telegram
- *  \param  current_data    The Application message object present in list
- *  \param  search_data     The MOST Telegram object
+/*! \brief  Search routine to identify Application Message objects with the same signature
+ *          than a given telegram object.
+ *  \param  current_data    The Application Message object present in list
+ *  \param  search_data     The Reference to the telegram object
  *  \return Returns \c true if both handles have the same functional signature,
  *          otherwise \c false. */
 static bool Segm_RxSearchProcessingHandle(void *current_data, void *search_data)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = (Ucs_AmsRx_Msg_t*)current_data;
-    Msg_MostTel_t *tel_ptr = (Msg_MostTel_t*)search_data;
+    Ucs_Message_t *tel_ptr = (Ucs_Message_t*)search_data;
 
     return Amsg_RxHandleIsIdentical(msg_ptr, tel_ptr);
 }
@@ -293,14 +295,14 @@ static bool Segm_RxSearchProcessingHandle(void *current_data, void *search_data)
 /*------------------------------------------------------------------------------------------------*/
 /* Rx segmentation                                                                                */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Processes segmentation for a received MOST telegram
+/*! \brief  Processes segmentation for a received telegram object
  *  \param  self        The instance
- *  \param  tel_ptr     The received MOST telegram
+ *  \param  tel_ptr     The received telegram object
  *  \param  result_ptr  The result of the segmentation process
  *  \return The completed Rx Application Message or \c NULL if segmentation process is still
  *          ongoing.
  */
-Ucs_AmsRx_Msg_t* Segm_RxExecuteSegmentation(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr)
+Ucs_AmsRx_Msg_t* Segm_RxExecuteSegmentation(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = NULL;
     *result_ptr = SEGM_RES_OK;
@@ -329,19 +331,19 @@ Ucs_AmsRx_Msg_t* Segm_RxExecuteSegmentation(CSegmentation *self, Msg_MostTel_t *
     return msg_ptr;    /* return completed message */
 }
 
-/*! \brief  Processes segmentation for a received MOST telegram with \c TelId="0"
+/*! \brief  Processes segmentation for a received telegram  with \c TelId="0"
  *  \param  self        The instance
- *  \param  tel_ptr     The received MOST telegram
+ *  \param  tel_ptr     The received telegram object
  *  \param  result_ptr  Result of segmentation process
  *  \return The completed Rx Application Message or \c NULL if segmentation process
  *          does not finish successfully.
  */
-static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId0(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr)
+static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId0(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = Segm_RxRetrieveProcessingHandle(self, tel_ptr);
     *result_ptr = SEGM_RES_OK;
 
-    if (msg_ptr != NULL)                            /* treat error: segmentation process is ongoing */ 
+    if (msg_ptr != NULL)                            /* treat error: segmentation process is ongoing */
     {
         self->error_fptr(self->error_inst, tel_ptr, SEGM_ERR_7);
         Amsp_FreeRxPayload(self->pool_ptr, msg_ptr);/* free assigned user payload and throw segmentation error */
@@ -378,12 +380,12 @@ static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId0(CSegmentation *self, Msg_MostTel_t 
     return msg_ptr;
 }
 
-/*! \brief  Processes segmentation for a received MOST telegram with \c TelId="1"
+/*! \brief  Processes segmentation for a received telegram with \c TelId="1"
  *  \param  self        The instance
- *  \param  tel_ptr     The received MOST telegram
+ *  \param  tel_ptr     The received telegram object
  *  \param  result_ptr  Result of segmentation process
  */
-static void Segm_RxProcessTelId1(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr)
+static void Segm_RxProcessTelId1(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr)
 {
     *result_ptr = SEGM_RES_OK;
 
@@ -398,7 +400,7 @@ static void Segm_RxProcessTelId1(CSegmentation *self, Msg_MostTel_t *tel_ptr, Se
 
         if (msg_ptr != NULL)                                    /* has previous message */
         {
-            if ((Amsg_RxGetExpTelCnt(msg_ptr) != 0U) || (msg_ptr->data_size > 0U)) 
+            if ((Amsg_RxGetExpTelCnt(msg_ptr) != 0U) || (msg_ptr->data_size > 0U))
             {                                                   /* error: previous message already contains segments */
                 self->error_fptr(self->error_inst, tel_ptr, SEGM_ERR_7);
                 Amsp_FreeRxPayload(self->pool_ptr, msg_ptr);
@@ -422,7 +424,7 @@ static void Segm_RxProcessTelId1(CSegmentation *self, Msg_MostTel_t *tel_ptr, Se
                 (void)Amsp_AllocRxPayload(self->pool_ptr, self->rx_default_payload_sz, msg_ptr);
             }
 
-            if (!Amsg_RxHasExternalPayload(msg_ptr))            /* allocation of payload failed */
+            if (Amsg_RxHasExternalPayload(msg_ptr) == false)    /* allocation of payload failed */
             {
                 self->error_fptr(self->error_inst, tel_ptr, SEGM_ERR_2);
                 Amsp_FreeRxObj(self->pool_ptr, msg_ptr);
@@ -442,11 +444,11 @@ static void Segm_RxProcessTelId1(CSegmentation *self, Msg_MostTel_t *tel_ptr, Se
     }
 }
 
-/*! \brief  Processes segmentation for a received MOST telegram with \c TelId="2"
+/*! \brief  Processes segmentation for a received telegram with \c TelId="2"
  *  \param  self    The instance
- *  \param  tel_ptr The received MOST telegram
+ *  \param  tel_ptr The received telegram object
  */
-static void Segm_RxProcessTelId2(CSegmentation *self, Msg_MostTel_t *tel_ptr)
+static void Segm_RxProcessTelId2(CSegmentation *self, Ucs_Message_t *tel_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = Segm_RxProcessTelId3(self, tel_ptr); /* pretend having TelId '2' but store the */
                                                                     /* assembled message again */
@@ -456,13 +458,13 @@ static void Segm_RxProcessTelId2(CSegmentation *self, Msg_MostTel_t *tel_ptr)
     }
 }
 
-/*! \brief  Processes segmentation for a received MOST telegram with \c TelId="3"
+/*! \brief  Processes segmentation for a received telegram with \c TelId="3"
  *  \param  self    The instance
- *  \param  tel_ptr The received MOST telegram
+ *  \param  tel_ptr The received telegram object
  *  \return The assembled Rx Application Message or \c NULL if segmentation process
  *          did not process successfully.
  */
-static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Msg_MostTel_t *tel_ptr)
+static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Ucs_Message_t *tel_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = Segm_RxRetrieveProcessingHandle(self, tel_ptr);
 
@@ -474,13 +476,13 @@ static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Msg_MostTel_t 
     {
         uint8_t exp_tel_cnt = Amsg_RxGetExpTelCnt(msg_ptr);
 
-        if ((exp_tel_cnt == 0U) && (msg_ptr->data_size == 0U)) 
+        if ((exp_tel_cnt == 0U) && (msg_ptr->data_size == 0U))
         {                                                   /* error: did not receive first segment */
             self->error_fptr(self->error_inst, tel_ptr, SEGM_ERR_1);
             Segm_RxStoreProcessingHandle(self, msg_ptr);
             msg_ptr = NULL;
         }
-        else if (exp_tel_cnt != tel_ptr->tel.tel_cnt) 
+        else if (exp_tel_cnt != tel_ptr->tel.tel_cnt)
         {                                                   /* has wrong TelCnt */
             self->error_fptr(self->error_inst, tel_ptr, SEGM_ERR_3);
             Segm_RxStoreProcessingHandle(self, msg_ptr);
@@ -504,12 +506,12 @@ static Ucs_AmsRx_Msg_t* Segm_RxProcessTelId3(CSegmentation *self, Msg_MostTel_t 
     return msg_ptr;
 }
 
-/*! \brief  Processes segmentation for a received MOST telegram with \c TelId="4"
+/*! \brief  Processes segmentation for a received telegram with \c TelId="4"
  *  \param  self        The instance
- *  \param  tel_ptr     The received MOST telegram
+ *  \param  tel_ptr     The received telegram object
  *  \param  result_ptr  Result of segmentation process
  */
-static void Segm_RxProcessTelId4(CSegmentation *self, Msg_MostTel_t *tel_ptr, Segm_Result_t *result_ptr)
+static void Segm_RxProcessTelId4(CSegmentation *self, Ucs_Message_t *tel_ptr, Segm_Result_t *result_ptr)
 {
     *result_ptr = SEGM_RES_OK;
 
@@ -547,6 +549,8 @@ static void Segm_RxProcessTelId4(CSegmentation *self, Msg_MostTel_t *tel_ptr, Se
         }
     }
 }
+
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

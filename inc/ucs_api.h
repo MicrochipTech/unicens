@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -49,7 +49,7 @@
 /*! \brief UNICENS Minor Version Number
  *  \ingroup G_UCS_MISC
  */
-#define UCS_VERSION_MINOR   1
+#define UCS_VERSION_MINOR   2
 
 /*! \brief UNICENS Release Version Number
  *  \ingroup G_UCS_MISC
@@ -59,7 +59,7 @@
 /*! \brief UNICENS Build Number
  *  \ingroup G_UCS_MISC
  */
-#define UCS_VERSION_BUILD   3564
+#define UCS_VERSION_BUILD   4073
 
 /* parasoft unsuppress item  MISRA2004-19_4 reason "No message in public version (PPP issue)" */
 

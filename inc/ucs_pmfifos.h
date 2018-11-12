@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -66,7 +66,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief The synchronization status of all FIFOs */
 typedef enum Fifos_SyncState_
-{ 
+{
     FIFOS_S_UNSYNCED,               /*!< \brief Not all FIFOs are synchronized  */
     FIFOS_S_SYNCING,                /*!< \brief FIFOs synchronization has started */
     FIFOS_S_SYNCED,                 /*!< \brief All FIFOs are synchronized */

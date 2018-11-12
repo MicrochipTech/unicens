@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -69,16 +69,28 @@ extern "C"
 #define XRM_NUM_RES_HDL_PER_ICM     22U
 
 /*------------------------------------------------------------------------------------------------*/
+/* Types                                                                                          */
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief  Function signature used for monitoring the XRM resources.
+ *  \param  resource_type       The XRM resource type to be looked for
+ *  \param  resource_ptr        Reference to the resource to be looked for
+ *  \param  resource_infos      Resource information
+ *  \param  endpoint_inst_ptr   Reference to the endpoint object that encapsulates the given resource.
+ *  \param  user_ptr            User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ */
+typedef void (*Ucs_Xrm_ResourceDebugCb_t)(Ucs_Xrm_ResourceType_t resource_type, Ucs_Xrm_ResObject_t *resource_ptr, Ucs_Xrm_ResourceInfos_t resource_infos, void *endpoint_inst_ptr, void *user_ptr);
+
+/*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Stores data required by XRM during initialization. */
 typedef struct Xrm_InitData_
-{                    
+{
     CBase *base_ptr;                                    /*!< \brief Reference to base instance */
     CInic *inic_ptr;                                    /*!< \brief Reference to INIC instance */
     CNetworkManagement *net_ptr;                        /*!< \brief Reference to Network instance */
     CRemoteSyncManagement *rsm_ptr;                     /*!< \brief Reference to a RSM instance */
-    CXrmPool *xrmp_ptr;                                 /*!< \brief Reference to a xrm pool instance */
+    CXrmPool *xrmp_ptr;                                 /*!< \brief Reference to a XRM pool instance */
     Ucs_Xrm_ResourceDebugCb_t res_debugging_fptr;       /*!< \brief Callback function pointer to monitor XRM resources from application */
     Ucs_Xrm_CheckUnmuteCb_t check_unmute_fptr;          /*!< \brief Callback function pointer to signal unmute of devices */
 
@@ -119,14 +131,6 @@ typedef struct Xrm_Observers_
     Ucs_Xrm_Stream_PortCfgResCb_t stream_port_config_fptr;
     /*! \brief Observer to proxy callback stream_port_config_fptr() */
     CSingleObserver stream_port_config_obs;
-    /*! \brief Callback function pointer used by operation that enables a MOST Port */
-    Ucs_StdResultCb_t most_port_enable_fptr;
-    /*! \brief Observer to proxy callback most_port_enable_port_fptr() */
-    CSingleObserver most_port_enable_obs;
-    /*! \brief Callback function pointer by operation that enables full streaming for a MOST Port*/
-    Ucs_StdResultCb_t most_port_en_full_str_fptr;
-    /*! \brief Observer to proxy callback most_port_en_full_str_fptr() */
-    CSingleObserver most_port_en_full_str_obs;
     /*! \brief Observer to the SyncLost event in RSM */
     CObserver rsm_sync_lost_obs;
 
@@ -154,14 +158,14 @@ typedef struct CExtendedResourceManager_
     /*! \brief Reference to the currently processed resource object */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t **current_obj_pptr;
     /*! \brief Number of invalid handles in list inv_resource_handle_list[] */
-    uint8_t inv_resource_handle_list_size;
+    uint16_t inv_resource_handle_list_size;
     /*! \brief Current number of destroyed handles in list inv_resource_handle_list[] */
-    uint8_t curr_dest_resource_handle_size;
+    uint16_t curr_dest_resource_handle_size;
     /*! \brief Start index for the current invalid handles index in list inv_resource_handle_list[] */
-    uint8_t inv_resource_handle_index;
+    uint16_t inv_resource_handle_index;
     /*! \brief Service instance to add the Extended Resource Manager to the MNS scheduler */
     CService xrm_srv;
-    /*! \brief Report result of the Extended Resource Manager. Used to reported status and error 
+    /*! \brief Report result of the Extended Resource Manager. Used to reported status and error
      *         information to the application.
      */
     Ucs_Xrm_Result_t report_result;
@@ -175,7 +179,7 @@ typedef struct CExtendedResourceManager_
     Ucs_Xrm_ResourceDebugCb_t res_debugging_fptr;
     /*! \brief Flag to lock the API */
     bool lock_api;
-    /*!< \brief Signal whether this instance is in Remote Control Mode */ 
+    /*!< \brief Signal whether this instance is in Remote Control Mode */
     bool IsInRemoteControlMode;
 
 } CExtendedResourceManager;
@@ -186,29 +190,21 @@ typedef struct CExtendedResourceManager_
 extern void Xrm_Ctor(CExtendedResourceManager *self, Xrm_InitData_t * data_ptr);
 extern Ucs_Return_t Xrm_Process(CExtendedResourceManager *self,
                                 UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_list[],
-                                uint16_t most_network_connection_label,
+                                uint16_t network_connection_label,
                                 void * user_arg,
                                 Ucs_Xrm_ReportCb_t report_fptr);
-extern Ucs_Return_t Xrm_Destroy(CExtendedResourceManager *self, 
+extern Ucs_Return_t Xrm_Destroy(CExtendedResourceManager *self,
                                 UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_list[]);
-extern Ucs_Return_t Xrm_Stream_SetPortConfig(CExtendedResourceManager *self, 
+extern Ucs_Return_t Xrm_Stream_SetPortConfig(CExtendedResourceManager *self,
                                              uint8_t index,
                                              Ucs_Stream_PortOpMode_t op_mode,
                                              Ucs_Stream_PortOption_t port_option,
                                              Ucs_Stream_PortClockMode_t clock_mode,
                                              Ucs_Stream_PortClockDataDelay_t clock_data_delay,
                                              Ucs_Xrm_Stream_PortCfgResCb_t result_fptr);
-extern Ucs_Return_t Xrm_Stream_GetPortConfig(CExtendedResourceManager *self, 
+extern Ucs_Return_t Xrm_Stream_GetPortConfig(CExtendedResourceManager *self,
                                              uint8_t index,
                                              Ucs_Xrm_Stream_PortCfgResCb_t result_fptr);
-extern Ucs_Return_t Xrm_Most_EnablePort(CExtendedResourceManager *self,
-                                        uint16_t most_port_handle, 
-                                        bool enabled, 
-                                        Ucs_StdResultCb_t result_fptr);
-extern Ucs_Return_t Xrm_Most_PortEnFullStr(CExtendedResourceManager *self,
-                                           uint16_t most_port_handle, 
-                                           bool enabled, 
-                                           Ucs_StdResultCb_t result_fptr);
 extern void Xrm_SetResourceDebugCbFn(CExtendedResourceManager *self, Ucs_Xrm_ResourceDebugCb_t dbg_cb_fn);
 
 #ifdef __cplusplus

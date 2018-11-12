@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -56,7 +56,7 @@
  *  \return  DEC_RET_SUCCESS                 Decoding was successful
  *           DEC_RET_FKTID_NOT_FOUND         FktID/OPType not found
  */
-Dec_Return_t Dec_SearchFktOpIcm(Dec_FktOpIcm_t const list[], uint16_t *index_ptr, 
+Dec_Return_t Dec_SearchFktOpIcm(Dec_FktOpIcm_t const list[], uint16_t *index_ptr,
                                 uint16_t function_id, Ucs_OpType_t op_type)
 {
     uint16_t     fktop;
@@ -69,7 +69,7 @@ Dec_Return_t Dec_SearchFktOpIcm(Dec_FktOpIcm_t const list[], uint16_t *index_ptr
 
     while ((list[i].handler_function_ptr != NULL)  && (loop != false))
     {
-        if(list[i].fkt_op == fktop)
+        if (list[i].fkt_op == fktop)
         {
             ret_val = DEC_RET_SUCCESS;
             *index_ptr = i;
@@ -97,7 +97,7 @@ Dec_Return_t Dec_SearchFktOpIcm(Dec_FktOpIcm_t const list[], uint16_t *index_ptr
  *  \return  DEC_RET_SUCCESS                 Decoding was successful
  *           DEC_RET_FKTID_NOT_FOUND         FktID/OPType not found
  */
-Dec_Return_t Dec_SearchFktOpIsh(Dec_FktOpIsh_t const list[], uint16_t *index_ptr, 
+Dec_Return_t Dec_SearchFktOpIsh(Dec_FktOpIsh_t const list[], uint16_t *index_ptr,
                                 uint16_t function_id, Ucs_OpType_t op_type)
 {
     uint16_t     fktop;
@@ -110,7 +110,7 @@ Dec_Return_t Dec_SearchFktOpIsh(Dec_FktOpIsh_t const list[], uint16_t *index_ptr
 
     while ((list[i].handler_function_ptr != NULL)  && (loop != false))
     {
-        if(list[i].fkt_op == fktop)
+        if (list[i].fkt_op == fktop)
         {
             ret_val = DEC_RET_SUCCESS;
             *index_ptr = i;

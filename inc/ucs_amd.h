@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -46,6 +46,8 @@
 #include "ucs_base.h"
 #include "ucs_amsmessage.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -54,7 +56,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Assignable function which is invoked as soon as an application message is received 
+/*! \brief  Assignable function which is invoked as soon as an application message is received
  *          completely and available in the Rx message queue
  *  \param  self    The instance
  */
@@ -70,7 +72,7 @@ typedef void (*Amd_RxModificationCb_t)(void *self, Ucs_AmsRx_Msg_t *msg_ptr);
 /* Class                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief      Application Message Service Class
- *  \details    Allows transmission and reception of MOST Application Messages
+ *  \details    Allows transmission and reception of Application Messages
  */
 typedef struct CAmd_
 {
@@ -84,12 +86,12 @@ typedef struct CAmd_
     CMaskedObserver         terminate_observer;         /*!< \brief  Observes events leading to termination */
 
     void                   *preprocess_inst_ptr;        /*!< \brief Reference to the message preprocessor */
-    Amd_RxMsgCompleteCb_t   preprocess_fptr;            /*!< \brief Callback function which is invoked first 
-                                                         *          on completed message reception 
+    Amd_RxMsgCompleteCb_t   preprocess_fptr;            /*!< \brief Callback function which is invoked first
+                                                         *          on completed message reception
                                                          */
 
     void                   *receive_inst_ptr;           /*!< \brief Reference to the message receiver */
-    Amd_RxMsgCompleteCb_t   receive_fptr;               /*!< \brief Callback function which is invoked after 
+    Amd_RxMsgCompleteCb_t   receive_fptr;               /*!< \brief Callback function which is invoked after
                                                          *          the preprocessor has finished
                                                          */
     CDlList                 pre_queue;                  /*!< \brief Queue of messages for the preprocessor */
@@ -124,7 +126,9 @@ extern uint16_t Amd_RxGetMsgCnt(CAmd *self);
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMD_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_AMD_H */
 
 /*!
  * @}

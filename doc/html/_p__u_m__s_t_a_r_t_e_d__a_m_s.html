@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -93,7 +93,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h1>Introduction</h1>
-<p>The Application Message Service (AMS) provides a central interface to transmit and receive application messages via the Control Channel of the MOST network. The so called application messages can have a payload size of up to 65535 bytes. Since the payload size of a single MOST control message is limited to 45 bytes (MOST150), an application messages with larger payload is transmitted via segmented transfer. The Application Message Service provides a common interface for single and segmented transfer and automatically performs segmentation.</p>
+<p>The Application Message Service (AMS) provides a central interface to transmit and receive application messages via the Control Channel of the network. The so called application messages can have a payload size of up to 65535 bytes. Since the payload size of a single control message is limited to 45 bytes, an application messages with larger payload is transmitted via segmented transfer. The Application Message Service provides a common interface for single and segmented transfer and automatically performs segmentation.</p>
 <table  class="mns_ic_table">
 <tr>
 <td id="mns_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a>. </td></tr>
@@ -157,7 +157,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line">    <span class="keywordflow">if</span> (tx_ptr != NULL)</div>
 <div class="line">    {</div>
 <div class="line">        <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> ret;</div>
-<div class="line">        tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a9a199f6a8a711b94ff827e6807980cb3.html#a9a199f6a8a711b94ff827e6807980cb3" title="Destination address.">destination_address</a> = 0x202U;</div>
+<div class="line">        tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a9a199f6a8a711b94ff827e6807980cb3.html#a9a199f6a8a711b94ff827e6807980cb3" title="Destination address of the message.">destination_address</a> = 0x202U;</div>
 <div class="line">        tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a689014fc11d4f26d264ddae2eaebc9d8.html#a689014fc11d4f26d264ddae2eaebc9d8" title="16bit message descriptor">msg_id</a> = 0x1234U;</div>
 <div class="line">                                            <span class="comment">/* it is possible to set a smaller data_size than */</span></div>
 <div class="line">        tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_aae6bdbdf6ea1ad3da5af37f0a91d3ea0.html#aae6bdbdf6ea1ad3da5af37f0a91d3ea0" title="The size of payload data in bytes.">data_size</a>       = 3U;       <span class="comment">/* earlier defined when calling Ucs_AmsTx_AllocMsg() */</span></div>
@@ -217,7 +217,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line">        <span class="keywordflow">if</span> (tx_ptr != NULL)</div>
 <div class="line">        {</div>
 <div class="line">            string_in_use = <span class="keyword">true</span>;                           <span class="comment">/* lock string against concurrent access */</span></div>
-<div class="line">            tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a9a199f6a8a711b94ff827e6807980cb3.html#a9a199f6a8a711b94ff827e6807980cb3" title="Destination address.">destination_address</a> = 0x202U;</div>
+<div class="line">            tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a9a199f6a8a711b94ff827e6807980cb3.html#a9a199f6a8a711b94ff827e6807980cb3" title="Destination address of the message.">destination_address</a> = 0x202U;</div>
 <div class="line">            tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a689014fc11d4f26d264ddae2eaebc9d8.html#a689014fc11d4f26d264ddae2eaebc9d8" title="16bit message descriptor">msg_id</a> = 0x1234U;</div>
 <div class="line">            tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Payload data.">data_ptr</a> = my_string;                   <span class="comment">/* now set external data and size */</span></div>
 <div class="line">            tx_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_aae6bdbdf6ea1ad3da5af37f0a91d3ea0.html#aae6bdbdf6ea1ad3da5af37f0a91d3ea0" title="The size of payload data in bytes.">data_size</a> = 14U;</div>
@@ -241,7 +241,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnTxStringComplete(<a class="code" href="struct_ucs___ams_tx___msg__t.html" title="Application message Tx type.">Ucs_AmsTx_Msg_t</a>* msg_ptr, <a class="code" href="group___g___u_c_s___a_m_s___t_y_p_e_s_ga36b630c866dc0c03134f60e98be39f0b.html#ga36b630c866dc0c03134f60e98be39f0b" title="Transmission result of an application message.">Ucs_AmsTx_Result_t</a> result, <a class="code" href="group___g___u_c_s___a_m_s___t_y_p_e_s_ga667b741121fdfbda2fe19fa23ffc7479.html#ga667b741121fdfbda2fe19fa23ffc7479" title="Detailed INIC transmission information which might be useful for debugging purposes.">Ucs_AmsTx_Info_t</a> info)</div>
 <div class="line">{</div>
 <div class="line">    uint8_t* payload_ptr;</div>
-<div class="line"> </div>
+<div class="line"></div>
 <div class="line">    <span class="comment">/* ... handle transmission result ... */</span></div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (msg_ptr-&gt;<a class="code" href="struct_ucs___ams_tx___msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Payload data.">data_ptr</a> == my_string)     <span class="comment">/* message object has shared string resource ? */</span></div>
@@ -255,7 +255,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line">{</div>
 <div class="line">    <span class="comment">/* A new application message was received.                  */</span></div>
 <div class="line">    <span class="comment">/* Trigger an event to process the Rx queue asynchronously. */</span></div>
-<div class="line">}                                     </div>
+<div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
@@ -282,7 +282,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line"></div>
 <div class="line">                <span class="comment">/* ... */</span>                                   <span class="comment">/* process message now */</span></div>
 <div class="line"></div>
-<div class="line">                <a class="code" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg</a>();                     <span class="comment">/* free message and remove it from the queue */</span> </div>
+<div class="line">                <a class="code" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg</a>();                     <span class="comment">/* free message and remove it from the queue */</span></div>
 <div class="line">            }</div>
 <div class="line">        }</div>
 <div class="line">    }</div>
@@ -300,12 +300,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

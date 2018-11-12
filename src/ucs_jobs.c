@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -96,7 +96,7 @@ static bool Jbs_ForEachJbq(void *d_ptr, void *ud_ptr)
 
 static void Jbs_Service(void *self)
 {
-    CJobService *self_ = (CJobService *)self; 
+    CJobService *self_ = (CJobService *)self;
     Srv_Event_t event_mask;
 
     Srv_GetEvent(&self_->service, &event_mask);             /* save and reset current events */
@@ -116,11 +116,11 @@ void Jbq_Ctor(CJobQ *self, CJobService *job_service_ptr, Srv_Event_t event_id, C
     self->job_service_ptr = job_service_ptr;
     self->event_id = event_id;
     self->job_list = job_list;
-    
+
     self->index = 0U;
     self->state = JOB_S_STOPPED;
     self->result = JOB_R_NA;
-    
+
     Dln_Ctor(&self->node, self);
     Ssub_Ctor(&self->q_subject, 0U /*inst id*/);
     Sobs_Ctor(&self->result_obs, self, &Jbq_OnJobResult);
@@ -176,7 +176,7 @@ static void Jbq_OnJobResult(void *self, void *data_ptr)
 {
     CJobQ *self_ = (CJobQ *)self;
     Job_Result_t *result_ptr = (Job_Result_t *)data_ptr;
-    
+
     if (self_->state == JOB_S_STARTED)
     {
         TR_INFO((0U, "[JBQ]", "Jbq_OnJobResult(): Receiving job result. event_id=0x%04X, result=0x%02X", 2U, self_->event_id, *result_ptr));
@@ -206,12 +206,12 @@ static bool Jbq_CheckState(CJobQ *self, CJob *job_ptr)
         }
         else
         {
-            TR_ERROR((0U, "[JBQ]", "Jbq_Service(): Invalid job list. Id: 0x%04X", 1U, self->event_id));
+            TR_ERROR((0U, "[JBQ]", "Jbq_CheckState(): Invalid job list. Id: 0x%04X", 1U, self->event_id));
         }
     }
     else
     {
-        TR_ERROR((0U, "[JBQ]", "Jbq_Service(): JobQ not started. Id: 0x%04X", 1U, self->event_id));
+        TR_ERROR((0U, "[JBQ]", "Jbq_CheckState(): JobQ not started. Id: 0x%04X", 1U, self->event_id));
     }
 
     return ret;
@@ -222,7 +222,7 @@ void Jbq_Service(CJobQ *self)
     CJob *curr_job_ptr = self->job_list[self->index];
     CJob *next_job_ptr = self->job_list[self->index + 1U];
 
-    if (Jbq_CheckState(self, curr_job_ptr))
+    if (Jbq_CheckState(self, curr_job_ptr) != false)
     {
         if (curr_job_ptr != NULL)
         {
@@ -230,7 +230,7 @@ void Jbq_Service(CJobQ *self)
 
             if ((next_job_ptr != NULL) && (tmp_res == JOB_R_SUCCESS))   /* job successfully and next job available */
             {
-                self->index += 1U;
+                self->index++;
                 Job_Start(next_job_ptr, &self->result_obs);
             }
             else        /* current job not successful or last job */
@@ -335,7 +335,7 @@ Job_Result_t Job_GetResult(CJob *self)
 /* Initialization Methods                                                                         */
 /*------------------------------------------------------------------------------------------------*/
 
-/*! \brief Constructor of Manager class 
+/*! \brief Constructor of Manager class
  *  \param self         The instance
  *  \param base_ptr     Reference to base component
  *  \param inic_ptr     Reference to INIC component

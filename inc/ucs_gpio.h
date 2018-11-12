@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -59,9 +59,17 @@ extern "C"
 #endif
 
 /*------------------------------------------------------------------------------------------------*/
+/* Macro Definition                                                                               */
+/*------------------------------------------------------------------------------------------------*/
+/*! \def GPIO_MAX_CFGDATA_SZ
+ *  \brief      Defines the maximum size of the config_data vector in Gpio_Script_t structure.
+ */
+#define GPIO_MAX_CFGDATA_SZ              ((uint8_t)10)
+
+/*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Function signature used for GPIO results in case error.
+/*! \brief  Function signature used for GPIO results in error case.
  *  \param   self      Reference to CGpio instance
  *  \param   msg_ptr   Pointer to received message
  */
@@ -77,6 +85,8 @@ typedef struct Gpio_InitData_
     CInic *inic_ptr;
     /*!< \brief Reference to NSM instance */
     CNodeScriptManagement *nsm_ptr;
+    /*!< \brief Reference to Base instance */
+    CBase *base_ptr;
     /*!< \brief GPIO Trigger event status function pointer */
     Ucs_Gpio_TriggerEventResultCb_t trigger_event_status_fptr;
 
@@ -96,23 +106,26 @@ typedef struct Gpio_UserData_
 
 } Gpio_UserData_t;
 
-/*! \brief  Script structure of the GPIO module */
+/*! \brief  Script structure of the GPIO module. */
 typedef struct Gpio_Script_
 {
-    uint8_t cfg_data[40];
+    uint8_t cfg_data[GPIO_MAX_CFGDATA_SZ];
     /*! \brief script used for transmitting commands */
     Ucs_Ns_Script_t script;
-    /*! \brief config messages used for transmitting commands */
+    /*! \brief configuration messages used for transmitting commands */
     Ucs_Ns_ConfigMsg_t cfg_msg;
+
 } Gpio_Script_t;
 
-/*! \brief  Class structure of the GPIO module */
+/*! \brief  Class structure of the GPIO module. */
 typedef struct CGpio_
 {
     /*! \brief Reference to an INIC instance */
     CInic *inic_ptr;
     /*!< \brief Reference to NSM instance */
     CNodeScriptManagement *nsm_ptr;
+    /*!< \brief Reference to Base instance */
+    CBase *base_ptr;
     /*! \brief Current user data */
     Gpio_UserData_t curr_user_data;
     /*! \brief Indicates the address of the target device */

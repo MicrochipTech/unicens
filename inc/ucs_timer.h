@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -55,7 +55,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Function signature used for timer handler 
+/*! \brief Function signature used for timer handler
  *  \param args Void pointer to optional data
  */
 typedef void (*Tm_Handler_t)(void *args);
@@ -123,7 +123,7 @@ typedef struct CTimerManagement_
 /* Prototypes of class CTimerManagement                                                           */
 /*------------------------------------------------------------------------------------------------*/
 extern void Tm_Ctor(CTimerManagement *self, CScheduler *scd, const Tm_InitData_t *init_ptr, void * ucs_user_ptr);
-extern void Tm_SetTimer(CTimerManagement *self, CTimer *timer_ptr, Tm_Handler_t handler_fptr, 
+extern void Tm_SetTimer(CTimerManagement *self, CTimer *timer_ptr, Tm_Handler_t handler_fptr,
                         void *args_ptr, uint16_t elapse, uint16_t period);
 extern void Tm_ClearTimer(CTimerManagement *self, CTimer *timer_ptr);
 extern void Tm_CheckForNextService(CTimerManagement *self);

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -129,7 +129,7 @@ static const Fsm_StateElem_t ats_trans_tab[ATS_NUM_STATES][ATS_NUM_EVENTS] =    
 /* |--------------------------------|------------------------------------------------|------------------------------------------------|--------------------------------------|----------------------------------------|
  * |   ATS_E_NIL                    | ATS_E_NEXT                                     | ATS_E_RETRY                                    | ATS_E_ERROR                          | ATS_E_TIMEOUT                          |
  * |--------------------------------|------------------------------------------------|------------------------------------------------|--------------------------------------|----------------------------------------|
- */ 
+ */
     { {NULL, ATS_S_START          }, {&Ats_StartPmsUnsync,    ATS_S_PMS_UNSYNC     }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
     { {NULL, ATS_S_PMS_UNSYNC     }, {&Ats_StartPmsInit,      ATS_S_PMS_INIT       }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
     { {NULL, ATS_S_PMS_INIT       }, {&Ats_StartVersChk,      ATS_S_VERS_CHK       }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
@@ -287,7 +287,7 @@ static void Ats_StartDevAtt(void *self)
     CAttachService *self_ = (CAttachService *)self;
 
     TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_StartDevAtt()  called", 0U));
-    /* Assign observer to monitor the initial receipt of INIC message INIC.MOSTNetworkStatus */
+    /* Assign observer to monitor the initial receipt of INIC message INIC.NetworkStatus */
     Obs_Ctor(&self_->obs, self_, &Ats_CheckNetworkStatusReceived);
     Inic_AddObsrvNwStatus(self_->init_data.inic_ptr, &self_->obs);
     /* Assign observer to monitor the initial receipt of INIC message INIC.DeviceStatus */
@@ -312,7 +312,7 @@ static void Ats_StartNwConfig(void *self)
 {
     CAttachService *self_ = (CAttachService *)self;
 
-    /* Assign observer to monitor the initial receipt of INIC message INIC.MOSTNetworkConfigurarion */
+    /* Assign observer to monitor the initial receipt of INIC message INIC.NetworkConfigurarion */
     Sobs_Ctor(&self_->sobs, self_, &Ats_CheckNwConfigStatus);
 
     if (Inic_NwConfig_Get(self_->init_data.inic_ptr, &self_->sobs) != UCS_RET_SUCCESS)
@@ -422,7 +422,7 @@ static void Ats_InvalidTransition(void *self)
 /*! \brief Result callback for action "PMS Initialization". This function is part of an
  *         observer object and is invoked by Sub_Notify().
  *  \param self        Instance pointer
- *  \param result_ptr  Reference to the received PMS event. The pointer must be casted into 
+ *  \param result_ptr  Reference to the received PMS event. The pointer must be casted into
  *                     data type Fifos_Event_t.
  */
 static void Ats_CheckPmsUnsyncResult(void *self, void *result_ptr)
@@ -450,7 +450,7 @@ static void Ats_CheckPmsUnsyncResult(void *self, void *result_ptr)
 /*! \brief Result callback for action "PMS Initialization". This function is part of an
  *         observer object and is invoked by Sub_Notify().
  *  \param self        Instance pointer
- *  \param result_ptr  Reference to the received PMS event. The pointer must be casted into 
+ *  \param result_ptr  Reference to the received PMS event. The pointer must be casted into
  *                     data type Fifos_Event_t.
  */
 static void Ats_CheckPmsInitResult(void *self, void *result_ptr)
@@ -500,12 +500,12 @@ static void Ats_CheckVersChkResult(void *self, void *result_ptr)
     TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_CheckVersChkResult() called", 0U));
 }
 
-/*! \brief Result callback which handles one of three conditions for action "Device Attach". The 
- *         function is called if INIC message INIC.MOSTNetworkStatus was received. The function is 
- *         part of an observer object and is invoked by Sub_Notify(). The property 
- *         INIC.MOSTNetworkStatus.Status() is notified. Thus, there is no error condition available.
+/*! \brief Result callback which handles one of three conditions for action "Device Attach". The
+ *         function is called if INIC message INIC.NetworkStatus was received. The function is
+ *         part of an observer object and is invoked by Sub_Notify(). The property
+ *         INIC.NetworkStatus.Status() is notified. Thus, there is no error condition available.
  *  \param self        Instance pointer
- *  \param result_ptr  Reference to the MOST Network Status. The pointer must be casted into data 
+ *  \param result_ptr  Reference to the Network Status. The pointer must be casted into data
  *                     type Inic_StdResult_t.
  */
 static void Ats_CheckNetworkStatusReceived(void *self, void *result_ptr)
@@ -532,11 +532,11 @@ static void Ats_CheckDeviceStatusReceived(void *self, void *data_ptr)
     TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_CheckDeviceStatusReceived() called", 0U));
 }
 
-/*! \brief Result callback which handles one of two conditions for action "Device Attach". The 
- *         function handles the result of the INIC method INIC.DeviceAttach. This function is part 
+/*! \brief Result callback which handles one of two conditions for action "Device Attach". The
+ *         function handles the result of the INIC method INIC.DeviceAttach. This function is part
  *         of a single-observer object and is invoked by Ssub_Notify().
  *  \param self        Instance pointer
- *  \param result_ptr  Reference to the received device attach result. The pointer must be casted 
+ *  \param result_ptr  Reference to the received device attach result. The pointer must be casted
  *                     into data type Inic_StdResult_t.
  */
 static void Ats_CheckDevAttResult(void *self, void *result_ptr)
@@ -549,7 +549,7 @@ static void Ats_CheckDevAttResult(void *self, void *result_ptr)
             /* Operation succeeded */
             Fsm_SetEvent(&self_->fsm, ATS_E_NEXT);
             Srv_SetEvent(&self_->ats_srv, ATS_EVENT_SERVICE);
-            break; 
+            break;
         case UCS_RES_ERR_CONFIGURATION:
             /* Configuration error occurred -> attach process failed! */
             self_->report_result = UCS_INIT_RES_ERR_DEV_ATT_CFG;
@@ -579,7 +579,7 @@ static void Ats_CheckDevAttResult(void *self, void *result_ptr)
 
 /*! \brief Result callback for INIC network configuration
  *  \param self        Instance pointer
- *  \param result_ptr  Reference to the received network configuration status event. 
+ *  \param result_ptr  Reference to the received network configuration status event.
  *                     The pointer must be casted into data type Inic_StdResult_t.
  */
 static void Ats_CheckNwConfigStatus(void *self, void *result_ptr)

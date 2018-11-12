@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -71,7 +71,7 @@ typedef struct Lld_IntTxMsg_
     CDlNode     node;           /*!< \brief     Node required for queuing */
     CMessage   *msg_ptr;        /*!< \brief     Reference to the associated common message object, or
                                  *              \c NULL if the object is a command */
-    void       *owner_ptr;      /*!< \brief     Points to the FIFO which owns the message object 
+    void       *owner_ptr;      /*!< \brief     Points to the FIFO which owns the message object
                                  *              or NULL if the object is a command */
 
 } Lld_IntTxMsg_t;
@@ -79,7 +79,7 @@ typedef struct Lld_IntTxMsg_
 /*! \brief  Internal LLD Rx message */
 typedef struct Lld_IntRxMsg_
 {
-    Ucs_Lld_RxMsg_t  lld_msg;   /*!< \brief     Contains the public LLD Rx message 
+    Ucs_Lld_RxMsg_t  lld_msg;   /*!< \brief     Contains the public LLD Rx message
                                  *   \details   This attribute needs to be the first one in this structure
                                  */
     CMessage        *msg_ptr;   /*!< \brief     Reference to the associated common message object*/
@@ -88,7 +88,7 @@ typedef struct Lld_IntRxMsg_
 
 /*! \brief The class CLldPool*/
 typedef struct CLldPool_
-{ 
+{
     CDlList list;                             /*!< \brief Points to the first available message in Tx pool */
     Lld_IntTxMsg_t messages[LLDP_NUM_HANDLES];/*!< \brief Available messages in Tx pool */
 

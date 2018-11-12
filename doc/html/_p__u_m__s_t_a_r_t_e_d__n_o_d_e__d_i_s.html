@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -98,7 +98,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__d_i_s
 <p>The application provides the two callback functions of the Node Discovery service.</p>
 <div class="fragment"><div class="line"><a class="code" href="struct_ucs___init_data__t.html" title="UNICENS initialization structure used by function Ucs_Init().">Ucs_InitData_t</a> init_data;</div>
 <div class="line"></div>
-<div class="line"><span class="comment">/* Node Discovery Section */</span>    </div>
+<div class="line"><span class="comment">/* Node Discovery Section */</span></div>
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_a97b13c03602cc54884ae1765c518bd7b.html#a97b13c03602cc54884ae1765c518bd7b" title="The initialization data of the Node Discovery.">nd</a>.<a class="code" href="struct_ucs___nd___init_data__t_a98b9ccad2c6c5fa2edaf472151ee853c.html#a98b9ccad2c6c5fa2edaf472151ee853c" title="Callback function reporting the results of the Node Discovery service.">report_fptr</a> = &amp;App_OnNodeDiscoveryResult;</div>
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_a97b13c03602cc54884ae1765c518bd7b.html#a97b13c03602cc54884ae1765c518bd7b" title="The initialization data of the Node Discovery.">nd</a>.<a class="code" href="struct_ucs___nd___init_data__t_ab9bc02a84c7daeff234344541d41be62.html#ab9bc02a84c7daeff234344541d41be62" title="Callback function asking for evaluation of the found signature.">eval_fptr</a>   = &amp;App_OnNodeDiscoveryEval;</div>
 </div><!-- fragment --><table  class="mns_ic_table">
@@ -136,18 +136,19 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__d_i_s
 <p>App_OnNodeDiscoveryResult() informs also about general events like NetOff, unexpected error and stop of the Node Discovery service by application command. In these cases the parameter <b>signature</b> will be NULL.</p>
 <p>If a Netoff event happens, the Node Discovery service stops. It restarts automatically if it detects a NetOn event.</p>
 <p>The application can stop the Node Discovery service via <a class="el" href="group___g___u_c_s___n_o_d_e___d_i_s_c_o_v_e_r_y_ga637e441520f7b203e551274f17febfb6.html#ga637e441520f7b203e551274f17febfb6" title="Stops the Node Discovery service.">Ucs_Nd_Stop()</a>.</p>
-<p>It is possible to reset all nodes to the initial state they had after startup by calling <a class="el" href="group___g___u_c_s___n_o_d_e___d_i_s_c_o_v_e_r_y_gabab6c431e235fe0211f5f1525f9cff2e.html#gabab6c431e235fe0211f5f1525f9cff2e" title="Initializes all nodes.">Ucs_Nd_InitAll()</a>. </p>
+<p>It is possible to reset all nodes to the initial state they had after startup by calling <a class="el" href="group___g___u_c_s___n_o_d_e___d_i_s_c_o_v_e_r_y_gabab6c431e235fe0211f5f1525f9cff2e.html#gabab6c431e235fe0211f5f1525f9cff2e" title="Initializes all nodes.">Ucs_Nd_InitAll()</a>.</p>
+<p><b>Please note:</b> The Node Discovery cannot be started as long as FullDuplex Diagnosis, HalfDuplex Diagnosis or Programming is performed. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -46,15 +46,13 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_base.h"
 #include "ucs_ret_pb.h"
-#include "ucs_rm_pb.h"
-#include "ucs_xrm.h"
+#include "ucs_xrm_pv.h"
 #include "ucs_factory.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
@@ -98,8 +96,8 @@ extern void Epm_SetConnectionLabel(CEndpointManagement * self, Ucs_Rm_EndPoint_t
 extern Ucs_Rm_EndPointState_t Epm_GetState(CEndpointManagement * self, Ucs_Rm_EndPoint_t * ep_ptr);
 extern void Epm_ResetState(CEndpointManagement * self, Ucs_Rm_EndPoint_t * ep_ptr);
 extern void Epm_ReportShutDown(CEndpointManagement * self);
-extern void Epm_ReportInvalidDevice(CEndpointManagement *self, uint16_t destination_address);
-extern void Epm_XrmResDebugCb(Ucs_Xrm_ResourceType_t resource_type, Ucs_Xrm_ResObject_t *resource_ptr, 
+extern void Epm_ReportInvalidDevice(CEndpointManagement *self, uint16_t node_address);
+extern void Epm_XrmResDebugCb(Ucs_Xrm_ResourceType_t resource_type, Ucs_Xrm_ResObject_t *resource_ptr,
                               Ucs_Xrm_ResourceInfos_t resource_infos, void *endpoint_inst_ptr, void *user_ptr);
 
 #ifdef __cplusplus

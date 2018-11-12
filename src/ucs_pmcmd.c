@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -46,7 +46,7 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Constructor of CPmCommand class 
+/*! \brief  Constructor of CPmCommand class
  *  \param  self    The instance
  *  \param  fifo    The dedicated FIFO
  *  \param  type    The port message type
@@ -66,7 +66,7 @@ void Pmcmd_Ctor(CPmCommand *self, Pmp_FifoId_t fifo, Pmp_MsgType_t type)
 
 /*! \brief  Retrieves reference to the LLD Tx message object required to call Pmch_Transmit()
  *  \param  self    The instance
- *  \return Returns a reference to the LLD Tx message object 
+ *  \return Returns a reference to the LLD Tx message object
  */
 Ucs_Lld_TxMsg_t* Pmcmd_GetLldTxObject(CPmCommand *self)
 {
@@ -88,10 +88,10 @@ void Pmcmd_SetContent(CPmCommand *self, uint8_t sid, uint8_t ext_type, uint8_t e
         MISC_MEM_CPY(&self->data[6U], add_data_ptr, (size_t)add_data_sz);
     }
 
-    self->memory.data_size = 6U + (uint16_t)add_data_sz;
-    self->memory.total_size = 6U + (uint16_t)add_data_sz;
+    self->memory.data_size = (uint16_t)(6U + (uint16_t)add_data_sz);
+    self->memory.total_size = (uint16_t)(6U + (uint16_t)add_data_sz);
 
-    Pmp_SetPml(self->data, 4U + add_data_sz);
+    Pmp_SetPml(self->data, (uint8_t)(4U + add_data_sz));
     Pmp_SetSid(self->data, sid);
     Pmp_SetExtType(self->data, ext_type, ext_code);
 }

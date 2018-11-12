@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -97,67 +97,55 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__c_m_d.html',''
 <p><b>Features:</b></p>
 <ul>
 <li>allows dynamic adding and removing of MessageId Table</li>
-<li>calls the belonging handler function</li>
+<li>returns a function pointer to the belonging handler function</li>
 </ul>
-<p>The application provides a MessageId Table which contains all supported MessageIds together with their belonging handler functions. The MessageId Table is an array of <a class="el" href="struct_ucs___cmd___msg_id__t.html" title="Structure of a single element of the MessageId Table.">Ucs_Cmd_MsgId_t</a> elements. Each element contains a MessageId (0x0000 .. 0xFFFE) and a pointer to the belonging handler function. The table ends with the termination entry {<a class="el" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga5a43bcb8d64270611848455343857bc8.html#ga5a43bcb8d64270611848455343857bc8">UCS_CMD_MSGID_TERMINATION</a>, NULL}.</p>
+<p>The application provides a MessageId Table which contains all supported MessageIds together with their belonging handler functions. The MessageId Table is an array of <a class="el" href="struct_ucs___cmd___msg_id__t.html" title="Structure of a single element of the MessageId Table.">Ucs_Cmd_MsgId_t</a> elements. Each element contains a MessageId (0x0000 .. 0xFFFF) and a pointer to the belonging handler function.</p>
 <h1>Usage</h1>
-<p>The application announces the MessageId Table with the function <a class="el" href="group___g___u_c_s___c_m_d_ga70c8351102177badff83fe412c4962b7.html#ga70c8351102177badff83fe412c4962b7" title="Add a MessageId Table to the Command Interpreter.">Ucs_Cmd_AddMsgIdTable()</a>. The connection to the MessageId Table can be removed with the function <a class="el" href="group___g___u_c_s___c_m_d_gafe38ecf4cd5bc81074af03affa2374a4.html#gafe38ecf4cd5bc81074af03affa2374a4" title="Remove a MessageId Table from the Command Interpreter.">Ucs_Cmd_RemoveMsgIdTable()</a>.</p>
-<p>A received message is given to <a class="el" href="group___g___u_c_s___c_m_d_gaaad9e557acfca6cc8c125c7b191515f1.html#gaaad9e557acfca6cc8c125c7b191515f1" title="Decode an MCM message.">Ucs_Cmd_DecodeMsg()</a>. This function retrieves the MessageId from the message and calls the belonging handler function. The handler function can return three values:</p>
-<table class="doxtable">
-<tr>
-<th>Value </th><th>Description</th></tr>
-<tr>
-<td>UCS_CMD_RET_SUCCESS </td><td>The handler function succeeded. </td></tr>
-<tr>
-<td>UCS_CMD_RET_ERR_TX_BUSY </td><td>The handler function could not send an answer because no free Tx Buffer was available. </td></tr>
-<tr>
-<td>UCS_CMD_RET_ERR_APPL </td><td>An error happened in handler function. </td></tr>
-</table>
+<p>The application announces the MessageId Table with the function <a class="el" href="group___g___u_c_s___c_m_d_ga56bf8ccbcf72edf0b82b4265fe09abd8.html#ga56bf8ccbcf72edf0b82b4265fe09abd8" title="Add a MessageId Table to the Command Interpreter.">Ucs_Cmd_AddMsgIdTable()</a>. It The connection to the MessageId Table can be removed with the function <a class="el" href="group___g___u_c_s___c_m_d_gab893d9360fbd30e538d8e4943033fef5.html#gab893d9360fbd30e538d8e4943033fef5" title="Remove a MessageId Table from the Command Interpreter.">Ucs_Cmd_RemoveMsgIdTable()</a>.</p>
+<p>A received message is given to <a class="el" href="group___g___u_c_s___c_m_d_gadc2eb725e963d7ef44fc748968c6648e.html#gadc2eb725e963d7ef44fc748968c6648e" title="Decode an MCM message.">Ucs_Cmd_DecodeMsg()</a>. This function retrieves the MessageId from the message and returns a pointer the belonging handler function. The application can then call the handler function. This functions returns a 16 bit value. The application defines the meaning of the possible return values.</p>
 <h1>Example</h1>
 <p>The following code example shows how the Command Interpreter API function can be used:</p>
-<div class="fragment"><div class="line"><a class="code" href="struct_ucs___cmd___msg_id__t.html" title="Structure of a single element of the MessageId Table.">Ucs_Cmd_MsgId_t</a> App_MsgIdTable[] = </div>
+<div class="fragment"><div class="line"><a class="code" href="struct_ucs___cmd___msg_id__t.html" title="Structure of a single element of the MessageId Table.">Ucs_Cmd_MsgId_t</a> App_MsgIdTable[] =</div>
 <div class="line">{</div>
 <div class="line">    { 0x1234U,                   App_Handler_1234},</div>
-<div class="line">    { 0x1238U,                   App_Handler_1238},</div>
-<div class="line">    { <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga5a43bcb8d64270611848455343857bc8.html#ga5a43bcb8d64270611848455343857bc8" title="Denotes the end of an MessageId Table.">UCS_CMD_MSGID_TERMINATION</a>, NULL            } </div>
+<div class="line">    { 0x1238U,                   App_Handler_1238}</div>
 <div class="line">};</div>
 <div class="line"></div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">void</span> main(uint8_t argc, <span class="keywordtype">char</span> *argv[])</div>
 <div class="line">{</div>
 <div class="line">    ...</div>
-<div class="line">    </div>
-<div class="line">    <a class="code" href="group___g___u_c_s___c_m_d_ga70c8351102177badff83fe412c4962b7.html#ga70c8351102177badff83fe412c4962b7" title="Add a MessageId Table to the Command Interpreter.">Ucs_Cmd_AddMsgIdTable</a>(ucs_inst_ptr, &amp;App_MsgIdTable[0]);</div>
-<div class="line">        </div>
+<div class="line"></div>
+<div class="line">    <a class="code" href="group___g___u_c_s___c_m_d_ga56bf8ccbcf72edf0b82b4265fe09abd8.html#ga56bf8ccbcf72edf0b82b4265fe09abd8" title="Add a MessageId Table to the Command Interpreter.">Ucs_Cmd_AddMsgIdTable</a>(ucs_inst_ptr, &amp;App_MsgIdTable[0], <span class="keyword">sizeof</span>(App_MsgIdTable)/<span class="keyword">sizeof</span>(<a class="code" href="struct_ucs___cmd___msg_id__t.html" title="Structure of a single element of the MessageId Table.">Ucs_Cmd_MsgId_t</a>));</div>
+<div class="line"></div>
 <div class="line">    ...</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">while</span>(1)</div>
+<div class="line"></div>
+<div class="line">    <span class="keywordflow">while</span> (1)</div>
 <div class="line">    {</div>
 <div class="line">        <a class="code" href="struct_ucs___ams_rx___msg__t.html" title="Application message Rx type.">Ucs_AmsRx_Msg_t</a> *msg_rx_ptr = <a class="code" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg</a>(ucs_inst_ptr);</div>
 <div class="line">        <span class="keywordflow">if</span> (msg_rx_ptr != NULL)</div>
 <div class="line">        {</div>
-<div class="line">            <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#ga91f6db002b6fe98cdeb2969b19131cbb" title="Result codes used for Command Interpreter API functions.">Ucs_Cmd_Return_t</a> cmd_ret;</div>
+<div class="line">            <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga48eb0924c8f26b8094fd86bcef585ca8.html#ga48eb0924c8f26b8094fd86bcef585ca8" title="Type definition of user handler functions.">Ucs_Cmd_Handler_Function_t</a> fkt_ptr;</div>
+<div class="line">            uint16_t result;</div>
 <div class="line"></div>
-<div class="line">            cmd_ret = <a class="code" href="group___g___u_c_s___c_m_d_gaaad9e557acfca6cc8c125c7b191515f1.html#gaaad9e557acfca6cc8c125c7b191515f1" title="Decode an MCM message.">Ucs_Cmd_DecodeMsg</a>(ucs_inst_ptr, msg_rx_ptr);</div>
-<div class="line">            <span class="keywordflow">if</span> (cmd_ret == <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#gga91f6db002b6fe98cdeb2969b19131cbba30cf8ec25015b74f098bb0e1e501d7c6">UCS_CMD_RET_SUCCESS</a>)</div>
+<div class="line">            fkt_ptr = <a class="code" href="group___g___u_c_s___c_m_d_gadc2eb725e963d7ef44fc748968c6648e.html#gadc2eb725e963d7ef44fc748968c6648e" title="Decode an MCM message.">Ucs_Cmd_DecodeMsg</a>(ucs_inst_ptr, msg_rx_ptr);</div>
+<div class="line">            <span class="keywordflow">if</span> (fkt_ptr != NULL)</div>
 <div class="line">            {</div>
-<div class="line">                <a class="code" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg</a>(ucs_inst_ptr);</div>
+<div class="line">                result = fkt_ptr(msg_ptr, APP_USER_PTR);</div>
 <div class="line">            }</div>
-<div class="line">            <span class="keywordflow">else</span></div>
-<div class="line">            {</div>
-<div class="line">                <span class="comment">/* appropriate error handling */</span> </div>
-<div class="line">            }</div>
+<div class="line">            <a class="code" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg</a>(ucs_inst_ptr);</div>
 <div class="line">        }</div>
 <div class="line">    }</div>
 <div class="line"> }</div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#ga91f6db002b6fe98cdeb2969b19131cbb" title="Result codes used for Command Interpreter API functions.">Ucs_Cmd_Return_t</a> App_Handler_1234(<a class="code" href="struct_ucs___ams_rx___msg__t.html" title="Application message Rx type.">Ucs_AmsRx_Msg_t</a> *msg_rx_ptr, <span class="keywordtype">void</span> *user_ptr)  </div>
+<div class="line"></div>
+<div class="line">uint16_t App_Handler_1234(<a class="code" href="struct_ucs___ams_rx___msg__t.html" title="Application message Rx type.">Ucs_AmsRx_Msg_t</a> *msg_rx_ptr, <span class="keywordtype">void</span> *user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    uint16_t cnt;</div>
-<div class="line">    </div>
+<div class="line"></div>
 <div class="line">    <span class="comment">/* print source address */</span></div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;App_Handler_1234() called from 0x%04X.\n&quot;</span>, msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_abb27f24f389ff3575a5ee33e74e66eb6.html#abb27f24f389ff3575a5ee33e74e66eb6" title="Source address.">source_address</a>);</div>
-<div class="line">    </div>
+<div class="line"></div>
 <div class="line">    <span class="comment">/* print payload */</span></div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;  Payload: &quot;</span>);</div>
 <div class="line">    <span class="keywordflow">for</span> (cnt = 0U; cnt &lt; msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_aae6bdbdf6ea1ad3da5af37f0a91d3ea0.html#aae6bdbdf6ea1ad3da5af37f0a91d3ea0" title="Payload size in bytes.">data_size</a>; cnt++)</div>
@@ -165,17 +153,17 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__c_m_d.html',''
 <div class="line">        (void)printf(<span class="stringliteral">&quot;%02X &quot;</span>, msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Reference to payload.">data_ptr</a>[cnt]);</div>
 <div class="line">    }</div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;\n&quot;</span>);</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">return</span> <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#gga91f6db002b6fe98cdeb2969b19131cbba30cf8ec25015b74f098bb0e1e501d7c6">UCS_CMD_RET_SUCCESS</a>;</div>
+<div class="line"></div>
+<div class="line">    <span class="keywordflow">return</span> 0U;</div>
 <div class="line">}</div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#ga91f6db002b6fe98cdeb2969b19131cbb" title="Result codes used for Command Interpreter API functions.">Ucs_Cmd_Return_t</a> App_Handler_1238(<a class="code" href="struct_ucs___ams_rx___msg__t.html" title="Application message Rx type.">Ucs_AmsRx_Msg_t</a> *msg_rx_ptr, <span class="keywordtype">void</span> *user_ptr)  </div>
+<div class="line">uint16_t App_Handler_1238(<a class="code" href="struct_ucs___ams_rx___msg__t.html" title="Application message Rx type.">Ucs_AmsRx_Msg_t</a> *msg_rx_ptr, <span class="keywordtype">void</span> *user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    uint16_t cnt;</div>
-<div class="line">    </div>
+<div class="line"></div>
 <div class="line">    <span class="comment">/* print source address */</span></div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;App_Handler_1238() called from 0x%04X.\n&quot;</span>, msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_abb27f24f389ff3575a5ee33e74e66eb6.html#abb27f24f389ff3575a5ee33e74e66eb6" title="Source address.">source_address</a>);</div>
-<div class="line">    </div>
+<div class="line"></div>
 <div class="line">    <span class="comment">/* print payload */</span></div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;  Payload: &quot;</span>);</div>
 <div class="line">    <span class="keywordflow">for</span> (cnt = 0U; cnt &lt; msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_aae6bdbdf6ea1ad3da5af37f0a91d3ea0.html#aae6bdbdf6ea1ad3da5af37f0a91d3ea0" title="Payload size in bytes.">data_size</a>; cnt++)</div>
@@ -183,20 +171,20 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__c_m_d.html',''
 <div class="line">        (void)printf(<span class="stringliteral">&quot;%02X &quot;</span>, msg_rx_ptr-&gt;<a class="code" href="struct_ucs___ams_rx___msg__t_a6166cef59cbe432be35512925debeae6.html#a6166cef59cbe432be35512925debeae6" title="Reference to payload.">data_ptr</a>[cnt]);</div>
 <div class="line">    }</div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;\n&quot;</span>);</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">return</span> <a class="code" href="group___g___u_c_s___c_m_d___t_y_p_e_s_ga91f6db002b6fe98cdeb2969b19131cbb.html#gga91f6db002b6fe98cdeb2969b19131cbba30cf8ec25015b74f098bb0e1e501d7c6">UCS_CMD_RET_SUCCESS</a>;</div>
+<div class="line"></div>
+<div class="line">    <span class="keywordflow">return</span> 0U;</div>
 <div class="line">}</div>
 </div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

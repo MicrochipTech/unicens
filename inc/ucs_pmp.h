@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -69,7 +69,7 @@ extern "C"
 /*! \brief Specifies the FIFO */
 typedef enum Pmp_FifoId_
 {
-    PMP_FIFO_ID_MCM  = 0U,                  /*!< \brief FIFO dedicated to MOST Control Messages (MCM) */
+    PMP_FIFO_ID_MCM  = 0U,                  /*!< \brief FIFO dedicated to Network Control Messages (MCM) */
  /* PMP_FIFO_ID_MDP  = 1U,                     < (reserved identifier) */
     PMP_FIFO_ID_ICM  = 2U,                  /*!< \brief FIFO dedicated to INIC Control Messages (ICM) */
     PMP_FIFO_ID_ALL  = 3U,                  /*!< \brief All FIFOs (ICM, MCM) */
@@ -174,7 +174,7 @@ extern bool          Pmp_VerifyHeader(uint8_t header[], uint8_t buf_len);
 /*------------------------------------------------------------------------------------------------*/
 /* Class CPmh                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Defines the content of a Port Message Header 
+/*! \brief Defines the content of a Port Message Header
  *  \details The current structure does not support  "direction" and "retransmitted" flag.
  */
 typedef struct CPmh_

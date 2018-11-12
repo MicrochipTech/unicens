@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -62,8 +62,8 @@ typedef enum Ns_ResultType_
     NS_RESULT_TYPE_TGT_SCRIPT  = 0x00U,
     /*!< \brief Specifies the result of the remote synchronization from target device (typically INIC function-specific error) */
     NS_RESULT_TYPE_TGT_SYNC    = 0x01U,
-    /*!< \brief Specifies the transmission error information that occurred on the MOST network. */
-    NS_RESULT_TYPE_TX          = 0x02U      
+    /*!< \brief Specifies the transmission error information that occurred on the network. */
+    NS_RESULT_TYPE_TX          = 0x02U
 
 } Ns_ResultType_t;
 
@@ -76,7 +76,7 @@ typedef struct Nsm_ResultDetails_
     /*! \brief Specifies the type of the current asynchronous result.
      *  \details The following briefly describes the different types of results available:
      *              - \b NS_RESULT_TYPE_TGT: target results, typically INIC function-specific error found on target device. \n Refer to \em inic_result to get the detailed information.
-     *              - \b NS_RESULT_TYPE_TX:  transmission results, typically transmission error on the MOST network. \n Refer to \em tx_result to get the transmission information.
+     *              - \b NS_RESULT_TYPE_TX:  transmission results, typically transmission error on the network. \n Refer to \em tx_result to get the transmission information.
      */
     Ns_ResultType_t result_type;
     /*! \brief Holds the status of the transmission. */
@@ -85,12 +85,14 @@ typedef struct Nsm_ResultDetails_
     Ucs_StdResult_t inic_result;
 
 } Nsm_ResultDetails_t;
-    
+
 /*! \brief  Stores the NodeScript result for internal use. */
 typedef struct Nsm_Result_
 {
     /*! \brief Result code. */
-    Ucs_Ns_ResultCode_t code;  
+    Ucs_Ns_ResultCode_t code;
+    /*! \brief Error info. */
+    Ucs_Ns_ErrorInfo_t error_info;
     /*! \brief Detailed information on the returned result. */
     Nsm_ResultDetails_t details;
 
@@ -105,7 +107,7 @@ typedef struct Nsm_InitData_
 
 } Nsm_InitData_t;
 
-/*! \brief Structure holds parameters for API locking */
+/*! \brief Structure holds parameters for API locking. */
 typedef struct Script_ApiLock_
 {
     /*! \brief Flag to lock the API */
@@ -129,14 +131,28 @@ typedef void (*Nsm_ResultCb_t)(void * user_ptr, Nsm_Result_t result);
 /*! \brief  Function signature used for the results of the Scripting Manager.
  *  \param  tel_ptr          Reference to the message object.
  *  \param  user_ptr         Reference to the user argument.
- *  \return  Returns \c true to discard the message and free it to the pool (no-pass). Otherwise, returns 
+ *  \return  Returns \c true to discard the message and free it to the pool (no-pass). Otherwise, returns
  *           \c false (pass).
  */
-typedef bool (*Nsm_RxFilterCb_t)(Msg_MostTel_t *tel_ptr, void *user_ptr);
+typedef bool (*Nsm_RxFilterCb_t)(Ucs_Message_t *tel_ptr, void *user_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
+
+/*! \brief  Result structure of the Node Scripting Management for public node scripting. */
+typedef struct Nsm_PbResultData
+{
+    /*!< \brief Current result for internal use. */
+    Nsm_Result_t    internal_result;
+    /*!< \brief The node address the script was executed for. */
+    uint16_t node_address;
+    /*! \brief Stores the individual result callback function. */
+    Ucs_Ns_ResultCb_t result_fptr;
+
+} Nsm_PbResultData_t;
+
+
 /*! \brief  Class structure of the Node Scripting Management. */
 typedef struct CNodeScriptManagement_
 {
@@ -146,7 +162,7 @@ typedef struct CNodeScriptManagement_
     CTransceiver * rcm_ptr;
     /*!< \brief Reference to RSM instance */
     CRemoteSyncManagement * rsm_ptr;
-    /*!< \brief Reference to the timer management */ 
+    /*!< \brief Reference to the timer management */
     CTimerManagement * tm_ptr;
     /*!< \brief Timer for pausing script */
     CTimer script_pause;
@@ -159,14 +175,14 @@ typedef struct CNodeScriptManagement_
     /*!< \brief Flag to lock the API */
     Script_ApiLock_t lock;
     /*!< \brief Current reference to the script table */
-    Ucs_Ns_Script_t * curr_sript_ptr;
+    UCS_NS_CONST Ucs_Ns_Script_t * curr_sript_ptr;
     /*!< \brief Current result for internal use */
     Nsm_Result_t curr_internal_result;
     /*!< \brief Current script size */
     uint8_t curr_sript_size;
     /*!< \brief Current script pause */
     uint16_t curr_pause;
-    /*!< \brief Flag to determine whether the private api is used or not */
+    /*!< \brief Flag to determine whether the private API is used or not */
     bool is_private_api_used;
     /*!< \brief Reference to the user instance */
     void * curr_user_ptr;
@@ -174,8 +190,6 @@ typedef struct CNodeScriptManagement_
     Nsm_RxFilterCb_t curr_rxfilter_fptr;
     /*!< \brief Private result callback function pointer for current script */
     Nsm_ResultCb_t curr_pv_result_fptr;
-    /*!< \brief Current reference to the Node used in public API */
-    Ucs_Rm_Node_t * curr_node_ptr;
     /*!< \brief Public result callback function pointer for current script */
     Ucs_Ns_ResultCb_t curr_pb_result_fptr;
     /*!< \brief Target address of the device to be looked for */
@@ -187,9 +201,9 @@ typedef struct CNodeScriptManagement_
 /* Prototypes of class CRemoteSyncManagement                                                      */
 /*------------------------------------------------------------------------------------------------*/
 extern void Nsm_Ctor(CNodeScriptManagement * self, Nsm_InitData_t * init_ptr);
-extern Ucs_Return_t Nsm_Run_Pb(CNodeScriptManagement * self, Ucs_Rm_Node_t * node_ptr, Ucs_Ns_ResultCb_t pb_result_fptr);
-extern Ucs_Return_t Nsm_Run_Pv(CNodeScriptManagement * self, Ucs_Ns_Script_t * script, uint8_t size, void * user_ptr, Nsm_RxFilterCb_t rx_filter_fptr, Nsm_ResultCb_t result_fptr);
-extern bool Nsm_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr);
+extern Ucs_Return_t Nsm_Run_Pb(CNodeScriptManagement *self, UCS_NS_CONST Ucs_Ns_Script_t *script_list_ptr, uint8_t script_list_size, Ucs_Ns_ResultCb_t result_fptr);
+extern Ucs_Return_t Nsm_Run_Pv(CNodeScriptManagement * self,UCS_NS_CONST Ucs_Ns_Script_t * script, uint8_t size, void * user_ptr, Nsm_RxFilterCb_t rx_filter_fptr, Nsm_ResultCb_t result_fptr);
+extern bool Nsm_OnRcmRxFilter(void *self, Ucs_Message_t *tel_ptr);
 extern bool Nsm_IsLocked(CNodeScriptManagement * self);
 
 #ifdef __cplusplus

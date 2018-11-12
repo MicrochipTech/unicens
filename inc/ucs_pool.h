@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -52,15 +52,15 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Class CPool                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Class CMessage 
- *  \details Common internal message class which embeds a list of MOST telegrams 
+/*! \brief   Class CPool
+ *  \details Defines a variable pool/list for control messages. The size is defined at initialization time.
  */
 typedef struct CPool_
 {
-    uint16_t    initial_size;   /*! \brief  The size of a provided message array */
-    CMessage   *messages;       /*! \brief  Reference to a message array provided by another module */
-    CDlList     message_list;   /*! \brief  Doubly linked list required providing available messages */
-    void *ucs_user_ptr;         /*!< \brief User reference that needs to be passed in every callback function */
+    uint16_t    initial_size;   /*!< \brief  The size of a provided message array */
+    CMessage   *messages;       /*!< \brief  Reference to a message array provided by another module */
+    CDlList     message_list;   /*!< \brief  Doubly linked list required providing available messages */
+    void       *ucs_user_ptr;   /*!< \brief User reference that needs to be passed in every callback function */
 
 } CPool;
 

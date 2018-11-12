@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -54,6 +54,8 @@
 #include "ucs_message.h"
 #include "ucs_telqueue.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -66,7 +68,7 @@ extern "C"
 #define AMS_LLRBC_DEFAULT         (MSG_LLRBC_DEFAULT)
 /*! \brief Defines the maximum LLR number for Application Messages */
 #define AMS_LLRBC_MAX             (MSG_LLRBC_MAX)
-/*! \brief Default memory size that is allocated when receiving segmented messages 
+/*! \brief Default memory size that is allocated when receiving segmented messages
  *         without size prefix */
 #define AMS_RX_DEF_SIZE_PAYLOAD   400U
 /*! \brief Maximum destination address which is reserved for internal transmission */
@@ -86,7 +88,7 @@ typedef bool (*Ams_TxIsRcmMsgCb_t)(Ucs_AmsTx_Msg_t *msg_ptr);
 /*------------------------------------------------------------------------------------------------*/
 
 /*! \brief      Application Message Service Class
- *  \details    Allows transmission and reception of MOST Application Messages
+ *  \details    Allows transmission and reception of Application Messages
  */
 typedef struct CAms_
 {
@@ -105,7 +107,7 @@ typedef struct CAms_
         uint8_t             default_llrbc;              /*!< \brief  Default LowLevelRetryBlockCount. Valid values: 0..100 */
         Ams_TxIsRcmMsgCb_t  is_rcm_fptr;                /*!< \brief  Assignable callback function to request the correct transceiver */
         uint8_t             next_follower_id;           /*!< \brief  The follower id for the next segmented
-                                                         *           message 
+                                                         *           message
                                                          */
     } tx;
 
@@ -113,11 +115,11 @@ typedef struct CAms_
     {
         CObserver               message_freed_observer; /*!< \brief Observes message freed event */
 
-        Amsg_RxCompleteCb_t     complete_fptr;          /*!< \brief Callback function which is invoked on 
-                                                         *          message reception 
+        Amsg_RxCompleteCb_t     complete_fptr;          /*!< \brief Callback function which is invoked on
+                                                         *          message reception
                                                          */
-        void                   *complete_inst_ptr;      /*!< \brief Instance which is notified on 
-                                                         *          message reception 
+        void                   *complete_inst_ptr;      /*!< \brief Instance which is notified on
+                                                         *          message reception
                                                          */
         CTelQueue               waiting_queue;          /*!< \brief Queue of unprocessed single telegrams */
 
@@ -142,7 +144,7 @@ extern void Ams_TxFreeUnusedMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr);
 extern uint16_t Ams_TxGetMsgCnt(CAms *self);
 extern bool Ams_TxIsValidMessage(Ucs_AmsTx_Msg_t *msg_ptr);
 extern void Ams_TxSendMsgDirect(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr);
-extern Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxCompleteSiaCb_t tx_complete_sia_fptr, 
+extern Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxCompleteSiaCb_t tx_complete_sia_fptr,
                                   Amsg_TxCompleteCb_t tx_complete_fptr, void* tx_complete_inst_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
@@ -150,14 +152,16 @@ extern Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxC
 /*------------------------------------------------------------------------------------------------*/
 extern void Ams_RxAssignReceiver(CAms *self, Amsg_RxCompleteCb_t cb_fptr, void *inst_ptr);
 extern void Ams_RxFreeMsg(CAms *self, Ucs_AmsRx_Msg_t *msg_ptr);
-extern void Ams_RxOnMcmTelComplete(void *self, Msg_MostTel_t *tel_ptr);
-extern void Ams_RxOnRcmTelComplete(void *self, Msg_MostTel_t *tel_ptr);
+extern void Ams_RxOnMcmTelComplete(void *self, Ucs_Message_t *tel_ptr);
+extern void Ams_RxOnRcmTelComplete(void *self, Ucs_Message_t *tel_ptr);
 
 #ifdef __cplusplus
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMS_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */ 
+
+#endif          /* ifndef UCS_AMS_H */
 
 /*!
  * @}

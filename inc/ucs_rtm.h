@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -48,6 +48,7 @@
 #include "ucs_obs.h"
 #include "ucs_epm.h"
 #include "ucs_net.h"
+#include "ucs_atd.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -57,12 +58,22 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
+/*! \brief  Instance structure of ATD module. */
+typedef struct Rtm_Atd_
+{
+    Ucs_StdResultCb_t   result_fptr;     /*!< \brief Reference to the ATD callback function */
+    CSingleObserver     atd_obs;         /*!< \brief Reference to the ATD single observer */
+    CAtd                atd_inst;        /*!< \brief Class structure of ATD */
+
+} Rtm_Atd_t;
+
 /*! \brief  Stores data required by RTM during initialization. */
 typedef struct Rtm_InitData_
 {
     CBase *base_ptr;                /*!< \brief Reference to base instance */
     CEndpointManagement *epm_ptr;   /*!< \brief Reference to the endpoint management instance */
     CNetworkManagement *net_ptr;    /*!< \brief Reference to Network instance */
+    CFactory *fac_ptr;              /*!< \brief Reference to Factory instance */
     Ucs_Rm_ReportCb_t report_fptr;  /*!< \brief Reference to the report callback function */
 
 } Rtm_InitData_t;
@@ -70,11 +81,15 @@ typedef struct Rtm_InitData_
 /*! \brief  Class structure of the Route Management. */
 typedef struct CRouteManagement_
 {
+    /*! \brief The Factory instance*/
+    CFactory *fac_ptr;
+    /*! \brief The Audio Transportation Delay (ATD) instance*/
+    Rtm_Atd_t atd;
     /*! \brief Reference to a base instance */
     CBase *base_ptr;
     /*! \brief Reference to a network instance */
     CEndpointManagement * epm_ptr;
-    /*!< \brief Reference to the timer management */ 
+    /*!< \brief Reference to the timer management */
     CTimerManagement * tm_ptr;
     /*!< \brief Reference to Network instance */
     CNetworkManagement *net_ptr;
@@ -92,7 +107,7 @@ typedef struct CRouteManagement_
     CService rtm_srv;
     /*! \brief Report callback of the routes list */
     Ucs_Rm_ReportCb_t report_fptr;
-    /*! \brief Observe MOST Network status in Net module */
+    /*! \brief Observe Network status in Net module */
     CMaskedObserver nwstatus_observer;
     /*! \brief Observer used to monitor UCS initialization result */
     CMaskedObserver ucsinit_observer;
@@ -104,6 +119,8 @@ typedef struct CRouteManagement_
     bool nw_available;
     /*! \brief Flag to lock the API */
     bool lock_api;
+    /*! \brief Flag to lock the ATD module, while a calculation is processed */
+    bool lock_atd_calc;
 
 } CRouteManagement;
 
@@ -118,6 +135,7 @@ extern Ucs_Return_t Rtm_SetNodeAvailable(CRouteManagement * self, Ucs_Rm_Node_t 
 extern bool Rtm_GetNodeAvailable(CRouteManagement * self, Ucs_Rm_Node_t *node_ptr);
 extern Ucs_Return_t Rtm_GetAttachedRoutes(CRouteManagement * self, Ucs_Rm_EndPoint_t * ep_inst, Ucs_Rm_Route_t * ext_routes_list[], uint16_t size_list);
 extern uint16_t Rtm_GetConnectionLabel(CRouteManagement * self, Ucs_Rm_Route_t * route_ptr);
+extern Ucs_Return_t Rtm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

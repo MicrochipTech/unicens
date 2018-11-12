@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -62,11 +62,15 @@ extern "C"
 #define UCS_EXC_SIGNATURE_VERSION_LIMIT         1U
 
 
-/*! \brief No evaluable segment information available for BackChannel Diagnosis. 
- *  \ingroup G_UCS_BC_DIAG_TYPES
+/*! \brief No evaluable segment information available for HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
  */
-#define UCS_BCD_DUMMY_SEGMENT                    0xFFU
+#define UCS_HDX_DUMMY_POS                       0xFFU
 
+/*! \brief No evaluable cable diagnosis information available for HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
+ */
+#define UCS_HDX_DUMMY_CABLE_DIAG_RESULT         0xFFU
 
 /*------------------------------------------------------------------------------------------------*/
 /* Enumerators                                                                                    */
@@ -85,7 +89,7 @@ typedef enum Ucs_Inic_LastResetReason_
 
 } Ucs_Inic_LastResetReason_t;
 
-/*! \brief   The current power state of the INICs power management interface (PS0/PS1). 
+/*! \brief   The current power state of the INICs power management interface (PS0/PS1).
  *  \ingroup G_UCS_INIC_TYPES
  */
 typedef enum Ucs_Inic_PowerState_
@@ -104,7 +108,7 @@ typedef enum Ucs_Inic_PowerState_
 } Ucs_Inic_PowerState_t;
 
 
-/*! \brief Defines the flags set in \c change_mask used by NetworkStatus.Status 
+/*! \brief Defines the flags set in \c change_mask used by NetworkStatus.Status
  *  \ingroup G_UCS_NET_TYPES
  */
 
@@ -122,20 +126,20 @@ typedef enum Ucs_Network_StatusMask_
 } Ucs_Network_StatusMask_t;
 
 
-/*! \brief   MOST Network Availability
+/*! \brief   Network Availability
  *  \ingroup G_UCS_NET_TYPES
  */
 typedef enum Ucs_Network_Availability_
 {
-    UCS_NW_NOT_AVAILABLE = 0x00U,       /*!< \brief MOST network is not available */
-    UCS_NW_AVAILABLE     = 0x01U        /*!< \brief MOST network is available  */
+    UCS_NW_NOT_AVAILABLE = 0x00U,       /*!< \brief  network is not available */
+    UCS_NW_AVAILABLE     = 0x01U        /*!< \brief  network is available  */
 
 } Ucs_Network_Availability_t;
 
-/*! \brief   MOST Network Availability Information.
+/*! \brief    Network Availability Information.
  *  \details AvailabilityInfo is a sub state of Availability (\ref Ucs_Network_Availability_t)
  *           Possible pairs of Availability and Availability Information
- *  Availability            | Availability Information 
+ *  Availability            | Availability Information
  *  ------------------------| ------------------------------------
  *  UCS_NW_NOT_AVAILABLE    | UCS_NW_AVAIL_INFO_REGULAR
  *  UCS_NW_NOT_AVAILABLE    | UCS_NW_AVAIL_INFO_DIAGNOSIS
@@ -146,16 +150,16 @@ typedef enum Ucs_Network_Availability_
  */
 typedef enum Ucs_Network_AvailInfo_
 {
-    /*! \brief The network is not available because it is in NetInterface Off or Init state. 
-     *         It is pending to get available again. 
+    /*! \brief The network is not available because it is in NetInterface Off or Init state.
+     *         It is pending to get available again.
      */
     UCS_NW_AVAIL_INFO_REGULAR       = 0x00U,
     /*! \brief The network is not available because it performs a ring break diagnosis or
      *         physical layer test.
      */
     UCS_NW_AVAIL_INFO_DIAGNOSIS     = 0x02U,
-    /*! \brief The INIC forces the network to stay in "not available" state. The  
-     *         application may enter or leave this state by calling 
+    /*! \brief The INIC forces the network to stay in "not available" state. The
+     *         application may enter or leave this state by calling
      *         Ucs_Network_ForceNotAvailable(). Also see Ucs_Network_Startup().
      */
     UCS_NW_AVAIL_INFO_FORCED_NA     = 0x06U,
@@ -166,25 +170,25 @@ typedef enum Ucs_Network_AvailInfo_
 
 } Ucs_Network_AvailInfo_t;
 
-/*! \brief MOST Network Availability Transition Cause
+/*! \brief Network Availability Transition Cause
  *  \ingroup G_UCS_NET_TYPES
  */
 typedef enum Ucs_Network_AvailTransCause_
 {
-    /*! \brief Start-up is initiated by chip e.g., INIC.MOSTNetworkStartup() */
+    /*! \brief Start-up is initiated by chip e.g., INIC.NetworkStartup() */
     UCS_NW_AV_TR_CA_CMD             = 0x00U,
     /*! \brief Chip is woken up by network activity. */
     UCS_NW_AV_TR_CA_RX_ACTIVITY     = 0x01U,
-    /*! \brief Network is typically shutdown by an INIC.MOSTNetworkShutdown() command initiated 
-     *         locally or by a node positioned upstream (in the latter case, the shutdown flag 
+    /*! \brief Network is typically shutdown by an INIC.NetworkShutdown() command initiated
+     *         locally or by a node positioned upstream (in the latter case, the shutdown flag
      *         indicates a Normal Shutdown).
      */
     UCS_NW_AV_TR_CA_NORMAL          = 0x10U,
-    /*! \brief Network is shutdown due to an error. In this case the shutdown reason was a sudden 
+    /*! \brief Network is shutdown due to an error. In this case the shutdown reason was a sudden
      *         signal off. No shutdown flag is present.
      */
     UCS_NW_AV_TR_CA_ERR_SSO         = 0x11U,
-    /*! \brief Network is shutdown due to an error. In this case the shutdown reason was a critical 
+    /*! \brief Network is shutdown due to an error. In this case the shutdown reason was a critical
      *         unlock. No shutdown flag is present.
      */
     UCS_NW_AV_TR_CA_ERR_CRIT_UNLOCK = 0x12U,
@@ -198,28 +202,15 @@ typedef enum Ucs_Network_AvailTransCause_
 
 } Ucs_Network_AvailTransCause_t;
 
-/*! \brief Result values for the Ring Break Diagnosis
- *  \ingroup G_UCS_DIAG_TYPES
- */
-typedef enum Ucs_Diag_RbdResult_
-{
-    UCS_DIAG_RBD_NO_ERROR       = 0x00U,     /*!< \brief No error */
-    UCS_DIAG_RBD_POS_DETECTED   = 0x01U,     /*!< \brief Position detected */
-    UCS_DIAG_RBD_DIAG_FAILED    = 0x02U,     /*!< \brief Diagnosis failed */
-    UCS_DIAG_RBD_POS_0_WEAK_SIG = 0x03U      /*!< \brief PosDetected = 0 and un-lockable signal on
-                                              *          Rx was detected
-                                              */
-} Ucs_Diag_RbdResult_t;
-
-/*! \brief Data packet size of the isochronous channel 
+/*! \brief Data packet size of the isochronous channel
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Avp_IsocPacketSize_
 {
     UCS_ISOC_PCKT_SIZE_188 = 188U,  /*!< \brief Standard MPEG2 Transport Stream packet size, no
                                      *          encryption
-                                     */ 
-    UCS_ISOC_PCKT_SIZE_196 = 196U,  /*!< \brief DTCP Supplement B, DTCP over MOST */
+                                     */
+    UCS_ISOC_PCKT_SIZE_196 = 196U,  /*!< \brief DTCP Supplement B, DTCP over network */
     UCS_ISOC_PCKT_SIZE_206 = 206U   /*!< \brief DTCP Supplement E, DTCP over IP */
 
 } Ucs_Avp_IsocPacketSize_t;
@@ -230,13 +221,13 @@ typedef enum Ucs_Avp_IsocPacketSize_
 typedef enum Ucs_Sync_MuteMode_
 {
     UCS_SYNC_MUTE_MODE_NO_MUTING   = 0x00U,  /*!< \brief No mute monitoring */
-    UCS_SYNC_MUTE_MODE_MUTE_SIGNAL = 0x01U   /*!< \brief Mute signal. The MUTE pin will be asserted if any registered connection may stream 
+    UCS_SYNC_MUTE_MODE_MUTE_SIGNAL = 0x01U   /*!< \brief Mute signal. The MUTE pin will be asserted if any registered connection may stream
                                               *          corrupted data.
                                               */
 
 } Ucs_Sync_MuteMode_t;
 
-/*! \brief Direction of the data stream from the perspective of the INIC 
+/*! \brief Direction of the data stream from the perspective of the INIC
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_SocketDirection_
@@ -246,30 +237,30 @@ typedef enum Ucs_SocketDirection_
 
 } Ucs_SocketDirection_t;
 
-/*! \brief Data type of MOST Sockets 
+/*! \brief Data type of network Sockets
  *  \ingroup G_UCS_XRM_ENUM
  */
-typedef enum Ucs_Most_SocketDataType_
+typedef enum Ucs_Network_SocketDataType_
 {
-    UCS_MOST_SCKT_SYNC_DATA        = 0U,    /*!< \brief Specifies the synchronous streaming data type */
-    UCS_MOST_SCKT_AV_PACKETIZED    = 3U,    /*!< \brief Specifies the A/V Packetized Isochronous 
-                                                        streaming data type*/
-    UCS_MOST_SCKT_QOS_IP           = 4U,    /*!< \brief Specifies the Quality of Service IP 
-                                                        streaming data type*/
-    UCS_MOST_SCKT_DISC_FRAME_PHASE = 5U     /*!< \brief Specifies the DiscreteFrame Isochronous
-                                                        streaming phase data type */
-} Ucs_Most_SocketDataType_t;
+    UCS_NW_SCKT_SYNC_DATA        = 0U,    /*!< \brief Specifies the synchronous streaming data type */
+    UCS_NW_SCKT_AV_PACKETIZED    = 3U,    /*!< \brief Specifies the A/V Packetized Isochronous
+                                                      streaming data type*/
+    UCS_NW_SCKT_QOS_IP           = 4U,    /*!< \brief Specifies the Quality of Service IP
+                                                      streaming data type*/
+    UCS_NW_SCKT_DISC_FRAME_PHASE = 5U     /*!< \brief Specifies the DiscreteFrame Isochronous
+                                                      streaming phase data type */
+} Ucs_Network_SocketDataType_t;
 
-/*! \brief Data type of MediaLB Sockets 
+/*! \brief Data type of MediaLB Sockets
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Mlb_SocketDataType_
 {
     UCS_MLB_SCKT_SYNC_DATA        = 0U,     /*!< \brief Specifies the synchronous streaming data type */
     UCS_MLB_SCKT_CONTROL_DATA     = 2U,     /*!< \brief Specifies the control data type */
-    UCS_MLB_SCKT_AV_PACKETIZED    = 3U,     /*!< \brief Specifies the A/V Packetized Isochronous 
+    UCS_MLB_SCKT_AV_PACKETIZED    = 3U,     /*!< \brief Specifies the A/V Packetized Isochronous
                                                         streaming data type */
-    UCS_MLB_SCKT_QOS_IP           = 4U,     /*!< \brief Specifies the Quality of Service IP 
+    UCS_MLB_SCKT_QOS_IP           = 4U,     /*!< \brief Specifies the Quality of Service IP
                                                         streaming data type*/
     UCS_MLB_SCKT_DISC_FRAME_PHASE = 5U,     /*!< \brief Specifies the DiscreteFrame Isochronous
                                                         streaming phase data type */
@@ -277,14 +268,14 @@ typedef enum Ucs_Mlb_SocketDataType_
 
 } Ucs_Mlb_SocketDataType_t;
 
-/*! \brief Data type of USB Sockets 
+/*! \brief Data type of USB Sockets
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Usb_SocketDataType_
 {
     UCS_USB_SCKT_SYNC_DATA     = 0U,    /*!< \brief Specifies the synchronous streaming data type */
     UCS_USB_SCKT_CONTROL_DATA  = 2U,    /*!< \brief Specifies the control data type */
-    UCS_USB_SCKT_AV_PACKETIZED = 3U,    /*!< \brief Specifies the A/V Packetized Isochronous 
+    UCS_USB_SCKT_AV_PACKETIZED = 3U,    /*!< \brief Specifies the A/V Packetized Isochronous
                                                     streaming data type */
     UCS_USB_SCKT_IPC_PACKET    = 7U     /*!< \brief Specifies the IPC packet data type */
 
@@ -295,17 +286,17 @@ typedef enum Ucs_Usb_SocketDataType_
  */
 typedef enum Ucs_Usb_PhysicalLayer_
 {
-    UCS_USB_PHY_LAYER_STANDARD = 0U,    /*!< \brief Standard - USB uses the standard physical 
+    UCS_USB_PHY_LAYER_STANDARD = 0U,    /*!< \brief Standard - USB uses the standard physical
                                          *          interface with analog transceivers for board
                                          *          communication
                                          */
-    UCS_USB_PHY_LAYER_HSCI     = 1U     /*!< \brief HSIC - USB uses the High-Speed Inter-Chip 
-                                         *          interface without analog transceivers for board 
+    UCS_USB_PHY_LAYER_HSIC     = 1U     /*!< \brief HSIC - USB uses the High-Speed Inter-Chip
+                                         *          interface without analog transceivers for board
                                          *          communication.
                                          */
 } Ucs_Usb_PhysicalLayer_t;
 
-/*! \brief MediaLB clock speed configuration 
+/*! \brief MediaLB clock speed configuration
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Mlb_ClockConfig_
@@ -322,7 +313,7 @@ typedef enum Ucs_Mlb_ClockConfig_
                                                     Configuration String */
 } Ucs_Mlb_ClockConfig_t;
 
-/*! \brief Source of the RMCK clock 
+/*! \brief Source of the RMCK clock
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Rmck_PortClockSource_
@@ -331,27 +322,27 @@ typedef enum Ucs_Rmck_PortClockSource_
 
 } Ucs_Rmck_PortClockSource_t;
 
-/*! \brief Data type of PCIe Sockets 
+/*! \brief Data type of PCIe Sockets
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Pci_SocketDataType_
 {
-    UCS_PCI_SCKT_AV_PACKETIZED = 3U     /*!< \brief Specifies the A/V Packetized Isochronous 
+    UCS_PCI_SCKT_AV_PACKETIZED = 3U     /*!< \brief Specifies the A/V Packetized Isochronous
                                                     streaming data type */
 
 } Ucs_Pci_SocketDataType_t;
 
-/*! \brief Operation mode of the Streaming Port 
+/*! \brief Operation mode of the Streaming Port
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Stream_PortOpMode_
 {
-    UCS_STREAM_PORT_OP_MODE_GENERIC = 0x00U /*!< \brief If Index = PortB, data pins are linked 
+    UCS_STREAM_PORT_OP_MODE_GENERIC = 0x00U /*!< \brief If Index = PortB, data pins are linked
                                                         to PortA clock configuration. */
 
 } Ucs_Stream_PortOpMode_t;
 
-/*! \brief Direction of the physical pins of the indexed Streaming Port 
+/*! \brief Direction of the physical pins of the indexed Streaming Port
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Stream_PortOption_
@@ -366,14 +357,14 @@ typedef enum Ucs_Stream_PortOption_
 
 } Ucs_Stream_PortOption_t;
 
-/*! \brief Indicates if FSY/SCK signals are configured as outputs or inputs. 
+/*! \brief Indicates if FSY/SCK signals are configured as outputs or inputs.
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Stream_PortClockMode_
 {
     /*! \brief INIC drives the FSY/SCK signals as outputs, frequency locked to the network clock. */
     UCS_STREAM_PORT_CLK_MODE_OUTPUT = 0x00U,
-    /*! \brief FSY/SCK signals are configured as inputs and are driven from outside the INIC. Use 
+    /*! \brief FSY/SCK signals are configured as inputs and are driven from outside the INIC. Use
      *         RMCK, frequency locked to the network clock, as reference for clock generation.
      */
     UCS_STREAM_PORT_CLK_MODE_INPUT  = 0x01U,
@@ -382,9 +373,9 @@ typedef enum Ucs_Stream_PortClockMode_
 
 } Ucs_Stream_PortClockMode_t;
 
-/*! \brief This setting is only applicable to data pins used for Generic Streaming including any 
-           linked pins to Streaming Port B. All data pins share the same  FSY / SCK  signals, hence 
-           this setting applies to all data pins. 
+/*! \brief This setting is only applicable to data pins used for Generic Streaming including any
+           linked pins to Streaming Port B. All data pins share the same  FSY / SCK  signals, hence
+           this setting applies to all data pins.
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Stream_PortClockDataDelay_
@@ -395,12 +386,17 @@ typedef enum Ucs_Stream_PortClockDataDelay_
      *         and the start of the frame data on the data pins.
      */
     UCS_STREAM_PORT_CLK_DLY_DELAYED = 0x01U,
+    /*! \brief Bit delayed only. There is a single SCK clock delay between the start of
+     *         frame (rising edge of FSY) and the start of the frame
+     *         data on the data pins.
+     */
+    UCS_STREAM_PORT_CLK_DLY_BDO     = 0x02U,
     /*! \brief Wildcard */
     UCS_STREAM_PORT_CLK_DLY_WILD    = 0xFFU
 
 } Ucs_Stream_PortClockDataDelay_t;
 
-/*! \brief Clock speed configuration of the  SCK  signal. 
+/*! \brief Clock speed configuration of the  SCK  signal.
  *  \ingroup G_UCS_XRM_ENUM
  */
 typedef enum Ucs_Stream_PortClockConfig_
@@ -434,7 +430,7 @@ typedef enum Ucs_Stream_SocketDataType_
 
 } Ucs_Stream_SocketDataType_t;
 
-/*! \brief ID of the serial interface pin of the addressed Streaming Port instance to which the 
+/*! \brief ID of the serial interface pin of the addressed Streaming Port instance to which the
            socket should be attached to.
  *  \ingroup G_UCS_XRM_ENUM
  */
@@ -456,67 +452,47 @@ typedef enum Ucs_Stream_PortDataAlign_
     UCS_STREAM_PORT_ALGN_LEFT24BIT  = 0x01U,    /*!< \brief Left-justified, 24 bit, legacy */
     UCS_STREAM_PORT_ALGN_RIGHT16BIT = 0x02U,    /*!< \brief Right-justified, 16 bit, legacy */
     UCS_STREAM_PORT_ALGN_RIGHT24BIT = 0x03U,    /*!< \brief Right-justified, 16 bit, legacy */
-    UCS_STREAM_PORT_ALGN_SEQ        = 0x04U     /*!< \brief Sequential */
+    UCS_STREAM_PORT_ALGN_SEQ        = 0x04U,    /*!< \brief Sequential */
+    UCS_STREAM_PORT_ALGN_TDM16BIT   = 0x05U,    /*!< \brief TDM, 16 bit */
+    UCS_STREAM_PORT_ALGN_TDM24BIT   = 0x06U     /*!< \brief TDM, 24 bit */
 
 } Ucs_Stream_PortDataAlign_t;
 
-/*! \brief Indicates if the MOST Network Port is available and ready for streaming data connections.
+/*! \brief Indicates if the Network Port is available and ready for streaming data connections.
  *  \ingroup G_UCS_XRM_ENUM
  */
-typedef enum Ucs_Most_PortAvail_
+typedef enum Ucs_Network_PortAvail_
 {
-    /*! \brief MOST Network Port is available and it is possible to have streaming data 
+    /*! \brief Network Port is available and it is possible to have streaming data
      *         connections.
      */
-    UCS_MOST_PORT_AVAIL     = 0x01U,
-    /*! \brief MOST Network Port is not available for streaming data. FreeStreamingBW gets 0. 
+    UCS_NW_PORT_AVAIL     = 0x01U,
+    /*! \brief Network Port is not available for streaming data. FreeStreamingBW gets 0.
      *         All created sockets on this port get invalid.
      */
-    UCS_MOST_PORT_NOT_AVAIL = 0x00U
+    UCS_NW_PORT_NOT_AVAIL = 0x00U
 
-} Ucs_Most_PortAvail_t;
+} Ucs_Network_PortAvail_t;
 
 /*! \brief Indicates the sub state to parameter Available.
  *  \ingroup G_UCS_XRM_ENUM
  */
-typedef enum Ucs_Most_PortAvailInfo_
+typedef enum Ucs_Network_PortAvailInfo_
 {
-    /*! \brief MOST Network Port is not available for streaming data. This is for instance the 
-     *         case if the MOST network is shut down or Ring Break Diagnosis is running.
+    /*! \brief Network Port is not available for streaming data. This is for instance the
+     *         case if the network is shut down or Ring Break Diagnosis is running.
      */
-    UCS_MOST_PRT_AVL_INF_REGULAR  = 0x00U,
-    /*! \brief Unlocks have been detected at the port and streaming is temporarily not 
+    UCS_NW_PORT_AVAIL_INFO_REGULAR  = 0x00U,
+    /*! \brief Unlocks have been detected at the port and streaming is temporarily not
      *         available.
      */
-    UCS_MOST_PRT_AVL_INF_UNSTABLE = 0x10U,
+    UCS_NW_PORT_AVAIL_INFO_UNSTABLE = 0x10U,
     /*! \brief Port is in Stable Lock. */
-    UCS_MOST_PRT_AVL_INF_STABLE   = 0x11U
+    UCS_NW_PORT_AVAIL_INFO_STABLE   = 0x11U
 
-} Ucs_Most_PortAvailInfo_t;
+} Ucs_Network_PortAvailInfo_t;
 
-/*! \brief Indicates the type of the Physical Layer Test.
- *  \ingroup G_UCS_DIAG_TYPES
- */
-typedef enum Ucs_Diag_PhyTest_Type_
-{
-    UCS_DIAG_PHYTEST_MASTER = 1U,   /*!< \brief Force Retimed Bypass TimingMaster mode  */
-    UCS_DIAG_PHYTEST_SLAVE  = 2U    /*!< \brief Force Retimed Bypass TimingSlave mode  */
-
-} Ucs_Diag_PhyTest_Type_t;
-
-
-/*! \brief Specifies whether the the INIC behaves as a TimingMaster or TimingSlave device
- *         during the Ring Break Diagnosis (RBD).
- *  \ingroup G_UCS_DIAG_TYPES
- */
-typedef enum Ucs_Diag_RbdType_
-{
-    UCS_DIAG_RBDTYPE_SLAVE  = 0U,   /*!< \brief The INIC starts the RBD as a TimingSlave */
-    UCS_DIAG_RBDTYPE_MASTER = 1U    /*!< \brief The INIC starts the RBD as a TimingMaster */
-
-} Ucs_Diag_RbdType_t;
-
-/*! \brief The speed grade of the I2C Port. 
+/*! \brief The speed grade of the I2C Port.
  *  \ingroup G_UCS_I2C_TYPES
  */
 typedef enum Ucs_I2c_Speed_
@@ -526,7 +502,7 @@ typedef enum Ucs_I2c_Speed_
 
 } Ucs_I2c_Speed_t;
 
-/*! \brief The write transfer mode. 
+/*! \brief The write transfer mode.
  *  \ingroup G_UCS_I2C_TYPES
  */
 typedef enum Ucs_I2c_TrMode_
@@ -537,13 +513,13 @@ typedef enum Ucs_I2c_TrMode_
 
 } Ucs_I2c_TrMode_t;
 
-/*! \brief The mode of the GPIO pin. 
+/*! \brief The mode of the GPIO pin.
  *  \ingroup G_UCS_GPIO_TYPES
  */
 typedef enum Ucs_Gpio_PinMode_
 {
     UCS_GPIO_UNAVAILABLE        = 0x00U,   /*!< \brief Unavailable Mode */
-    UCS_GPIO_UNUSED             = 0x01U,   /*!< \brief Unused Mode */   
+    UCS_GPIO_UNUSED             = 0x01U,   /*!< \brief Unused Mode */
     UCS_GPIO_INPUT              = 0x10U,   /*!< \brief Input Mode */
     UCS_GPIO_IN_STICKY_HL       = 0x11U,   /*!< \brief InputStickyHighLevel Mode */
     UCS_GPIO_IN_STICKY_LL       = 0x12U,   /*!< \brief InputStickyLowLevel Mode */
@@ -566,36 +542,40 @@ typedef enum Ucs_Gpio_PinMode_
 
 } Ucs_Gpio_PinMode_t;
 
-/*! \brief Type of System Diagnosis Report. 
- *  \ingroup G_UCS_INIC_TYPES
+/*! \brief Type of FullDuplex Diagnosis Report.
+ *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
  */
-typedef enum Ucs_Sd_ResCode_
+typedef enum Ucs_Fdx_ResCode_
 {
-    UCS_SD_TARGET_FOUND         = 0x01U,    /*!< \brief Segment description */
-    UCS_SD_FINISHED             = 0x02U,    /*!< \brief System Diagnosis finished */
-    UCS_SD_CABLE_LINK_RES       = 0x03U,    /*!< \brief Cable Link Diagnosis was executed. */
-    UCS_SD_ABORTED              = 0x04U,    /*!< \brief System Diagnosis stopped by application command */
-    UCS_SD_ERROR                = 0x05U     /*!< \brief System Diagnosis detected unexpected error */
+    UCS_FDX_TARGET_FOUND         = 0x01U,    /*!< \brief Segment description */
+    UCS_FDX_FINISHED             = 0x02U,    /*!< \brief FullDuplex Diagnosis finished */
+    UCS_FDX_CABLE_LINK_RES       = 0x03U,    /*!< \brief Cable Link Diagnosis was executed. */
+    UCS_FDX_ABORTED              = 0x04U,    /*!< \brief FullDuplex Diagnosis stopped by application command */
+    UCS_FDX_ERROR                = 0x05U     /*!< \brief FullDuplex Diagnosis detected unexpected error */
 
-} Ucs_Sd_ResCode_t;
+} Ucs_Fdx_ResCode_t;
 
-/*! \brief Type of System Diagnosis Error Codes. 
- *  \ingroup G_UCS_INIC_TYPES
+/*! \brief Type of FullDuplex Diagnosis Error Codes.
+ *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
  */
-typedef enum Ucs_Sd_ErrCode_
+typedef enum Ucs_Fdx_ErrCode_
 {
-    /*! \brief An internal error occurred during System Diagnosis. */ 
-    UCS_SD_ERR_UNSPECIFIED          = 0x01U,    
+    /*! \brief An internal error occurred during FullDuplex Diagnosis. */
+    UCS_FDX_ERR_UNSPECIFIED          = 0x01U,
     /*! \brief INIC answered with "NoSuccess" to a Welcome.StartResult command. */
-    UCS_SD_ERR_WELCOME_NO_SUCCESS   = 0x02U,    
-    /*! \brief Stopping the System Diagnosis mode on INIC failed. The INIC may remain in System 
+    UCS_FDX_ERR_WELCOME_NO_SUCCESS   = 0x02U,
+    /*! \brief Stopping the FullDuplex Diagnosis mode on INIC failed. The INIC may remain in System
                 Diagnosis mode. */
-    UCS_SD_ERR_STOP_SYSDIAG_FAILED  = 0x03U,    
-    /*! \brief System Diagnosis stopped due to a severe error. The INIC may remain in System 
+    UCS_FDX_ERR_STOP_DIAG_FAILED  = 0x03U,
+    /*! \brief The Network Port is not used. It may be disabled in the INIC's Configuration string*/
+    UCS_FDX_ERR_PORT_NOT_USED = 0x04U,
+    /*! \brief The Network Port is not configured in full-duplex coax mode. */
+    UCS_FDX_ERR_NO_FDX_MODE = 0x05U,
+    /*! \brief FullDuplex Diagnosis stopped due to a severe error. The INIC may remain in System
                 Diagnosis mode. */
-    UCS_SD_ERR_TERMINATED           = 0x04U     
+    UCS_FDX_ERR_TERMINATED           = 0x06U
 
-} Ucs_Sd_ErrCode_t;
+} Ucs_Fdx_ErrCode_t;
 
 
 
@@ -635,16 +615,16 @@ typedef struct Ucs_Gpio_PinConfiguration_
 
 
 
-/*! \brief   This structure holds the signature of the Hello, Welcome and Signature messages. 
+/*! \brief   This structure holds the signature of the Hello, Welcome and Signature messages.
  *           It supports the signature v1 only.
- *  \ingroup G_INIC_TYPES
+ *  \ingroup G_UCS_INIC_TYPES
  */
 typedef struct Ucs_Signature_t_
 {
     uint16_t node_address;      /*!< \brief NodeAddress */
     uint16_t group_address;     /*!< \brief GroupAddress */
     uint16_t mac_47_32;         /*!< \brief MACAddress_47_32 */
-    uint16_t mac_31_16;         /*!< \brief MACAddress_31_16 */    
+    uint16_t mac_31_16;         /*!< \brief MACAddress_31_16 */
     uint16_t mac_15_0;          /*!< \brief MACAddress_15_0 */
     uint16_t node_pos_addr;     /*!< \brief NodePositionAddress */
     uint16_t diagnosis_id;      /*!< \brief DiagnosisID */
@@ -660,39 +640,56 @@ typedef struct Ucs_Signature_t_
 /*    uint8_t  uid_persistency;*/   /*!< \brief UIDPersistency */
 /*    uint32_t uid;*/               /*!< \brief UID */
 
-} Ucs_Signature_t;              
+} Ucs_Signature_t;
+
+
+/*! \brief   This structure holds the elements of an IdentString.
+ *  \ingroup G_UCS_INIC_TYPES
+ */
+typedef struct Ucs_IdentString_t_
+{
+    uint16_t node_address;      /*!< \brief NodeAddress */
+    uint16_t group_address;     /*!< \brief GroupAddress */
+    uint16_t mac_47_32;         /*!< \brief MACAddress_47_32 */
+    uint16_t mac_31_16;         /*!< \brief MACAddress_31_16 */
+    uint16_t mac_15_0;          /*!< \brief MACAddress_15_0 */
+
+} Ucs_IdentString_t;
+
+
 
 /*------------------------------------------------------------------------------------------------*/
-/*  System Diagnosis                                                                              */
+/*  FullDuplex Diagnosis                                                                              */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   This structure holds the segment information of the system diagnosis 
- *  \ingroup G_INIC_TYPES
+/*! \brief   This structure holds the segment information of the FullDuplex Diagnosis
+ *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
  */
-typedef struct Ucs_Sd_Segment_t_
+typedef struct Ucs_Fdx_Segment_t_
 {
-    uint8_t branch;             /*!< \brief Number of the currently tested branch. Numbering starts 
-                                            with 0 and corresponds to the port number if the Timing 
+    uint8_t branch;             /*!< \brief Number of the currently tested branch. Numbering starts
+                                            with 0 and corresponds to the port number if the Timing
                                             Master is a multi port INIC */
     uint8_t num;                /*!< \brief Segment number inside the tested branch. Numbering starts with 1 */
-    Ucs_Signature_t source;     /*!< \brief Signature of the first node of the segment 
+    Ucs_Signature_t source;     /*!< \brief Signature of the first node of the segment
                                             \mns_param_inic{Signature,Hello,MNSH2-Hello200} */
-    Ucs_Signature_t target;     /*!< \brief Signature of the second node of the segment  
+    Ucs_Signature_t target;     /*!< \brief Signature of the second node of the segment
                                             \mns_param_exc{Signature,Hello,MNSH2-Hello200} */
-} Ucs_Sd_Segment_t;
+} Ucs_Fdx_Segment_t;
 
 
-/*! \brief   This structure holds the results of the system diagnosis 
- *  \ingroup G_INIC_TYPES
+/*! \brief   This structure holds the results of the FullDuplex Diagnosis
+ *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
  */
-typedef struct Ucs_Sd_Report_t_
+typedef struct Ucs_Fdx_Report_t_
 {
-    Ucs_Sd_ResCode_t code;      /*!< \brief Result code */
-    Ucs_Sd_Segment_t segment;   /*!< \brief Information about tested segment */
-    uint8_t cable_link_info;    /*!< \brief Result of a cable link diagnosis. 
+    Ucs_Fdx_ResCode_t code;      /*!< \brief Result code */
+    Ucs_Fdx_Segment_t segment;   /*!< \brief Information about tested segment */
+    uint8_t cable_link_info;    /*!< \brief Result of a cable link diagnosis.
                                             \mns_param_exc{Result,CableLinkDiagnosis,MNSH2-CableLinkDiagnosis211} */
-    Ucs_Sd_ErrCode_t err_info;  /*!< \brief Error codes, values are defined in Ucs_Sd_ErrCode_t */
+    Ucs_Fdx_ErrCode_t err_info;  /*!< \brief Error codes, values are defined in Ucs_Fdx_ErrCode_t */
 
-} Ucs_Sd_Report_t;
+} Ucs_Fdx_Report_t ;
+
 
 
 /*------------------------------------------------------------------------------------------------*/
@@ -700,7 +697,7 @@ typedef struct Ucs_Sd_Report_t_
 /*------------------------------------------------------------------------------------------------*/
 
 
-/*! \brief Result values of the Node Discovery service. 
+/*! \brief Result values of the Node Discovery service.
  *  \ingroup G_UCS_NODE_DISCOVERY_TYPES
  */
 typedef enum Ucs_Nd_ResCode_t_
@@ -728,26 +725,26 @@ typedef enum Ucs_Nd_CheckResult_t_
 
 /*! \brief Function signature of node evaluation callback used by Node Discovery service.
  *
- *  The Node Discovery service announces the signature of each node it has found to the 
- *  application via the evaluation function. In this function the application 
+ *  The Node Discovery service announces the signature of each node it has found to the
+ *  application via the evaluation function. In this function the application
  *  decides how the Node Discovery service shall proceed with the node.
- *  The application maintains two lists:  
- * 
- *  <dl> 
+ *  The application maintains two lists:
+ *
+ *  <dl>
  *      <dt> *set_list* </dt>
  *      <dd> Contains the signatures of the nodes the system shall contain
- *  
+ *
  *      <dt> *device_list* </dt>
  *      <dd> Contains the signatures of the nodes detected in the system
  *  </dl>
  *
- *  The evaluation has to follow these rules: 
+ *  The evaluation has to follow these rules:
  *  - If the node is not part of the *set_list*, it is regarded as unknown (\ref UCS_ND_CHK_UNKNOWN)
- *    and will be ignored. 
- *  - If the node is part of the *set_list* and is not yet in the *device_list*, the Node Discovery 
- *    Service shall try to add the node to network (\ref UCS_ND_CHK_WELCOME). 
- *  - If the node is already part of the *device_list*, there are two possibilities: the node in the 
- *    *device_list* experienced a reset or there are two nodes with the same signature. Evaluation 
+ *    and will be ignored.
+ *  - If the node is part of the *set_list* and is not yet in the *device_list*, the Node Discovery
+ *    Service shall try to add the node to network (\ref UCS_ND_CHK_WELCOME).
+ *  - If the node is already part of the *device_list*, there are two possibilities: the node in the
+ *    *device_list* experienced a reset or there are two nodes with the same signature. Evaluation
  *    result is \ref UCS_ND_CHK_UNIQUE. The Node Discovery service will perform further tests.
  *
  *  \param    signature   Signature of the respective node
@@ -757,22 +754,22 @@ typedef enum Ucs_Nd_CheckResult_t_
  *  \returns  UCS_ND_CHK_UNKNOWN  Node is unknown, no further action.
  *  \ingroup G_UCS_NODE_DISCOVERY
  */
-typedef Ucs_Nd_CheckResult_t (*Ucs_Nd_EvalCb_t)(Ucs_Signature_t *signature, void *user_ptr);
+typedef Ucs_Nd_CheckResult_t(*Ucs_Nd_EvalCb_t)(Ucs_Signature_t *signature, void *user_ptr);
 
 /*! \brief Function signature of result callback used by Node Discovery service.
  *
  *  The Node Discovery service reports the result of each node and some system events by
  *  this callback function.
- *  
- *  \note The parameter <b>signature</b> will be NULL, if parameter <b>code</b> is 
+ *
+ *  \note The parameter <b>signature</b> will be NULL, if parameter <b>code</b> is
  *  \ref UCS_ND_RES_STOPPED, \ref UCS_ND_RES_NETOFF or \ref UCS_ND_RES_ERROR.
  *
- *  \param   code         Result code 
+ *  \param   code         Result code
  *  \param   signature    Signature of the respective node
  *  \param   user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  *  \ingroup G_UCS_NODE_DISCOVERY
  */
-typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code, 
+typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code,
                                   Ucs_Signature_t *signature,
                                   void *user_ptr);
 
@@ -781,47 +778,53 @@ typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code,
 /*  Programming service                                                                              */
 /*------------------------------------------------------------------------------------------------*/
 
-/*! \brief Defines the set of MemIDs and the memory access types. 
+/*! \brief Defines the set of MemIDs and the memory access types.
  *  \ingroup G_UCS_PROG_MODE_TYPES
  */
-typedef enum Ucs_Prg_SessionType_ 
+typedef enum Ucs_Prg_SessionType_
 {
     UCS_PRG_ST_CS          = 0x01U,    /*!< \brief Writes to configuration string */
     UCS_PRG_ST_IS          = 0x02U,    /*!< \brief Writes to identification string */
     UCS_PRG_ST_CS_IS       = 0x04U,    /*!< \brief Writes to configuration and identification string  */
     UCS_PRG_ST_ERASE_EM    = 0x08U,    /*!< \brief Erases the error memory */
-    UCS_PRG_ST_CFG_READ    = 0x10U     /*!< \brief Reads data from all configuration memories */
+    UCS_PRG_ST_CFG_READ    = 0x10U,    /*!< \brief Reads data from all configuration memories */
+    UCS_PRG_ST_PS          = 0x40U     /*!< \brief Writes patch string */
+
 } Ucs_Prg_SessionType_t;
 
 
-/*! \brief Represents the memory resource to be written. 
+/*! \brief Represents the memory resource to be written.
  *  \ingroup G_UCS_PROG_MODE_TYPES
  */
-typedef enum Ucs_Prg_MemId_ 
+typedef enum Ucs_Prg_MemId_
 {
     UCS_PRG_MID_CS        = 0x00U, /*!< \brief Writes the configuration string */
     UCS_PRG_MID_IS        = 0x01U, /*!< \brief Writes the identification string */
     UCS_PRG_MID_CSTEST    = 0x0CU, /*!< \brief Writes the test configuration string */
-    UCS_PRG_MID_ISTEST    = 0x0DU  /*!< \brief Writes the test identification string */
+    UCS_PRG_MID_ISTEST    = 0x0DU, /*!< \brief Writes the test identification string */
+    UCS_PRG_MID_PS        = 0x0EU, /*!< \brief Writes patch string */
+    UCS_PRG_MID_PSTEST    = 0x0FU  /*!< \brief Writes test patch string */
+
 } Ucs_Prg_MemId_t;
 
-/*! \brief Represents a programming task. 
+/*! \brief Represents a programming task.
  *  \ingroup G_UCS_PROG_MODE_TYPES
  */
 typedef struct Ucs_Prg_Command_
-{ 
-    Ucs_Prg_MemId_t mem_id;         /*!< \brief Represents the memory resource to be written. */
-    uint32_t        address;        /*!< \brief Defines the memory location at which the writing 
-                                                operation starts. */
-    uint8_t         unit_length;    /*!< \brief Sets the number of memory units to be written. 
-                                                Memory units can be unsigned bytes, unsigned words 
-                                                or unsigned masked data depending on the memory type. */
-    uint8_t         data_length;    /*!< \brief Lenght of data */
-    uint8_t        *data;           /*!< \brief Contains the actual data written to the memory 
-                                                resource and formatted as memory units. */
+{
+    Ucs_Prg_SessionType_t   session_type;   /*!< \brief Memory access type. */
+    Ucs_Prg_MemId_t         mem_id;         /*!< \brief Represents the memory resource to be written. */
+    uint32_t                address;        /*!< \brief Defines the memory location at which the writing
+                                                        operation starts. */
+    uint8_t                 unit_size;      /*!< \brief Number of bytes per memory unit.
+                                                        Memory units can be unsigned bytes, unsigned words
+                                                        or unsigned masked data depending on the memory type. */
+    uint16_t                data_length;    /*!< \brief Length of data in Bytes */
+    uint8_t                *data;           /*!< \brief Contains the actual data written to the memory
+                                                        resource and formatted as memory units. */
 } Ucs_Prg_Command_t;
 
-/*! \brief Result values of the Programming service. 
+/*! \brief Result values of the Programming service.
  *  \ingroup G_UCS_PROG_MODE_TYPES
  */
 typedef enum Ucs_Prg_ResCode_t_
@@ -829,10 +832,11 @@ typedef enum Ucs_Prg_ResCode_t_
     UCS_PRG_RES_SUCCESS     = 0x01U,    /*!< \brief Node was successfully programmed. */
     UCS_PRG_RES_TIMEOUT     = 0x02U,    /*!< \brief Node did not answer timely. */
     UCS_PRG_RES_NET_OFF     = 0x03U,    /*!< \brief A NetOff event occurred during programming. */
-    UCS_PRG_RES_FKT_SYNCH   = 0x04U,    /*!< \brief The call of the internal API function returned an error, 
+    UCS_PRG_RES_FKT_SYNCH   = 0x04U,    /*!< \brief The call of the internal API function returned an error,
                                                     so the command was not sent to the node.*/
     UCS_PRG_RES_FKT_ASYNCH  = 0x05U,    /*!< \brief Node returned an error message as result. */
-    UCS_PRG_RES_ERROR       = 0x06U     /*!< \brief An unexcpected error occurred. Programming service was stopped. */
+    UCS_PRG_RES_ERROR       = 0x06U,    /*!< \brief An unexcpected error occurred. Programming service was stopped. */
+    UCS_PRG_RES_PARAM       = 0x07U     /*!< \brief Parameter error on calling  */
 
 } Ucs_Prg_ResCode_t;
 
@@ -847,23 +851,25 @@ typedef enum Ucs_Prg_Func_t_
     UCS_PRG_FKT_MEM_OPEN            = 0x03U,    /*!< \brief Error occurred in the context of function MemorySessionOpen */
     UCS_PRG_FKT_MEM_WRITE           = 0x04U,    /*!< \brief Error occurred in the context of function MemoryWrite */
     UCS_PRG_FKT_MEM_CLOSE           = 0x05U,    /*!< \brief Error occurred in the context of function MemorySessionClose */
-    UCS_PRG_FKT_INIT                = 0x06U     /*!< \brief Error occurred in the context of function Init */
+    UCS_PRG_FKT_MEM_CLOSE_CRC_ERR   = 0x06U,    /*!< \brief MemoryClose reported CRC error. */
+    UCS_PRG_FKT_INIT                = 0x07U     /*!< \brief Error occurred in the context of function Init */
+
 } Ucs_Prg_Func_t;
 
 /*! \brief Function signature of result callback used by Programming service.
  *
  *  The Programming service reports the result of programming a certain device by
  *  this callback function.
- *  
  *
- *  \param   code         Result values of the Programming service 
- *  \param   function     Signature of the node to be programmed.
- *  \param   ret_len      Length of the error parameter field parm. It is 0 if no error occurred. 
+ *
+ *  \param   code         Result values of the Programming service
+ *  \param   function     Function where an error occurred.
+ *  \param   ret_len      Length of the error parameter field parm. It is 0 if no error occurred.
  *  \param   parm         Pointer to the parameters of a potential error message.
  *  \param   user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  *  \ingroup G_UCS_PROG_MODE
  */
-typedef void (*Ucs_Prg_ReportCb_t)(Ucs_Prg_ResCode_t code, 
+typedef void (*Ucs_Prg_ReportCb_t)(Ucs_Prg_ResCode_t code,
                                    Ucs_Prg_Func_t function,
                                    uint8_t ret_len,
                                    uint8_t parm[],
@@ -871,37 +877,65 @@ typedef void (*Ucs_Prg_ReportCb_t)(Ucs_Prg_ResCode_t code,
 
 
 /*------------------------------------------------------------------------------------------------*/
-/*  BackChannel Diagnosis                                                                         */
+/*  HalfDuplex Diagnosis                                                                         */
 /*------------------------------------------------------------------------------------------------*/
 
-/*! \brief Result values of the BackChannel Diagnosis. 
- *  \ingroup G_UCS_BC_DIAG_TYPES
+/*! \brief Result values of the HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
  */
-typedef enum Ucs_Bcd_ResCode_t_
+typedef enum Ucs_Hdx_ResCode_t_
 {
-    UCS_BCD_RES_SUCCESS        = 0x01U,    /*!< \brief current segment is not broken */
-    UCS_BCD_RES_NO_RING_BREAK  = 0x02U,    /*!< \brief TM answered: no ring break. */
-    UCS_BCD_RES_RING_BREAK     = 0x03U,    /*!< \brief Ring break detected in current segment. */
-    UCS_BCD_RES_TIMEOUT1       = 0x04U,    /*!< \brief No communication on back channel. */
-    UCS_BCD_RES_TIMEOUT2       = 0x05U,    /*!< \brief No result from INIC received. */
-    UCS_BCD_RES_ERROR          = 0x06U,    /*!< \brief An unexpected error occurred. BackChannel Diagnosis was stopped. */
-    UCS_BCD_RES_END            = 0x07U     /*!< \brief BackChannel Diagnosis ended regularly. */  
-} Ucs_Bcd_ResCode_t;
+    UCS_HDX_RES_SUCCESS         = 0x00U,    /*!< \brief current node is reachable. */
+    UCS_HDX_RES_SLAVE_WRONG_POS = 0x01U,    /*!< \brief Answer from wrong position. */
+    UCS_HDX_RES_RING_BREAK      = 0x02U,    /*!< \brief Ring break detected . */
+    UCS_HDX_RES_NO_RING_BREAK   = 0x03U,    /*!< \brief TM answered: no ring break. */
+    UCS_HDX_RES_NO_RESULT       = 0x04U,    /*!< \brief HalfDuplex diagnosis reported an unexpected error. Diagnosis stops. */
+    UCS_HDX_RES_TIMEOUT         = 0x05U,    /*!< \brief An expected result message did not arrive in time. */
+    UCS_HDX_RES_ERROR           = 0x06U,    /*!< \brief An unexpected error occurred. */
+    UCS_HDX_RES_END             = 0x07U     /*!< \brief HalfDuplex Diagnosis ended regularly. */
 
+} Ucs_Hdx_ResCode_t;
 
-/*! \brief Function signature of result callback used by BackChannel Diagnosis.
- *
- *  The BackChannel Diagnosis reports the result of certain segment by
- *  this callback function.
- *  
- *  \param   code           Result code 
- *  \param   segment        Number of the segment which was inspected. Numbering starts with 0 denoting the segment following the TimingMaster. The number is increased for each following segment.
- *  \param   user_ptr       User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \ingroup G_UCS_BC_DIAG
+/*! \brief Report values of the HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
  */
-typedef void (*Ucs_Bcd_ReportCb_t)(Ucs_Bcd_ResCode_t code, 
-                                   uint8_t segment,
+typedef struct Ucs_Hdx_Report_t_
+{
+    Ucs_Hdx_ResCode_t code;                 /*!< \brief Result code */
+    uint8_t cable_diag_result;              /*!< \brief Result of the cable diagnosis from the tester device */
+    uint8_t position;                       /*!< \brief Number of the segment to be inspected. Numbering starts with 1. */
+    Ucs_Signature_t *signature;              /*!< \brief Signature of the inspected node. */
+} Ucs_Hdx_Report_t;
+
+
+
+/*! \brief Result values of the Fallback Protection.
+ *  \ingroup G_UCS_FALLBACK_TYPES
+ */
+typedef enum Ucs_Fbp_ResCode_t_
+{
+    UCS_FBP_RES_SUCCESS     = 0x00U,    /*!< \brief Fallback Protection mode successfully activated. */
+    UCS_FBP_RES_NOSUCCESS   = 0x01U,    /*!< \brief unused value */
+    UCS_FBP_RES_ALIVE       = 0xA0U,    /*!< \brief Alive message was received. */
+    UCS_FBP_RES_END         = 0xEEU,    /*!< \brief Fallback Protection stopped by command. */
+    UCS_FBP_RES_ERROR       = 0xFDU,    /*!< \brief Fallback Protection stopped due to an error. */
+    UCS_FBP_RES_TIMEOUT     = 0xFEU,    /*!< \brief Command timeout occurred. */
+    UCS_FBP_RES_NORESULT    = 0xFFU     /*!< \brief unused value */
+
+} Ucs_Fbp_ResCode_t;
+
+
+/*! \brief Report function for Fallback Protection.
+ *
+ * \param result      Result value
+ * \param user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \ingroup G_UCS_FALLBACK
+ */
+typedef void (*Ucs_Fbp_ReportCb_t)(Ucs_Fbp_ResCode_t result,
                                    void *user_ptr);
+
+
+
 
 
 
@@ -909,11 +943,11 @@ typedef void (*Ucs_Bcd_ReportCb_t)(Ucs_Bcd_ResCode_t code,
 /*  Network functions                                                                             */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Function signature of result callback used by Ucs_Network_GetFrameCounter().
- *  \mns_res_inic{MOSTNetworkFrameCounter,MNSH3-MOSTNetworkFrameCounter523}
+ *  \mns_res_inic{NetworkFrameCounter,MNSH3-NetworkFrameCounter523}
  *  \mns_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
- *  \param frame_counter    The MOST network frame count.\mns_name_inic{FrameCounter}
- *  \param reference        Reference value that was passed to Mns_Network_GetFrameCounter().\mns_name_inic{Reference}
- *  \param lock             Indicates if the TimingSlave device is locked to the MOST network. For a 
+ *  \param frame_counter    The network frame count.\mns_name_inic{FrameCounter}
+ *  \param reference        The reference value that was passed to Ucs_Network_GetFrameCounter().\mns_name_inic{Reference}
+ *  \param lock             Indicates if the TimingSlave device is locked to the network. For a
                             TimingMaster device this value is always True.
  *  \param result           Returned result of the operation
  *  \param user_pter     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"

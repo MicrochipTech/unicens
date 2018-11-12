@@ -2,6 +2,8 @@ var searchData=
 [
   ['referred_20types',['Referred Types',['../group___g___u_c_s___a_m_s___t_y_p_e_s.html',1,'']]],
   ['referred_20types',['Referred Types',['../group___g___u_c_s___c_m_d___t_y_p_e_s.html',1,'']]],
+  ['referred_20types',['Referred Types',['../group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s.html',1,'']]],
+  ['referred_20types',['Referred Types',['../group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s.html',1,'']]],
   ['referred_20types',['Referred Types',['../group___g___u_c_s___i_n_i_c___t_y_p_e_s.html',1,'']]],
   ['referred_20types',['Referred Types',['../group___g___u_c_s___l_l_d___t_y_p_e_s.html',1,'']]],
   ['referred_20types',['Referred Types',['../group___g___u_c_s___n_e_t___t_y_p_e_s.html',1,'']]],

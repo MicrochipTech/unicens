@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -50,8 +50,8 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Constructor of common MOST message class
- *  \param      self      The instance
+/*! \brief  Constructor of common Control Message class
+ *  \param  self      The instance
  */
 void Msg_Ctor(CMessage *self)
 {
@@ -80,7 +80,7 @@ void Msg_Ctor(CMessage *self)
     self->ref_ptr                  = NULL; */
 }
 
-/*! \brief      Prepares the message for re-usage 
+/*! \brief      Prepares the message for re-usage
  *  \details    In future this function has to take care that external memory
  *              has to be reinitialize properly.
  *  \param      self    The instance
@@ -117,7 +117,7 @@ void Msg_SetExtPayload(CMessage *self, uint8_t *payload_ptr, uint8_t payload_sz,
 }
 
 /*! \brief      Initially defines a header space in front of the data body
- *  \details    Ensure that \c start_ptr is assigned correctly before calling 
+ *  \details    Ensure that \c start_ptr is assigned correctly before calling
  *              this functions.
  *  \param      self        The instance
  *  \param      header_sz   Size of the header
@@ -141,8 +141,8 @@ void Msg_PullHeader(CMessage *self, uint8_t header_sz)
 /*  UCS_ASSERT(header_sz <= self->curr_header_sz); */
 
 /*  self->pb_msg.tel.tel_data_ptr  = &self->rsvd_buffer[MSG_SIZE_RSVD_HEADER];*/
-    self->header_curr_idx -= header_sz;
-    self->header_curr_sz  += header_sz;
+    self->header_curr_idx = (uint8_t)(self->header_curr_idx - header_sz);
+    self->header_curr_sz  = (uint8_t)(self->header_curr_sz + header_sz);
 }
 
 /*! \brief      Undoes a message header of a defined size
@@ -151,25 +151,25 @@ void Msg_PullHeader(CMessage *self, uint8_t header_sz)
  */
 void Msg_PushHeader(CMessage *self, uint8_t header_sz)
 {
-    self->header_curr_idx += header_sz;
-    self->header_curr_sz  -= header_sz;
+    self->header_curr_idx = (uint8_t)(self->header_curr_idx + header_sz);
+    self->header_curr_sz  = (uint8_t)(self->header_curr_sz - header_sz);
 }
 
 /*------------------------------------------------------------------------------------------------*/
 /* Class Properties (get/set)                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Retrieves the reference to the containing MOST Telegrams structure 
+/*! \brief  Retrieves the reference to the containing Control Message Telegrams structure
  *  \param  self    The instance
- *  \return Pointer to the internal MOST Telegram structure
+ *  \return Pointer to the internal telegram structure
  */
-Msg_MostTel_t* Msg_GetMostTel(CMessage *self)
+Ucs_Message_t* Msg_GetMostTel(CMessage *self)
 {
     return &self->pb_msg;
 }
 
 /*! \brief  Retrieves the start of the current message header
  *  \param  self    The instance
- *  \return Pointer to the current header start 
+ *  \return Pointer to the current header start
  */
 uint8_t* Msg_GetHeader(CMessage *self)
 {
@@ -178,7 +178,7 @@ uint8_t* Msg_GetHeader(CMessage *self)
 
 /*! \brief  Retrieves the size of the current message header
  *  \param  self    The instance
- *  \return Size of the current header in bytes 
+ *  \return Size of the current header in bytes
  */
 uint8_t Msg_GetHeaderSize(CMessage * self)
 {
@@ -196,15 +196,15 @@ Ucs_Mem_Buffer_t* Msg_GetMemTx(CMessage *self)
     if (self->ext_memory.public_buffer.data_size == 0U)
     {
         self->rsvd_memory.public_buffer.next_buffer_ptr = NULL;
-        self->rsvd_memory.public_buffer.data_size = (uint16_t)self->header_curr_sz + (uint16_t)self->pb_msg.tel.tel_len;
-        self->rsvd_memory.public_buffer.total_size = (uint16_t)self->header_curr_sz + (uint16_t)self->pb_msg.tel.tel_len;
+        self->rsvd_memory.public_buffer.data_size = (uint16_t)((uint16_t)self->header_curr_sz + (uint16_t)self->pb_msg.tel.tel_len);
+        self->rsvd_memory.public_buffer.total_size = (uint16_t)((uint16_t)self->header_curr_sz + (uint16_t)self->pb_msg.tel.tel_len);
     }
     else
     {
         self->rsvd_memory.public_buffer.next_buffer_ptr = &self->ext_memory.public_buffer;
         self->rsvd_memory.public_buffer.data_size = (uint16_t)self->header_curr_sz;             /* only header is enclosed */
-        self->rsvd_memory.public_buffer.total_size = self->rsvd_memory.public_buffer.data_size 
-                                                    + self->ext_memory.public_buffer.data_size;
+        self->rsvd_memory.public_buffer.total_size = (uint16_t)(self->rsvd_memory.public_buffer.data_size
+                                                                + self->ext_memory.public_buffer.data_size);
     }
 
     return &self->rsvd_memory.public_buffer;
@@ -265,7 +265,7 @@ void Msg_NotifyTxStatus(CMessage *self, Ucs_MsgTxStatus_t status)
 {
     if (self->tx_status_fptr != NULL)
     {
-        self->tx_status_fptr(self->tx_status_inst, &self->pb_msg, status); 
+        self->tx_status_fptr(self->tx_status_inst, &self->pb_msg, status);
     }
 }
 
@@ -309,14 +309,14 @@ void *Msg_GetPoolReference(CMessage *self)
 
 /*! \brief  Retrieves the reference to the internal node member
  *  \param  self    The instance
- *  \return The reference the internal list node 
+ *  \return The reference the internal list node
  */
 CDlNode *Msg_GetNode(CMessage *self)
 {
     return &self->node;
 }
 
-/*! \brief  Performs checks on length payload length 
+/*! \brief  Performs checks on length payload length
  *  \param  self    The instance
  *  \return Returns \c true if the verification succeeded. Otherwise \c false.
  */
@@ -347,7 +347,7 @@ void Msg_SetAltMsgId(CMessage *self, uint16_t alt_id)
 {
     self->pb_msg.id.fblock_id = MSG_DEF_FBLOCK_ID;
     self->pb_msg.id.instance_id = MISC_HB(alt_id);
-    self->pb_msg.id.function_id = (uint16_t)((((alt_id) & (uint16_t)0xFF)) << 4) | (uint16_t)MSG_DEF_FUNC_ID_LSN;
+    self->pb_msg.id.function_id = (uint16_t)((uint16_t)((((alt_id) & (uint16_t)0xFF)) << 4) | (uint16_t)MSG_DEF_FUNC_ID_LSN);
     self->pb_msg.id.op_type = MSG_DEF_OP_TYPE;
 }
 

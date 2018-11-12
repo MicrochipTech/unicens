@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -75,7 +75,7 @@ extern void Pmcmd_Ctor(CPmCommand *self, Pmp_FifoId_t fifo, Pmp_MsgType_t type);
 extern Ucs_Lld_TxMsg_t* Pmcmd_GetLldTxObject(CPmCommand *self);
 extern bool Pmcmd_Reserve(CPmCommand *self);
 extern void Pmcmd_Release(CPmCommand *self);
-extern void Pmcmd_SetContent(CPmCommand *self, uint8_t sid, uint8_t ext_type, 
+extern void Pmcmd_SetContent(CPmCommand *self, uint8_t sid, uint8_t ext_type,
                              uint8_t ext_code, uint8_t add_data_ptr[], uint8_t add_data_sz);
 extern void Pmcmd_UpdateContent(CPmCommand *self, uint8_t sid, uint8_t ext_type, uint8_t ext_code);
 extern void Pmcmd_SetTrigger(CPmCommand *self, bool trigger);

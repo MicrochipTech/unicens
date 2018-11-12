@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -45,13 +45,13 @@
 /* Shared Definitions                                                                             */
 /*------------------------------------------------------------------------------------------------*/
 /*! \def        UCS_FOOTPRINT_TINY
- *  \brief      Define this macro to reduce the RAM and ROM size of the UNICENS software by 
+ *  \brief      Define this macro to reduce the RAM and ROM size of the UNICENS software by
  *              disabling certain features.
- *  \ingroup    G_UCS_INIT_AND_SRV
+ *  \ingroup    G_UCS_MISC
  *  \details    If this macro is defined the following changes apply:
  *              - Reduction of low-level buffers
  *              - AMS does not support segmentation (payload > 45 bytes)
- *              . 
+ *              .
  */
 #ifndef UCS_FOOTPRINT_TINY
 # define UCS_FOOTPRINT_TINY
@@ -60,6 +60,33 @@
 # define MNSL_FOOTPRINT_TINY
 # define SMM_FOOTPRINT_TINY
 #endif
+
+/*! \def        UCS_FOOTPRINT_DISABLE_AMS
+ *  \brief      Reduces RAM and ROM footprint by disabling all AMS features.
+ *  \ingroup    G_UCS_MISC
+ *  \details    Define the following macro to reduce the RAM and ROM size by disabling the all AMS features.
+ *              It is possible to define \ref UCS_FOOTPRINT_DISABLE_AMS in addition to macro with 
+ *              \ref UCS_FOOTPRINT_TINY.
+ */
+#ifndef UCS_FOOTPRINT_DISABLE_AMS
+# define UCS_FOOTPRINT_DISABLE_AMS
+#else
+# define UCS_FOOTPRINT_NOAMS
+# define CMD_FOOTPRINT_NOAMS
+# define AMS_FOOTPRINT_NOAMS
+# define SMM_FOOTPRINT_NOAMS
+#endif
+
+/*! \def        UCS_NS_CONST
+ *  \brief      Define this macro to use ROM instead of RAM to store the predefined node scripts and thereby reduce footprint on RAM.
+ *  \ingroup    G_UCS_MISC
+ *  \details    Define it as \c const to reduce the RAM space and use the ROM instead.
+                By not defining it the node scripts will be stored in the RAM by default.
+ */
+#ifndef UCS_NS_CONST
+# define UCS_NS_CONST
+#endif
+
 
 #endif /* UCS_SHARED_CONFIG_H */
 /*------------------------------------------------------------------------------------------------*/

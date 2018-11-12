@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -42,6 +42,8 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_amd.h"
 #include "ucs_misc.h"
+
+#ifndef AMS_FOOTPRINT_NOAMS
 
 /*! \brief Priority of the Application Message Distribution */
 static const uint8_t AMD_SRV_PRIO           = 248U; /* parasoft-suppress  MISRA2004-8_7 "configuration property" */
@@ -156,7 +158,7 @@ static void Amd_Service(void *self)
     Srv_Event_t event_mask;
     Srv_GetEvent(&self_->service, &event_mask);
 
-    if((event_mask & AMD_EV_NOTIFY_RX) == AMD_EV_NOTIFY_RX)     /* triggered on internal transmission */
+    if ((event_mask & AMD_EV_NOTIFY_RX) == AMD_EV_NOTIFY_RX)     /* triggered on internal transmission */
     {
         Srv_ClearEvent(&self_->service, AMD_EV_NOTIFY_RX);
         if ((self_->started != false) && (self_->first_receive_fptr != NULL))
@@ -325,6 +327,8 @@ uint16_t Amd_RxGetMsgCnt(CAmd *self)
 {
     return Dl_GetSize(&self->rx_queue);
 }
+
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

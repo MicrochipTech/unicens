@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -61,9 +61,6 @@
 /*! \brief Bitmask for API method Exc_MemoryWrite_Sr() used by API locking manager */
 #define EXC_API_MEM_WRITE               0x10U
 
-/*! \brief max. number of elements used in MemoryWrite and MemoryWrite messages */
-#define MAX_UNIT_LEN                    18U
-
 /*! \brief  length of signature (V1) */
 #define EXC_SIGNATURE_LEN_V1            26U
 
@@ -71,33 +68,35 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-static void Exc_DecodeMsg(CExc *self, Msg_MostTel_t *msg_rx_ptr);
-static void Exc_EnablePort_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_EnablePort_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Hello_Status(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Hello_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Welcome_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Welcome_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Signature_Status(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_Signature_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_DeviceInit_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_CableLinkDiag_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_CableLinkDiag_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_NwPhyTest_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_NwPhyTestResult_Status(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_NwPhyTestResult_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_BC_Diag_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_BC_Diag_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_BC_EnableTx_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_BC_EnableTx_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemoryRead_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemoryRead_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemoryWrite_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemoryWrite_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemSessionOpen_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemSessionOpen_Error(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemSessionClose_Result(void *self, Msg_MostTel_t *msg_ptr);
-static void Exc_MemSessionClose_Error(void *self, Msg_MostTel_t *msg_ptr);
+static void Exc_DecodeMsg(CExc *self, Ucs_Message_t *msg_rx_ptr);
+static void Exc_EnablePort_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_EnablePort_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Hello_Status(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Hello_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Welcome_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Welcome_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Signature_Status(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Signature_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_Init_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_AliveMessage_Status(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_AliveMessage_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_CableLinkDiag_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_CableLinkDiag_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_NwPhyTest_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_NwPhyTestResult_Status(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_NwPhyTestResult_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_ReverseRequest_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_ReverseRequest_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_EnableTx_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_EnableTx_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemoryRead_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemoryRead_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemoryWrite_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemoryWrite_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemSessionOpen_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemSessionOpen_Error(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemSessionClose_Result(void *self, Ucs_Message_t *msg_ptr);
+static void Exc_MemSessionClose_Error(void *self, Ucs_Message_t *msg_ptr);
 
 static void Exc_HandleApiTimeout(void *self, void *method_mask_ptr);
 
@@ -117,7 +116,9 @@ static const Dec_FktOpIsh_t exc_handler[] =       /* parasoft-suppress  MISRA200
     { DEC_FKTOP(EXC_FID_WELCOME,                UCS_OP_ERROR),   Exc_Welcome_Error },
     { DEC_FKTOP(EXC_FID_SIGNATURE,              UCS_OP_STATUS),  Exc_Signature_Status },
     { DEC_FKTOP(EXC_FID_SIGNATURE,              UCS_OP_ERROR),   Exc_Signature_Error },
-    { DEC_FKTOP(EXC_FID_DEVICE_INIT,            UCS_OP_ERROR),   Exc_DeviceInit_Error },
+    { DEC_FKTOP(EXC_FID_INIT,                   UCS_OP_ERROR),   Exc_Init_Error },
+    { DEC_FKTOP(EXC_FID_ALIVE_MESSAGE,          UCS_OP_STATUS),  Exc_AliveMessage_Status },
+    { DEC_FKTOP(EXC_FID_ALIVE_MESSAGE,          UCS_OP_ERROR),   Exc_AliveMessage_Error },
     { DEC_FKTOP(EXC_FID_ENABLEPORT,             UCS_OP_RESULT),  Exc_EnablePort_Result },
     { DEC_FKTOP(EXC_FID_ENABLEPORT,             UCS_OP_ERROR),   Exc_EnablePort_Error },
     { DEC_FKTOP(EXC_FID_CABLE_LINK_DIAG,        UCS_OP_RESULT),  Exc_CableLinkDiag_Result },
@@ -125,10 +126,10 @@ static const Dec_FktOpIsh_t exc_handler[] =       /* parasoft-suppress  MISRA200
     { DEC_FKTOP(EXC_FID_PHY_LAY_TEST,           UCS_OP_ERROR),   Exc_NwPhyTest_Error },
     { DEC_FKTOP(EXC_FID_PHY_LAY_TEST_RES,       UCS_OP_STATUS),  Exc_NwPhyTestResult_Status },
     { DEC_FKTOP(EXC_FID_PHY_LAY_TEST_RES,       UCS_OP_ERROR),   Exc_NwPhyTestResult_Error },
-    { DEC_FKTOP(EXC_FID_BC_DIAG,                UCS_OP_RESULT),  Exc_BC_Diag_Result },
-    { DEC_FKTOP(EXC_FID_BC_DIAG,                UCS_OP_ERROR),   Exc_BC_Diag_Error },
-    { DEC_FKTOP(EXC_FID_BC_ENABLE_TX,           UCS_OP_RESULT),  Exc_BC_EnableTx_Result },
-    { DEC_FKTOP(EXC_FID_BC_ENABLE_TX,           UCS_OP_ERROR),   Exc_BC_EnableTx_Error },
+    { DEC_FKTOP(EXC_FID_REVERSE_REQ,            UCS_OP_RESULT),  Exc_ReverseRequest_Result },
+    { DEC_FKTOP(EXC_FID_REVERSE_REQ,            UCS_OP_ERROR),   Exc_ReverseRequest_Error },
+    { DEC_FKTOP(EXC_FID_ENABLE_TX,              UCS_OP_RESULT),  Exc_EnableTx_Result },
+    { DEC_FKTOP(EXC_FID_ENABLE_TX,              UCS_OP_ERROR),   Exc_EnableTx_Error },
     { DEC_FKTOP(EXC_FID_MEM_SESSION_OPEN,       UCS_OP_RESULT),  Exc_MemSessionOpen_Result },
     { DEC_FKTOP(EXC_FID_MEM_SESSION_OPEN,       UCS_OP_ERROR),   Exc_MemSessionOpen_Error },
     { DEC_FKTOP(EXC_FID_MEM_SESSION_CLOSE,      UCS_OP_RESULT),  Exc_MemSessionClose_Result },
@@ -166,6 +167,7 @@ void Exc_Ctor(CExc *self, CBase *base_ptr, CTransceiver *rcm_ptr)
     Al_Ctor(&self->lock.api, &self->lock.observer, self->base_ptr->ucs_user_ptr);
     Alm_RegisterApi(&self->base_ptr->alm, &self->lock.api);
 
+    self->service_locked = false;
 }
 
 
@@ -174,7 +176,7 @@ void Exc_Ctor(CExc *self, CBase *base_ptr, CTransceiver *rcm_ptr)
  *  \param   self     reference to INIC object
  *  \param   tel_ptr  received message
  */
-void Exc_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr)
+void Exc_OnRcmRxFilter(void *self, Ucs_Message_t *tel_ptr)
 {
     CExc *self_ = (CExc *)self;
     Exc_DecodeMsg(self_, tel_ptr);
@@ -186,7 +188,7 @@ void Exc_OnRcmRxFilter(void *self, Msg_MostTel_t *tel_ptr)
  *  \param  self        Instance pointer to FBlock EXC
  *  \param  msg_rx_ptr  pointer to the MCM message to decode
  */
-static void Exc_DecodeMsg(CExc *self, Msg_MostTel_t *msg_rx_ptr)
+static void Exc_DecodeMsg(CExc *self, Ucs_Message_t *msg_rx_ptr)
 {
     Dec_Return_t result;
     uint16_t     index;
@@ -213,7 +215,7 @@ static void Exc_HandleApiTimeout(void *self, void *method_mask_ptr)
 {
     CExc *self_ = (CExc *)self;
     Alm_ModuleMask_t method_mask = *((Alm_ModuleMask_t *)method_mask_ptr);
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.result.code      = UCS_RES_ERR_TIMEOUT;
     res_data.result.info_ptr  = NULL;
@@ -222,7 +224,7 @@ static void Exc_HandleApiTimeout(void *self, void *method_mask_ptr)
 
     switch(method_mask)
     {
-#if 0   /* System Diagnosis supervises timeouts for these functions  */
+#if 0   /* FullDuplex Diagnosis supervises timeouts for these functions  */
         case EXC_API_ENABLE_PORT:
             Ssub_Notify(&self_->ssubs.enableport, &res_data, false);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_EnablePort_Sr().", 0U));
@@ -276,19 +278,19 @@ static void Exc_HandleApiTimeout(void *self, void *method_mask_ptr)
 /*! \brief  This method sends the Hello.Get message
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
- *  \param  version_limit   Signature version limit 
+ *  \param  version_limit   Signature version limit
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_Hello_Get(CExc *self, 
-                           uint16_t target_address, 
+Ucs_Return_t Exc_Hello_Get(CExc *self,
+                           uint16_t target_address,
                            uint8_t version_limit,
                            CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
     if (msg_ptr != NULL)
     {
@@ -303,6 +305,7 @@ Ucs_Return_t Exc_Hello_Get(CExc *self,
         msg_ptr->id.instance_id      = 0U;
         msg_ptr->id.function_id      = EXC_FID_HELLO;
         msg_ptr->id.op_type          = UCS_OP_GET;
+        msg_ptr->opts.llrbc          = 0U;
         msg_ptr->tel.tel_data_ptr[0] = version_limit;
 
         msg_ptr->info_ptr = &self->ssubs.hello;
@@ -322,15 +325,15 @@ Ucs_Return_t Exc_Hello_Get(CExc *self,
 /*! \brief  This method send the Welcome.StartResult message
  *  \param  self                Reference to CExc instance
  *  \param  target_address      Target address
- *  \param  admin_node_address  The node address used during system diagnosis
- *  \param  version             Signature version 
+ *  \param  admin_node_address  The node address used during special operating modes
+ *  \param  version             Signature version
  *  \param  signature           Signature of the device
  *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_Welcome_Sr(CExc *self, 
-                            uint16_t target_address, 
+Ucs_Return_t Exc_Welcome_Sr(CExc *self,
+                            uint16_t target_address,
                             uint16_t admin_node_address,
                             uint8_t version,
                             Ucs_Signature_t  signature,
@@ -338,7 +341,7 @@ Ucs_Return_t Exc_Welcome_Sr(CExc *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, EXC_SIGNATURE_LEN_V1 + 3U);    /* Signature v1 */
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, EXC_SIGNATURE_LEN_V1 + 3U);    /* Signature v1 */
 
     if (msg_ptr != NULL)
     {
@@ -347,6 +350,7 @@ Ucs_Return_t Exc_Welcome_Sr(CExc *self,
         msg_ptr->id.instance_id       = 0U;
         msg_ptr->id.function_id       = EXC_FID_WELCOME;
         msg_ptr->id.op_type           = UCS_OP_STARTRESULT;
+        msg_ptr->opts.llrbc           = 0U;
         msg_ptr->tel.tel_data_ptr[0]  = MISC_HB(admin_node_address);
         msg_ptr->tel.tel_data_ptr[1]  = MISC_LB(admin_node_address);
         msg_ptr->tel.tel_data_ptr[2]  = version;
@@ -400,19 +404,19 @@ Ucs_Return_t Exc_Welcome_Sr(CExc *self,
 /*! \brief  This method sends the Signature.Get message
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
- *  \param  version_limit   Signature version limit 
+ *  \param  version_limit   Signature version limit
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_Signature_Get(CExc *self, 
-                               uint16_t target_address, 
-                               uint8_t version_limit, 
+Ucs_Return_t Exc_Signature_Get(CExc *self,
+                               uint16_t target_address,
+                               uint8_t version_limit,
                                CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
     if (msg_ptr != NULL)
     {
@@ -421,12 +425,13 @@ Ucs_Return_t Exc_Signature_Get(CExc *self,
             version_limit = UCS_EXC_SIGNATURE_VERSION_LIMIT;
         }
 
-        msg_ptr->destination_addr  = target_address;
+        msg_ptr->destination_addr    = target_address;
 
-        msg_ptr->id.fblock_id      = FB_EXC;
-        msg_ptr->id.instance_id    = 0U;
-        msg_ptr->id.function_id    = EXC_FID_SIGNATURE;
-        msg_ptr->id.op_type        = UCS_OP_GET;
+        msg_ptr->id.fblock_id        = FB_EXC;
+        msg_ptr->id.instance_id      = 0U;
+        msg_ptr->id.function_id      = EXC_FID_SIGNATURE;
+        msg_ptr->id.op_type          = UCS_OP_GET;
+        msg_ptr->opts.llrbc          = 0U;
         msg_ptr->tel.tel_data_ptr[0] = version_limit;
 
         msg_ptr->info_ptr = &self->ssubs.signature;
@@ -443,20 +448,20 @@ Ucs_Return_t Exc_Signature_Get(CExc *self,
 }
 
 
-/*! \brief  This method sends the DeviceInit.Start message
+/*! \brief  This method sends the Init.Start message
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_DeviceInit_Start(CExc *self, 
-                                  uint16_t target_address, 
-                                  CSingleObserver *obs_ptr)
+Ucs_Return_t Exc_Init_Start(CExc *self,
+                            uint16_t target_address,
+                            CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
     if (msg_ptr != NULL)
     {
@@ -464,13 +469,13 @@ Ucs_Return_t Exc_DeviceInit_Start(CExc *self,
 
         msg_ptr->id.fblock_id      = FB_EXC;
         msg_ptr->id.instance_id    = 0U;
-        msg_ptr->id.function_id    = EXC_FID_DEVICE_INIT;
+        msg_ptr->id.function_id    = EXC_FID_INIT;
         msg_ptr->id.op_type        = UCS_OP_START;
 
-        msg_ptr->info_ptr = &self->ssubs.deviceinit;
+        msg_ptr->info_ptr = &self->ssubs.init;
         Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
 
-        (void)Ssub_AddObserver(&self->ssubs.deviceinit, obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs.init, obs_ptr);
     }
     else
     {
@@ -484,21 +489,21 @@ Ucs_Return_t Exc_DeviceInit_Start(CExc *self,
 /*! \brief  This method enables a port
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
- *  \param  port_number     PortNumber 
- *  \param  enabled         Enabled 
+ *  \param  port_number     PortNumber
+ *  \param  enabled         Enabled
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_EnablePort_Sr(CExc *self, 
-                               uint16_t target_address, 
-                               uint8_t port_number, 
-                               bool enabled, 
+Ucs_Return_t Exc_EnablePort_Sr(CExc *self,
+                               uint16_t target_address,
+                               uint8_t port_number,
+                               bool enabled,
                                CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U); 
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
     if (msg_ptr != NULL)
     {
@@ -508,6 +513,7 @@ Ucs_Return_t Exc_EnablePort_Sr(CExc *self,
         msg_ptr->id.instance_id      = 0U;
         msg_ptr->id.function_id      = EXC_FID_ENABLEPORT;
         msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
+        msg_ptr->opts.llrbc          = 0U;
         msg_ptr->tel.tel_data_ptr[0] = port_number;
         msg_ptr->tel.tel_data_ptr[1] = (uint8_t)enabled;
 
@@ -527,19 +533,19 @@ Ucs_Return_t Exc_EnablePort_Sr(CExc *self,
 /*! \brief  This method starts the Cable Link Diagnosis
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
- *  \param  port_number     PortNumber 
+ *  \param  port_number     PortNumber
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_CableLinkDiagnosis_Start(CExc *self, 
-                                          uint16_t target_address, 
-                                          uint8_t port_number, 
+Ucs_Return_t Exc_CableLinkDiagnosis_Start(CExc *self,
+                                          uint16_t target_address,
+                                          uint8_t port_number,
                                           CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
     if (msg_ptr != NULL)
     {
@@ -549,6 +555,7 @@ Ucs_Return_t Exc_CableLinkDiagnosis_Start(CExc *self,
         msg_ptr->id.instance_id      = 0U;
         msg_ptr->id.function_id      = EXC_FID_CABLE_LINK_DIAG;
         msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
+        msg_ptr->opts.llrbc          = 0U;
         msg_ptr->tel.tel_data_ptr[0] = port_number;
 
         msg_ptr->info_ptr = &self->ssubs.cablelinkdiag;
@@ -566,36 +573,37 @@ Ucs_Return_t Exc_CableLinkDiagnosis_Start(CExc *self,
 
 /*! \brief  This method starts the Physical Layer Test
  *  \param  self            Reference to CExc instance
- *  \param  port_number     PortNumber 
+ *  \param  port_number     PortNumber
  *  \param  type            Type
  *  \param  lead_in         Lead-in
  *  \param  duration        Duration
  *  \param  lead_out        Lead-out
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
+ *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_PhyTest_Start(CExc *self, 
-                               uint8_t port_number, 
-                               Ucs_Diag_PhyTest_Type_t type, 
-                               uint16_t lead_in, 
-                               uint32_t duration, 
-                               uint16_t lead_out, 
+Ucs_Return_t Exc_PhyTest_Start(CExc *self,
+                               uint8_t port_number,
+                               Ucs_Diag_PhyTest_Type_t type,
+                               uint16_t lead_in,
+                               uint32_t duration,
+                               uint16_t lead_out,
                                CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 10U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 10U);
 
     if (msg_ptr != NULL)
     {
-        msg_ptr->destination_addr    = MSG_ADDR_INIC; 
+        msg_ptr->destination_addr    = MSG_ADDR_INIC;
 
         msg_ptr->id.fblock_id        = FB_EXC;
         msg_ptr->id.instance_id      = 0U;
         msg_ptr->id.function_id      = EXC_FID_PHY_LAY_TEST;
         msg_ptr->id.op_type          = UCS_OP_START;
-        msg_ptr->tel.tel_data_ptr[0] = port_number; 
+        msg_ptr->opts.llrbc          = 0U;
+        msg_ptr->tel.tel_data_ptr[0] = port_number;
         msg_ptr->tel.tel_data_ptr[1] = (uint8_t)type;
         msg_ptr->tel.tel_data_ptr[2] = MISC_HB(lead_in);
         msg_ptr->tel.tel_data_ptr[3] = MISC_LB(lead_in);
@@ -624,18 +632,18 @@ Ucs_Return_t Exc_PhyTest_Start(CExc *self,
 /*! \brief  Requests the EXC.PhysicalLayerTestResult.Status message
  *  \param  self        Reference to CExc instance
  *  \param  obs_ptr     Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self, 
+Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self,
                                     CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, EXC_API_PHY_LAY_TEST_RESULT) != false)
+    if (Al_Lock(&self->lock.api, EXC_API_PHY_LAY_TEST_RESULT) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -645,6 +653,7 @@ Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self,
             msg_ptr->id.instance_id    = 0U;
             msg_ptr->id.function_id    = EXC_FID_PHY_LAY_TEST_RES;
             msg_ptr->id.op_type        = UCS_OP_GET;
+            msg_ptr->opts.llrbc        = 0U;
 
             msg_ptr->info_ptr = &self->ssubs.phylaytestresult;
             Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
@@ -667,59 +676,105 @@ Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self,
 
 
 
-/*! Sends the BCDiag.Startresult command
+/*! Sends the ReverseRequest.Startresult command for HalfDuplex Diagnosis
  *
- * \param *self         Reference to CExc instance
- * \param position      Position of the segment to be checked.
- * \param admin_na      Admin Node Address
- * \param t_send        Timing parameter t_Send
- * \param t_wait4dut    Timing parameter t_WaitForDUT
- * \param t_switch      Timing parameter t_Switch
- * \param t_back        Timing parameter t_Back
- * \param autoback      TBD
- * \param *obs_ptr      Reference to an optional observer
- * \return UCS_RET_SUCCESS               message was created 
+ * \param self              Reference to CExc instance
+ * \param master_position   Position of the node to be checked.
+ * \param t_switch          Timing parameter t_Switch
+ * \param t_send            Timing parameter t_Send
+ * \param t_back            Timing parameter t_Back
+ * \param req_list          Parameters for the Diagnosis_V1 test
+ * \param obs_ptr           Reference to an optional observer
+ *
+ * \return UCS_RET_SUCCESS               message was created
  * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_BCDiag_Start(CExc *self, 
-                              uint8_t position, 
-                              uint16_t admin_na,
-                              uint16_t t_send,
-                              uint16_t t_wait4dut, 
-                              uint16_t t_switch,
-                              uint16_t t_back,
-                              bool     autoback,
-                              CSingleObserver *obs_ptr)
+Ucs_Return_t Exc_ReverseRequest0_Start(CExc *self,
+                                       uint8_t  master_position,
+                                       uint16_t t_switch,
+                                       uint16_t t_send,
+                                       uint16_t t_back,
+                                       Exc_ReverseReq0_List_t req_list,
+                                       CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 12U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 13U);
 
     if (msg_ptr != NULL)
     {
-        msg_ptr->destination_addr    = UCS_ADDR_BROADCAST_BLOCKING; 
+        msg_ptr->destination_addr    = UCS_ADDR_BROADCAST_BLOCKING;
         msg_ptr->id.fblock_id        = FB_EXC;
         msg_ptr->id.instance_id      = 0U;
-        msg_ptr->id.function_id      = EXC_FID_BC_DIAG;
+        msg_ptr->id.function_id      = EXC_FID_REVERSE_REQ;
         msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
-        msg_ptr->tel.tel_data_ptr[0] = position; 
-        msg_ptr->tel.tel_data_ptr[1] = MISC_HB(admin_na);
-        msg_ptr->tel.tel_data_ptr[2] = MISC_LB(admin_na);
+        msg_ptr->tel.tel_data_ptr[0] = master_position;
+        msg_ptr->tel.tel_data_ptr[1] = MISC_HB(t_switch);
+        msg_ptr->tel.tel_data_ptr[2] = MISC_LB(t_switch);
         msg_ptr->tel.tel_data_ptr[3] = MISC_HB(t_send);
         msg_ptr->tel.tel_data_ptr[4] = MISC_LB(t_send);
-        msg_ptr->tel.tel_data_ptr[5] = MISC_HB(t_wait4dut);
-        msg_ptr->tel.tel_data_ptr[6] = MISC_LB(t_wait4dut);
-        msg_ptr->tel.tel_data_ptr[7] = MISC_HB(t_switch);
-        msg_ptr->tel.tel_data_ptr[8] = MISC_LB(t_switch);
-        msg_ptr->tel.tel_data_ptr[9] = MISC_HB(t_back);
-        msg_ptr->tel.tel_data_ptr[10] = MISC_LB(t_back);
-        msg_ptr->tel.tel_data_ptr[11] = (uint8_t)autoback;
+        msg_ptr->tel.tel_data_ptr[5] = MISC_HB(t_back);
+        msg_ptr->tel.tel_data_ptr[6] = MISC_LB(t_back);
+        msg_ptr->tel.tel_data_ptr[7] = (uint8_t)EXC_REV_REQ_HDX;
+        msg_ptr->tel.tel_data_ptr[8] = MISC_HB(req_list.t_wait);
+        msg_ptr->tel.tel_data_ptr[9] = MISC_LB(req_list.t_wait);
+        msg_ptr->tel.tel_data_ptr[10] = MISC_HB(req_list.admin_node_address);
+        msg_ptr->tel.tel_data_ptr[11] = MISC_LB(req_list.admin_node_address);
+        msg_ptr->tel.tel_data_ptr[12] = (uint8_t)req_list.version_limit;
 
 
-        msg_ptr->info_ptr = &self->ssubs.bcdiag;
+        msg_ptr->info_ptr = &self->ssubs.reverse_request;
         Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
 
-        (void)Ssub_AddObserver(&self->ssubs.bcdiag, obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs.reverse_request, obs_ptr);
+    }
+    else
+    {
+        result = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return result;
+}
+
+Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
+                                       uint8_t  master_position,
+                                       uint16_t t_switch,
+                                       uint16_t t_send,
+                                       uint16_t t_back,
+                                       Exc_ReverseReq1_List_t req_list,
+                                       CSingleObserver *obs_ptr,
+                                       CSingleObserver *alive_obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 12U);
+
+    if (msg_ptr != NULL)
+    {
+        msg_ptr->destination_addr    = UCS_ADDR_BROADCAST_BLOCKING;
+        msg_ptr->id.fblock_id        = FB_EXC;
+        msg_ptr->id.instance_id      = 0U;
+        msg_ptr->id.function_id      = EXC_FID_REVERSE_REQ;
+        msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
+        msg_ptr->tel.tel_data_ptr[0] = master_position;
+        msg_ptr->tel.tel_data_ptr[1] = MISC_HB(t_switch);
+        msg_ptr->tel.tel_data_ptr[2] = MISC_LB(t_switch);
+        msg_ptr->tel.tel_data_ptr[3] = MISC_HB(t_send);
+        msg_ptr->tel.tel_data_ptr[4] = MISC_LB(t_send);
+        msg_ptr->tel.tel_data_ptr[5] = MISC_HB(t_back);
+        msg_ptr->tel.tel_data_ptr[6] = MISC_LB(t_back);
+        msg_ptr->tel.tel_data_ptr[7] = (uint8_t)EXC_REV_REQ_FBP;
+        msg_ptr->tel.tel_data_ptr[8] = MISC_HB(req_list.t_neg_guard);
+        msg_ptr->tel.tel_data_ptr[9] = MISC_LB(req_list.t_neg_guard);
+        msg_ptr->tel.tel_data_ptr[10] = MISC_HB(req_list.t_neg_initiator);
+        msg_ptr->tel.tel_data_ptr[11] = MISC_LB(req_list.t_neg_initiator);
+
+
+        msg_ptr->info_ptr = &self->ssubs.reverse_request;
+        Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
+
+        (void)Ssub_AddObserver(&self->ssubs.reverse_request, obs_ptr);
+        (void)Ssub_AddObserver(&self->ssubs.alivemessage, alive_obs_ptr);
     }
     else
     {
@@ -730,29 +785,30 @@ Ucs_Return_t Exc_BCDiag_Start(CExc *self,
 }
 
 
-/*! Enables the signal during backChannel Diagnosis
+/*! Enables the signal during HalfDuplex Diagnosis
  *
- * \param *self         Reference to CExc instance
+ * \param self          Reference to CExc instance
  * \param port          Number of port which has to be enabled.
- * \param *obs_ptr      Reference to an optional observer
- * \return UCS_RET_SUCCESS               message was created 
+ * \param obs_ptr       Reference to an optional observer
+ * \return UCS_RET_SUCCESS               message was created
  * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
-Ucs_Return_t Exc_BCEnableTx_StartResult(CExc *self, 
-                                        uint8_t port,
-                                        CSingleObserver *obs_ptr)
+Ucs_Return_t Exc_EnableTx_StartResult(CExc *self,
+                                      uint8_t port,
+                                      CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
     if (msg_ptr != NULL)
     {
-        msg_ptr->destination_addr    = UCS_ADDR_BROADCAST_BLOCKING; 
+        msg_ptr->destination_addr    = MSG_ADDR_INIC;
         msg_ptr->id.fblock_id        = FB_EXC;
         msg_ptr->id.instance_id      = 0U;
-        msg_ptr->id.function_id      = EXC_FID_BC_ENABLE_TX;
+        msg_ptr->id.function_id      = EXC_FID_ENABLE_TX;
         msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
+        msg_ptr->opts.llrbc          = 0U;
         msg_ptr->tel.tel_data_ptr[0] = port;
 
         msg_ptr->info_ptr = &self->ssubs.enabletx;
@@ -769,9 +825,9 @@ Ucs_Return_t Exc_BCEnableTx_StartResult(CExc *self,
 }
 
 
-/*! \brief This function is used to open a memory session. 
+/*! \brief This function is used to open a memory session.
  *
- *  A memory session is used to control access to the memory resources. Before a memory could 
+ *  A memory session is used to control access to the memory resources. Before a memory could
  *  be read or written, a session of the appropriate type has to be opened.
  *  Only a single memory session is supported. Once opened, the session must be first
  *  closed before a new session of a different type could be used. Some session types
@@ -780,25 +836,25 @@ Ucs_Return_t Exc_BCEnableTx_StartResult(CExc *self,
  *  depending on the session_type. This includes clearing of the configuration
  *  and identification strings before the error memory is programmed or erased.
  *
- * \param *self           Reference to CExc instance 
+ * \param self            Reference to CExc instance
  * \param target_address  Target address
  * \param session_type    Defines the set of MemIDs and the memory access type(s) (read and/or write)
- * \param *obs_ptr        Reference to an optional observer
+ * \param obs_ptr         Reference to an optional observer
  *
  * \return UCS_RET_SUCCESS message was created and sent to INIC
- * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  * \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self, 
-                                   uint16_t target_address, 
-                                   uint8_t session_type,
+Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self,
+                                   uint16_t target_address,
+                                   Ucs_Prg_SessionType_t session_type,
                                    CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, EXC_API_MEM_SESSION_OPEN) != false)
+    if (Al_Lock(&self->lock.api, EXC_API_MEM_SESSION_OPEN) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
         if (msg_ptr != NULL)
         {
@@ -808,7 +864,8 @@ Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self,
             msg_ptr->id.instance_id      = 0U;
             msg_ptr->id.function_id      = EXC_FID_MEM_SESSION_OPEN;
             msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
-            msg_ptr->tel.tel_data_ptr[0] = session_type; 
+            msg_ptr->opts.llrbc          = 0U;
+            msg_ptr->tel.tel_data_ptr[0] = (uint8_t)session_type;
 
             msg_ptr->info_ptr = &self->ssubs.memsessionopen;
             Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
@@ -831,32 +888,32 @@ Ucs_Return_t Exc_MemSessionOpen_Sr(CExc *self,
 
 
 /*! \brief This function is used to close an active memory session that was previously opened by
- *         function Exc_MemSessionOpen_Sr(). 
+ *         function Exc_MemSessionOpen_Sr().
  *
- *  In addition, the function performs some post-processing on given session types. This includes 
- *  validation of the newly programmed configuration and identification strings as well as 
- *  the deactivation of the current configuration and identification strings. In these cases, 
+ *  In addition, the function performs some post-processing on given session types. This includes
+ *  validation of the newly programmed configuration and identification strings as well as
+ *  the deactivation of the current configuration and identification strings. In these cases,
  *  the new configuration becomes active after a hardware reset.
  *
- * \param *self             Reference to CExc instance 
+ * \param self              Reference to CExc instance
  * \param target_address    Target address
  * \param session_handle    Unique number assigned to the active memory session
- * \param *obs_ptr          Reference to an optional observer
+ * \param obs_ptr           Reference to an optional observer
  *
  * \return UCS_RET_SUCCESS message was created and sent to INIC
- * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  * \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self, 
-                                    uint16_t target_address, 
+Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self,
+                                    uint16_t target_address,
                                     uint16_t session_handle,
                                     CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, EXC_API_MEM_SESSION_CLOSE) != false)
+    if (Al_Lock(&self->lock.api, EXC_API_MEM_SESSION_CLOSE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -866,8 +923,9 @@ Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self,
             msg_ptr->id.instance_id      = 0U;
             msg_ptr->id.function_id      = EXC_FID_MEM_SESSION_CLOSE;
             msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
-            msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle); 
-            msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle); 
+            msg_ptr->opts.llrbc          = 0U;
+            msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle);
+            msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle);
 
             msg_ptr->info_ptr = &self->ssubs.memsessionclose;
             Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
@@ -891,30 +949,30 @@ Ucs_Return_t Exc_MemSessionClose_Sr(CExc *self,
 
 /*! \brief This function provides read access to the memories described by parameter MemID.
  *
- *  In addition, the function can be used to retrieve the active Configuration String and 
+ *  In addition, the function can be used to retrieve the active Configuration String and
  *  Identification String.
  *  Reading the memory can only be done within an active memory session. Parameter
  *  session_handle authorizes the access to the memory resource defined by parameter
  *  MemID. The session_handle is provided by function Exc_MemSessionOpen_Sr(),
  *  which must be called in advance to memory access.
  *
- * \param *self             Reference to CExc instance 
+ * \param self              Reference to CExc instance
  * \param target_address    Target address
  * \param session_handle    Unique number assigned to the active memory session
  * \param mem_id            Represents the memory resource to be read
  * \param address           Defines the memory location at which the reading operation starts
- * \param unit_len          Sets the number of memory units to be read. Memory units can be 
- *                          unsigned bytes, unsigned words or unsigned masked data depending 
+ * \param unit_len          Sets the number of memory units to be read. Memory units can be
+ *                          unsigned bytes, unsigned words or unsigned masked data depending
  *                          on the memory type.
- * \param *obs_ptr          Reference to an optional observer
+ * \param obs_ptr           Reference to an optional observer
  *
  * \return UCS_RET_SUCCESS              message was created and sent to INIC
- * \return UCS_RET_ERR_BUFFER_OVERFLOW  no message buffer available 
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW  no message buffer available
  * \return UCS_RET_ERR_PARAM            parameter ubit_len ist too big
  * \return UCS_RET_ERR_API_LOCKED       Resource API is already used by another command
  */
-Ucs_Return_t Exc_MemoryRead_Sr(CExc *self, 
-                               uint16_t target_address, 
+Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
+                               uint16_t target_address,
                                uint16_t session_handle,
                                uint8_t  mem_id,
                                uint32_t address,
@@ -923,16 +981,16 @@ Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, EXC_API_MEM_READ) != false)
+    if (Al_Lock(&self->lock.api, EXC_API_MEM_READ) != false)
     {
-        if (unit_len > MAX_UNIT_LEN)
+        if (unit_len > MAX_MEM_DATA_LEN)
         {
             result = UCS_RET_ERR_PARAM;
         }
 
         if (result == UCS_RET_SUCCESS)
         {
-            Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
+            Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
 
             if (msg_ptr != NULL)
             {
@@ -941,14 +999,15 @@ Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
                 msg_ptr->id.instance_id      = 0U;
                 msg_ptr->id.function_id      = EXC_FID_MEMORY_READ;
                 msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
-                msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle); 
-                msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle); 
-                msg_ptr->tel.tel_data_ptr[2] = mem_id; 
+                msg_ptr->opts.llrbc          = 0U;
+                msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle);
+                msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle);
+                msg_ptr->tel.tel_data_ptr[2] = mem_id;
                 msg_ptr->tel.tel_data_ptr[3] = (uint8_t)((address) >> 24);
                 msg_ptr->tel.tel_data_ptr[4] = (uint8_t)((address) >> 16);
                 msg_ptr->tel.tel_data_ptr[5] = (uint8_t)((address) >> 8);
                 msg_ptr->tel.tel_data_ptr[6] = (uint8_t)(address & (uint32_t)0xFF);
-                msg_ptr->tel.tel_data_ptr[7] = unit_len; 
+                msg_ptr->tel.tel_data_ptr[7] = unit_len;
 
                 msg_ptr->info_ptr = &self->ssubs.memoryread;
                 Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
@@ -971,7 +1030,7 @@ Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
 }
 
 
-/*! \brief This function provides write access to the memories described by parameter MemID. 
+/*! \brief This function provides write access to the memories described by parameter MemID.
  *
  *  In addition, the function can be used to program a new Configuration String and Identification
  *  String.
@@ -980,44 +1039,60 @@ Ucs_Return_t Exc_MemoryRead_Sr(CExc *self,
  *  MemID. The SessionHandle is provided by function ExtendedNetworkControl.MemorySessionOpen(),
  *  which must be called in advance to memory access.
  *
- * \param *self             Reference to CExc instance 
+ * \param self              Reference to CExc instance
  * \param target_address    Target address
  * \param session_handle    Unique number assigned to the active memory session
- * \param mem_id            Represents the memory resource to be read
+ * \param mem_id            Represents the memory resource to be written
  * \param address           Defines the memory location at which the reading operation starts
- * \param unit_len          Sets the number of memory units to be read. Memory units can be 
- *                          unsigned bytes, unsigned words or unsigned masked data depending 
+ * \param unit_size         Size in bytes of the memory units to be written. Memory units can be
+ *                          unsigned bytes, unsigned words or unsigned masked data depending
  *                          on the memory type.
- * \param *unit_data        Contains the actual data written to the memory resource and formatted 
+ * \param data_length       size of unit_data in bytes.
+ * \param unit_data         Contains the actual data written to the memory resource and formatted
  *                          as memory units
- * \param *obs_ptr          Reference to an optional observer
+ * \param obs_ptr           Reference to an optional observer
  *
  * \return UCS_RET_SUCCESS              message was created and sent to INIC
- * \return UCS_RET_ERR_BUFFER_OVERFLOW  no message buffer available 
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW  no message buffer available
  * \return UCS_RET_ERR_PARAM            parameter ubit_len ist too big
  * \return UCS_RET_ERR_API_LOCKED       Resource API is already used by another command
  */
-Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self, 
-                                uint16_t target_address, 
+Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self,
+                                uint16_t target_address,
                                 uint16_t session_handle,
-                                uint8_t  mem_id,
+                                Ucs_Prg_MemId_t mem_id,
                                 uint32_t address,
-                                uint8_t  unit_len,
+                                uint8_t  unit_size,
+                                uint8_t  data_length,
                                 uint8_t  unit_data[],
                                 CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.api, EXC_API_MEM_WRITE) != false)
+    if (Al_Lock(&self->lock.api, EXC_API_MEM_WRITE) != false)
     {
-        if (unit_len > MAX_UNIT_LEN)
+        if (data_length > MAX_MEM_DATA_LEN)
+        {
+            result = UCS_RET_ERR_PARAM;
+        }
+
+        if (unit_size == 0U)
+        {
+            result = UCS_RET_ERR_PARAM;
+        }
+        else if ((data_length % unit_size) != 0U)
+        {
+            result = UCS_RET_ERR_PARAM;
+        }
+
+        if (unit_data == NULL)
         {
             result = UCS_RET_ERR_PARAM;
         }
 
         if (result == UCS_RET_SUCCESS)
         {
-            Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U + unit_len);
+            Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, (uint8_t)(8U + data_length));
 
             if (msg_ptr != NULL)
             {
@@ -1028,15 +1103,16 @@ Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self,
                 msg_ptr->id.instance_id      = 0U;
                 msg_ptr->id.function_id      = EXC_FID_MEMORY_WRITE;
                 msg_ptr->id.op_type          = UCS_OP_STARTRESULT;
-                msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle); 
-                msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle); 
-                msg_ptr->tel.tel_data_ptr[2] = mem_id; 
+                msg_ptr->opts.llrbc          = 0U;
+                msg_ptr->tel.tel_data_ptr[0] = MISC_HB(session_handle);
+                msg_ptr->tel.tel_data_ptr[1] = MISC_LB(session_handle);
+                msg_ptr->tel.tel_data_ptr[2] = (uint8_t)mem_id;
                 msg_ptr->tel.tel_data_ptr[3] = (uint8_t)((address) >> 24);
                 msg_ptr->tel.tel_data_ptr[4] = (uint8_t)((address) >> 16);
                 msg_ptr->tel.tel_data_ptr[5] = (uint8_t)((address) >> 8);
                 msg_ptr->tel.tel_data_ptr[6] = (uint8_t)(address & (uint32_t)0xFF);
-                msg_ptr->tel.tel_data_ptr[7] = unit_len; 
-                for (i=0U; i<unit_len; ++i)
+                msg_ptr->tel.tel_data_ptr[7] = data_length;
+                for (i=0U; i<data_length; ++i)
                 {
                     msg_ptr->tel.tel_data_ptr[8U+i] = *(unit_data + i);
                 }
@@ -1070,11 +1146,11 @@ Ucs_Return_t Exc_MemoryWrite_Sr(CExc *self,
  *  \param  self        Reference to EXC object
  *  \param  msg_ptr     Received message
  */
-static void Exc_Hello_Status(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Hello_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_HelloStatus_t hello_data; 
-    Exc_StdResult_t res_data;
+    Exc_HelloStatus_t hello_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len >= (EXC_SIGNATURE_LEN_V1  + 1U))
     {
@@ -1087,8 +1163,8 @@ static void Exc_Hello_Status(void *self, Msg_MostTel_t *msg_ptr)
         res_data.result.info_size = 0U;
 
         /* Node Discovery sends the Hello.Get as broadcast message. So we will need the observer
-           several times. */ 
-        Ssub_Notify(&self_->ssubs.hello, &res_data, false); 
+           several times. */
+        Ssub_Notify(&self_->ssubs.hello, &res_data, false);
     }
 }
 
@@ -1097,20 +1173,20 @@ static void Exc_Hello_Status(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_Hello_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Hello_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         /* Node Discovery sends the Hello.Get as broadcast message. So we will need the observer
-           several times. */ 
+           several times. */
         Ssub_Notify(&self_->ssubs.hello, &res_data, false);
     }
 }
@@ -1120,16 +1196,16 @@ static void Exc_Hello_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_Welcome_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Welcome_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.welcome, &res_data, true);
@@ -1140,11 +1216,11 @@ static void Exc_Welcome_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_Welcome_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Welcome_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_WelcomeResult_t welcome_data; 
-    Exc_StdResult_t res_data;
+    Exc_WelcomeResult_t welcome_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len >= (EXC_SIGNATURE_LEN_V1  + 2U))
     {
@@ -1164,11 +1240,11 @@ static void Exc_Welcome_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_Signature_Status(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Signature_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_SignatureStatus_t signature_data; 
-    Exc_StdResult_t res_data;
+    Exc_SignatureStatus_t signature_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len >= (EXC_SIGNATURE_LEN_V1  + 1U))
     {
@@ -1189,16 +1265,16 @@ static void Exc_Signature_Status(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_Signature_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Signature_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.signature, &res_data, true);
@@ -1206,40 +1282,78 @@ static void Exc_Signature_Error(void *self, Msg_MostTel_t *msg_ptr)
 }
 
 
-/*! Handler function for the EXC.DeviceInit.Error message
+/*! Handler function for the EXC.Init.Error message
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_DeviceInit_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_Init_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len >0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
-        Ssub_Notify(&self_->ssubs.deviceinit, &res_data, true);
+        Ssub_Notify(&self_->ssubs.init, &res_data, true);
     }
 }
+
+
+/*! \brief Handler function for EXC.AliveMessage.Status
+ * \param  self     reference to EXC object
+ * \param  msg_ptr  received message
+ */
+static void Exc_AliveMessage_Status(void *self, Ucs_Message_t *msg_ptr)
+{
+    CExc *self_ = (CExc *)self;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    MISC_UNUSED(msg_ptr);
+
+    res_data.result.code = UCS_RES_SUCCESS;
+    res_data.result.info_ptr = NULL;
+    Ssub_Notify(&self_->ssubs.alivemessage, &res_data, true);
+}
+
+/*! \brief Handler function for EXC.AliveMessage.Error
+ * \param  self     reference to EXC object
+ * \param  msg_ptr  received message
+ */
+static void Exc_AliveMessage_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CExc *self_ = (CExc *)self;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
+    if (msg_ptr->tel.tel_len > 0U)
+    {
+        res_data.result = Exc_TranslateError(self_,
+                                             &msg_ptr->tel.tel_data_ptr[0],
+                                             (uint8_t)(msg_ptr->tel.tel_len));
+
+        Ssub_Notify(&self_->ssubs.alivemessage, &res_data, true);
+    }
+}
+
+
 
 
 /*! \brief Handler function for EXC.EnablePort.Error
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_EnablePort_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_EnablePort_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
-        res_data.result = Exc_TranslateError(self_, 
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+        res_data.result = Exc_TranslateError(self_,
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.enableport, &res_data, true);
@@ -1250,10 +1364,10 @@ static void Exc_EnablePort_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_EnablePort_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_EnablePort_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
@@ -1267,12 +1381,12 @@ static void Exc_EnablePort_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_CableLinkDiag_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_CableLinkDiag_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
-    if (msg_ptr->tel.tel_len > 0U)   
+    if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
@@ -1287,11 +1401,11 @@ static void Exc_CableLinkDiag_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_CableLinkDiag_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_CableLinkDiag_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_CableLinkDiagResult_t cable_link_diag_result_data; 
-    Exc_StdResult_t res_data;
+    Exc_CableLinkDiagResult_t cable_link_diag_result_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1309,16 +1423,16 @@ static void Exc_CableLinkDiag_Result(void *self, Msg_MostTel_t *msg_ptr)
 /*! \brief Handler function for EXC.PhysicalLayerTest.Error
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
- */static void Exc_NwPhyTest_Error(void *self, Msg_MostTel_t *msg_ptr)
+ */static void Exc_NwPhyTest_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.phylaytest, &res_data, true);
@@ -1326,15 +1440,15 @@ static void Exc_CableLinkDiag_Result(void *self, Msg_MostTel_t *msg_ptr)
 }
 
 
-/*! \brief Handler function for EXC.MOSTNetworkPhysicalLayerTestResult.Status
+/*! \brief Handler function for EXC.NetworkPhysicalLayerTestResult.Status
  *  \param  self        Reference to EXC object
  *  \param  msg_ptr     Received message
  */
-static void Exc_NwPhyTestResult_Status(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_NwPhyTestResult_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
     Exc_PhyTestResult_t phy_test_result;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1351,20 +1465,20 @@ static void Exc_NwPhyTestResult_Status(void *self, Msg_MostTel_t *msg_ptr)
 }
 
 
-/*! \brief Handler function for EXC.MOSTNetworkPhysicalLayerTestResult.Error
+/*! \brief Handler function for EXC.NetworkPhysicalLayerTestResult.Error
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_NwPhyTestResult_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_NwPhyTestResult_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.phylaytestresult, &res_data, true);
@@ -1374,47 +1488,67 @@ static void Exc_NwPhyTestResult_Error(void *self, Msg_MostTel_t *msg_ptr)
 
 
 
-/*! \brief Handler function for EXC.BCDiag.Status
+/*! \brief Handler function for EXC.ReverseRequest.Result
  *  \param  self        Reference to EXC object
  *  \param  msg_ptr     Received message
  */
-static void Exc_BC_Diag_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_ReverseRequest_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_BCDiagResult bcd_result;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 1U)
     {
-        bcd_result.diag_result = (Exc_BCDiagResValue)(msg_ptr->tel.tel_data_ptr[0] >> 4U);
-        MISC_DECODE_WORD(&(bcd_result.admin_addr), &(msg_ptr->tel.tel_data_ptr[0]));
-        bcd_result.admin_addr   &= 0x0FFFU;
-        res_data.data_info       = &bcd_result;
-        res_data.result.code     = UCS_RES_SUCCESS;
-        res_data.result.info_ptr = NULL;
+        if (msg_ptr->tel.tel_data_ptr[0] == (uint8_t)EXC_REV_REQ_HDX)
+        {
+            Exc_ReverseReq0_Result_t reverse_req0_result;
 
-        Ssub_Notify(&self_->ssubs.bcdiag, &res_data, true);
+            reverse_req0_result.req_id                        = (Exc_ReverseReq_ID_t)(msg_ptr->tel.tel_data_ptr[0]);
+            reverse_req0_result.result_list.tester_result     = (Exc_ReverseReq0_ResID_t)(msg_ptr->tel.tel_data_ptr[1]);
+            reverse_req0_result.result_list.cable_diag_result = msg_ptr->tel.tel_data_ptr[2];
+            reverse_req0_result.result_list.version           = msg_ptr->tel.tel_data_ptr[3];
+            Exc_Read_Signature(&(reverse_req0_result.result_list.signature), &(msg_ptr->tel.tel_data_ptr[4]));
+
+            res_data.data_info       = &reverse_req0_result; /* parasoft-suppress  MISRA2004-17_6_b "res_data is used only in the same scope as reverse_req0_result" */
+            res_data.result.code     = UCS_RES_SUCCESS;
+            res_data.result.info_ptr = NULL;
+
+            Ssub_Notify(&self_->ssubs.reverse_request, &res_data, true);
+        }
+        else if (msg_ptr->tel.tel_data_ptr[0] == (uint8_t)EXC_REV_REQ_FBP)
+        {
+            Exc_ReverseReq1_Result_t reverse_req1_result;
+
+            reverse_req1_result.req_id             = (Exc_ReverseReq_ID_t)(msg_ptr->tel.tel_data_ptr[0]);
+            reverse_req1_result.result_list.result = (Exc_ReverseReq1_ResID_t)(msg_ptr->tel.tel_data_ptr[1]);
+
+            res_data.data_info       = &reverse_req1_result; /* parasoft-suppress  MISRA2004-17_6_b "res_data is used only in the same scope as reverse_req1_result" */
+            res_data.result.code     = UCS_RES_SUCCESS;
+            res_data.result.info_ptr = NULL;
+
+            Ssub_Notify(&self_->ssubs.reverse_request, &res_data, true);
+        }
     }
 }
 
 
-/*! \brief Handler function for EXC.BCDiag.Error
+/*! \brief Handler function for EXC.ReverseRequest.Error
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_BC_Diag_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_ReverseRequest_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
-        Ssub_Notify(&self_->ssubs.bcdiag, &res_data, true);
+        Ssub_Notify(&self_->ssubs.reverse_request, &res_data, true);
     }
 }
 
@@ -1425,10 +1559,10 @@ static void Exc_BC_Diag_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self        Reference to EXC object
  *  \param  msg_ptr     Received message
  */
-static void Exc_BC_EnableTx_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_EnableTx_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -1444,16 +1578,16 @@ static void Exc_BC_EnableTx_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
-static void Exc_BC_EnableTx_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_EnableTx_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.enabletx, &res_data, true);
@@ -1465,11 +1599,11 @@ static void Exc_BC_EnableTx_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemSessionOpen_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemSessionOpen_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
     uint16_t session_handle;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1488,16 +1622,16 @@ static void Exc_MemSessionOpen_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemSessionOpen_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemSessionOpen_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.memsessionopen, &res_data, true);
@@ -1510,11 +1644,11 @@ static void Exc_MemSessionOpen_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemSessionClose_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemSessionClose_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
     uint8_t session_result;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1532,16 +1666,16 @@ static void Exc_MemSessionClose_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemSessionClose_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemSessionClose_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.memsessionclose, &res_data, true);
@@ -1553,11 +1687,11 @@ static void Exc_MemSessionClose_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemoryRead_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemoryRead_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_MemReadResult_t mem_read_result; 
-    Exc_StdResult_t res_data;
+    Exc_MemReadResult_t mem_read_result;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     uint8_t i;
 
     if (msg_ptr->tel.tel_len > 0U)
@@ -1566,7 +1700,7 @@ static void Exc_MemoryRead_Result(void *self, Msg_MostTel_t *msg_ptr)
         mem_read_result.mem_id = msg_ptr->tel.tel_data_ptr[2];
         MISC_DECODE_DWORD(&(mem_read_result.address), &(msg_ptr->tel.tel_data_ptr[3]));
         mem_read_result.unit_len = msg_ptr->tel.tel_data_ptr[7];
-        for (i=0U; (i<mem_read_result.unit_len) && (i<MAX_UNIT_LEN); ++i)
+        for (i=0U; (i<mem_read_result.unit_len) && (i<MAX_MEM_DATA_LEN); ++i)
         {
             mem_read_result.unit_data[i] = msg_ptr->tel.tel_data_ptr[8U+i];
         }
@@ -1585,16 +1719,16 @@ static void Exc_MemoryRead_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemoryRead_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemoryRead_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.memoryread, &res_data, true);
@@ -1607,11 +1741,11 @@ static void Exc_MemoryRead_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemoryWrite_Result(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemoryWrite_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_MemWriteResult_t mem_write_result; 
-    Exc_StdResult_t res_data;
+    Exc_MemWriteResult_t mem_write_result;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
@@ -1632,16 +1766,16 @@ static void Exc_MemoryWrite_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to EXC object
  *  \param  msg_ptr  received message
  */
-static void Exc_MemoryWrite_Error(void *self, Msg_MostTel_t *msg_ptr)
+static void Exc_MemoryWrite_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
-    Exc_StdResult_t res_data;
+    Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     if (msg_ptr->tel.tel_len > 0U)
     {
         res_data.data_info  = NULL;
         res_data.result = Exc_TranslateError(self_,
-                                             &msg_ptr->tel.tel_data_ptr[0], 
+                                             &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
         Ssub_Notify(&self_->ssubs.memorywrite, &res_data, true);
@@ -1666,9 +1800,9 @@ static Ucs_StdResult_t Exc_TranslateError(CExc *self, uint8_t error_data[], uint
     Ucs_StdResult_t ret_val;
     MISC_UNUSED(self);
 
-    if(error_data[0] != 0x20U)
+    if (error_data[0] != 0x20U)
     {
-        ret_val.code = UCS_RES_ERR_MOST_STANDARD;
+        ret_val.code = UCS_RES_ERR_STANDARD;
     }
     else
     {
@@ -1682,9 +1816,9 @@ static Ucs_StdResult_t Exc_TranslateError(CExc *self, uint8_t error_data[], uint
 }
 
 
-/*! \brief  Reads a signature from a message's payload 
+/*! \brief  Reads a signature from a message's payload
  *
- * \param dest      Pointer to signature 
+ * \param dest      Pointer to signature
  * \param source    Pointer to start of signature inabyte array
  */
 static void Exc_Read_Signature(Ucs_Signature_t *dest, uint8_t source[])

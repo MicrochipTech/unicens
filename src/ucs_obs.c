@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -30,7 +30,7 @@
 
 /*!
  * \file
- * \brief Implementation of the observer library module. The module consists of the two classes 
+ * \brief Implementation of the observer library module. The module consists of the two classes
  *        CSubject and CObserver.
  *
  * \cond UCS_INTERNAL_DOC
@@ -77,15 +77,15 @@ void Sub_Ctor(CSubject *self, void *ucs_user_ptr)
 Sub_Ret_t Sub_AddObserver(CSubject *self, CObserver *obs_ptr)
 {
     Sub_Ret_t ret_val;
-    if(obs_ptr == NULL)
+    if (obs_ptr == NULL)
     {
         ret_val = SUB_UNKNOWN_OBSERVER;
     }
-    else if(obs_ptr->valid != false)
+    else if (obs_ptr->valid != false)
     {
         ret_val = SUB_ALREADY_ADDED;
     }
-    else if((self->notify != false) &&
+    else if ((self->notify != false) &&
             (Dl_IsNodeInList(&self->list, &obs_ptr->node) == false)  &&
             (Dl_IsNodeInList(&self->add_list, &obs_ptr->node) == false))
     {
@@ -95,7 +95,7 @@ Sub_Ret_t Sub_AddObserver(CSubject *self, CObserver *obs_ptr)
         self->changed = true;
         ret_val = SUB_DELAYED;
     }
-    else if((self->notify == false) && (Dl_IsNodeInList(&self->list, &obs_ptr->node) == false))
+    else if ((self->notify == false) && (Dl_IsNodeInList(&self->list, &obs_ptr->node) == false))
     {
         TR_ASSERT(self->ucs_user_ptr, "[OBS]", (self->num_observers < 0xFFU));
         ret_val = SUB_OK;
@@ -120,15 +120,15 @@ Sub_Ret_t Sub_AddObserver(CSubject *self, CObserver *obs_ptr)
 Sub_Ret_t Sub_RemoveObserver(CSubject *self, CObserver *obs_ptr)
 {
     Sub_Ret_t ret_val;
-    if(obs_ptr == NULL)
+    if (obs_ptr == NULL)
     {
         ret_val = SUB_UNKNOWN_OBSERVER;
     }
-    else if(obs_ptr->valid == false)
+    else if (obs_ptr->valid == false)
     {
         ret_val = SUB_UNKNOWN_OBSERVER;
     }
-    else if((self->notify != false) &&
+    else if ((self->notify != false) &&
             (Dl_IsNodeInList(&self->list, &obs_ptr->node) != false))
     {
         TR_ASSERT(self->ucs_user_ptr, "[OBS]", (self->num_observers > 0U));
@@ -137,7 +137,7 @@ Sub_Ret_t Sub_RemoveObserver(CSubject *self, CObserver *obs_ptr)
         self->num_observers--;
         ret_val = SUB_DELAYED;
     }
-    else if((self->notify == false) &&
+    else if ((self->notify == false) &&
             (Dl_Remove(&self->list, &obs_ptr->node) == DL_OK))
     {
         TR_ASSERT(self->ucs_user_ptr, "[OBS]", (self->num_observers > 0U));
@@ -157,21 +157,21 @@ Sub_Ret_t Sub_RemoveObserver(CSubject *self, CObserver *obs_ptr)
  */
 void Sub_Notify(CSubject *self, void *data_ptr)
 {
-    if(self != NULL)
+    if (self != NULL)
     {
         CDlNode *n_tmp = self->list.head;
         self->notify = true;
         self->changed = false;
-        while(n_tmp != NULL)
+        while (n_tmp != NULL)
         {
             CObserver *o_tmp = (CObserver *)n_tmp->data_ptr;
-            if((o_tmp->update_fptr != NULL)  && (o_tmp->valid != false))
+            if ((o_tmp->update_fptr != NULL)  && (o_tmp->valid != false))
             {
                 (o_tmp->update_fptr)(o_tmp->inst_ptr, data_ptr);
             }
             n_tmp = n_tmp->next;
         }
-        if(self->changed != false)
+        if (self->changed != false)
         {
             Sub_UpdateList(self);
         }
@@ -199,7 +199,7 @@ static bool Sub_CheckObserver(void *current_obs_ptr, void *subject_ptr)
     CObserver *current_obs_ptr_ = (CObserver *)current_obs_ptr;
     CSubject *subject_ptr_ = (CSubject *)subject_ptr;
 
-    if(current_obs_ptr_->valid == false) 
+    if (current_obs_ptr_->valid == false)
     {
         (void)Dl_Remove(&subject_ptr_->list, &current_obs_ptr_->node);
     }
@@ -225,14 +225,14 @@ Sub_Ret_t Sub_SwitchObservers(CSubject *sub_target, CSubject *sub_source)
 {
     Sub_Ret_t ret_val;
 
-    if(sub_target == sub_source)
+    if (sub_target == sub_source)
     {
         ret_val = SUB_INVALID_OPERATION;
     }
     else
     {
         Dl_AppendList(&sub_target->list, &sub_source->list);
-        sub_target->num_observers += sub_source->num_observers;
+        sub_target->num_observers = (uint8_t)(sub_target->num_observers + sub_source->num_observers);
         sub_source->num_observers = 0U;
         ret_val = SUB_OK;
     }
@@ -259,7 +259,7 @@ void Obs_Ctor(CObserver *self, void *inst_ptr, Obs_UpdateCb_t update_fptr)
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class CSingleSubject                                                         */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Constructor of the single-subject class. Initializes a single-subject which distributes 
+/*! \brief Constructor of the single-subject class. Initializes a single-subject which distributes
  *         its data to the registered single-observer.
  *  \param self        Instance pointer
  *  \param ucs_user_ptr User reference that needs to be passed in every callback function
@@ -281,14 +281,14 @@ void Ssub_Ctor(CSingleSubject *self, void *ucs_user_ptr)
 Ssub_Ret_t Ssub_AddObserver(CSingleSubject *self, CSingleObserver *obs_ptr)
 {
     Ssub_Ret_t ret_val;
-    if(obs_ptr == NULL)
+    if (obs_ptr == NULL)
     {
         ret_val = SSUB_UNKNOWN_OBSERVER;
     }
-    else if(self->observer_ptr != obs_ptr)
+    else if (self->observer_ptr != obs_ptr)
     {
 #ifdef UCS_TR_INFO
-        if(self->observer_ptr != NULL)
+        if (self->observer_ptr != NULL)
         {
             TR_INFO((self->ucs_user_ptr, "[SSUB]", "Observer callback has been overwritten", 0U));
         }
@@ -321,16 +321,16 @@ void Ssub_Notify(CSingleSubject *self, void *data_ptr, bool auto_remove)
 {
     void *inst_ptr = NULL;
     Obs_UpdateCb_t update_fptr = NULL;
-    if(self->observer_ptr != NULL)
+    if (self->observer_ptr != NULL)
     {
         inst_ptr = self->observer_ptr->inst_ptr;
         update_fptr = self->observer_ptr->update_fptr;
-        if(auto_remove != false)
+        if (auto_remove != false)
         {
             self->observer_ptr = NULL;
         }
     }
-    if(update_fptr != NULL)
+    if (update_fptr != NULL)
     {
         update_fptr(inst_ptr, data_ptr);
     }
@@ -423,15 +423,15 @@ Sub_Ret_t Msub_RemoveObserver(CSubject *self, CMaskedObserver *obs_ptr)
  */
 void Msub_Notify(CSubject *self, void *data_ptr, uint32_t notification_mask)
 {
-    if(self != NULL)
+    if (self != NULL)
     {
         CDlNode *n_tmp = self->list.head;
         self->notify = true;
         self->changed = false;
-        while(n_tmp != NULL)
+        while (n_tmp != NULL)
         {
             CMaskedObserver *o_tmp = (CMaskedObserver *)n_tmp->data_ptr;
-            if( (o_tmp->parent.update_fptr != NULL)  &&
+            if ( (o_tmp->parent.update_fptr != NULL)  &&
                 (o_tmp->parent.valid != false)      &&
                 ((o_tmp->notification_mask & notification_mask) != 0U) )
             {
@@ -439,7 +439,7 @@ void Msub_Notify(CSubject *self, void *data_ptr, uint32_t notification_mask)
             }
             n_tmp = n_tmp->next;
         }
-        if(self->changed != false)
+        if (self->changed != false)
         {
             Sub_UpdateList(self);
         }

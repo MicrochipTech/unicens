@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -50,75 +50,133 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Enumerators                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Result codes of the Node Script Management. 
+/*! \brief Includes detailed information of scripting errors.
+ *  \details Information are meant to clarify the cause of scripting errors.
+*/
+
+typedef struct Ucs_Ns_ErrorInfo_
+{
+    uint16_t script_count;  /*!< \brief Defines the position of the defective script in the script list beginning with 0 for the first script.*/
+    uint16_t funct_id;      /*!< \brief Defines the defective function-ID. */
+
+} Ucs_Ns_ErrorInfo_t;
+
+
+    /*! \brief Result codes of the Node Script Management.
  *  \ingroup G_UCS_SCRIPTING
  */
 typedef enum Ucs_Ns_ResultCode_
 {
     UCS_NS_RES_SUCCESS     = 0x00U,     /*!< \brief Transmission of script(s) was successful. */
-    UCS_NS_RES_ERROR       = 0x01U      /*!< \brief Transmission of script(s) failed. */
+    UCS_NS_RES_ERR_TIMEOUT = 0x01U,     /*!< \brief Script failed, missing response of the specified Function-ID. */
+    UCS_NS_RES_ERR_PAYLOAD = 0x02U,     /*!< \brief Script failed, expected payload does not match. */
+    UCS_NS_RES_ERR_OPTYPE  = 0x03U,     /*!< \brief Script failed, expected OP-Type does not match. */
+    UCS_NS_RES_ERR_TX      = 0x04U,     /*!< \brief Transmission of script failed. */
+    UCS_NS_RES_ERR_SYNC    = 0x05U      /*!< \brief Synchronization to the remote device failed . */
 
 } Ucs_Ns_ResultCode_t;
+
+
+/*! \brief Result codes of node synchronization.
+ *  \ingroup G_UCS_SCRIPTING
+ */
+typedef enum Ucs_Ns_SyncResult_
+{
+    UCS_NS_SYNC_SUCCESS     = 0x00U,     /*!< \brief Synchronization  was successful. */
+    UCS_NS_SYNC_ERROR       = 0x01U      /*!< \brief Synchronization of node failed. */
+
+} Ucs_Ns_SyncResult_t;
+
+/*! \brief Function signature of result callback used by Ucs_Ns_SynchronizeNode().
+ *  \param node_address The address of the node the operation was executed for.
+ *  \param result       The result of the operation.
+ *  \param user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr".
+ *  \mns_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
+ *  \ingroup G_UCS_SCRIPTING
+ */
+typedef void (*Ucs_Ns_SynchronizeNodeCb_t)(uint16_t node_address, Ucs_Ns_SyncResult_t result, void *user_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Structure of a ConfigMsg used in Node-Script.
+/*! \brief Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages which
+    contains the command to execute as well as for the expected result which returns from the corresponding node.
+ *
+  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_SCRIPTING
  */
 typedef struct Ucs_Ns_ConfigMsg_
 {
-    /*! \brief FBlockId of the config msg. */
-    uint8_t FBlockId;
-    /*! \brief InstId of the config msg. */
-    uint8_t InstId;
-    /*! \brief FunktId of the config msg. */
-    uint16_t FunktId;
-    /*! \brief OpCode of the config msg. */
-    uint8_t OpCode;
-    /*! \brief Data length. */
-    uint8_t DataLen;
-    /*! \brief Reference to the Data */
-    uint8_t * DataPtr;
+    /*! \brief FBlock ID of the config msg. */
+    uint8_t fblock_id;
+    /*! \brief Instance ID of the config msg. */
+    uint8_t inst_id;
+    /*! \brief Function ID of the config msg. */
+    uint16_t funct_id;
+    /*! \brief Operation type of the config msg. */
+    uint8_t op_type;
+    /*! \brief Size of the data to be transmitted or to be checked.
+     * \n Setting the data_size to \b 0xFF in case of \c exp_result will disable the check of data on incoming messages.
+     */
+    uint8_t data_size;
+    /*! \brief Reference to the data */
+    UCS_NS_CONST uint8_t * data_ptr;
 
 } Ucs_Ns_ConfigMsg_t;
 
 /*! \brief Structure of a node-script used to configure a remote node.
- *  \attention The Node Scripting module is designed and intended for the use of \b I2C and \b GPIO commands only. That is, using the Scripting for any other FBlock INIC commands 
- *  (for example MOST, MediaLB, USB, Streaming, Connections, etc.) is expressly \b prohibited.
- *  \ingroup G_UCS_SCRIPTING
+ *  \note Also note that the \ref Ucs_Ns_ConfigMsg_t "DataPtr" member of the \c exp_result structure
+ *        in Ucs_Ns_Script_t does not have to contain the full expected information. Since the
+ *        validation of the data is only done for the expected length, User can either disable the data
+ *        check on incoming messages by setting the expected length \ref Ucs_Ns_ConfigMsg_t::data_size
+ *        "data_size" element of Ucs_Ns_ConfigMsg_t to \b 0x00 or can just specify the maximum amount of data
+ *        to be checked (Refer to the example below). However to set the expected length to long will
+ *        effect that the message will be interpreted as incorrect.
+ *  \attention The Node Scripting module is designed and intended for the use of \b I2C and \b GPIO commands only.
+ *             That is, using the Scripting for any other FBlock INIC commands
+ *             (for example Network, MediaLB, USB, Streaming, Connections, etc.) is expressly \b prohibited.
+ *
+ * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
+ * \ingroup G_UCS_SCRIPTING
  */
 typedef struct Ucs_Ns_Script_
 {
     /*! \brief Specifies the pause which shall be set before sending
-     *         the configuration message. 
+     *         the configuration message.
      */
     uint16_t pause;
     /*! \brief Command to be transmitted. */
-    Ucs_Ns_ConfigMsg_t * send_cmd;
+    UCS_NS_CONST Ucs_Ns_ConfigMsg_t * send_cmd;
     /*! \brief Expected result. */
-    Ucs_Ns_ConfigMsg_t * exp_result;
+    UCS_NS_CONST Ucs_Ns_ConfigMsg_t * exp_result;
 
 } Ucs_Ns_Script_t;
 
-/*! \brief Configuration structure of a Node. 
+/*! \brief Configuration structure of a Node.
  *
- *  \attention Use the \ref UCS_ADDR_LOCAL_DEV macro to address your local device when specifying routes to/from It.  
+ *  \attention Use the \ref UCS_ADDR_LOCAL_NODE macro to address your local device when specifying routes to/from It.
  *             \n The following address ranges are supported:
  *                 - [0x10  ... 0x2FF]
  *                 - [0x500 ... 0xFEF]
- *                 - UCS_ADDR_LOCAL_DEV
+ *                 - UCS_ADDR_LOCAL_NODE
+ *
+  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_ROUTING_TYPES
  */
 typedef struct Ucs_Rm_Node_
 {
-    /*! \brief node signature. */
+    /*! \brief  The signature of the node. */
     Ucs_Signature_t * signature_ptr;
-    /*! \brief Reference to a list of configuration scripts. */
-    Ucs_Ns_Script_t * script_list_ptr;
-    /*! \brief size of the scripts table. */
-    uint8_t script_list_size;
-    /*! \brief Internal information of this node object. */
+    /*! \brief  Reference to a list of init scripts.
+     *          This script list is executed automatically by the Manager after a device is welcomed and synchronized
+     *          successfully. The value must be \c NULL if no scripts shall be executed automatically.
+     */
+    UCS_NS_CONST Ucs_Ns_Script_t * init_script_list_ptr;
+    /*! \brief  The size of the list of init scripts.
+     *          The value must be \c 0 if no scripts shall be executed automatically.
+     */
+    uint8_t init_script_list_size;
+    /*! \brief  Internal information of this node object. */
     Ucs_Rm_NodeInt_t internal_infos;
 
 } Ucs_Rm_Node_t;
@@ -127,12 +185,14 @@ typedef struct Ucs_Rm_Node_
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Function signature used for the results of the Scripting Manager.
- *  \param  node_ptr          Reference to the node instance
- *  \param  result            Result of the scripting operation.
- *  \param  ucs_user_ptr      User reference for API callback functions.
+ *  \param  node_address      The node address the script was executed for
+ *  \param  result            The result of the scripting operation
+ *  \param  ucs_user_ptr      User reference for API callback functions
+ *
+  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_SCRIPTING
  */
-typedef void (*Ucs_Ns_ResultCb_t)(Ucs_Rm_Node_t * node_ptr, Ucs_Ns_ResultCode_t result, void *ucs_user_ptr);
+typedef void (*Ucs_Ns_ResultCb_t)(uint16_t node_address, Ucs_Ns_ResultCode_t result, Ucs_Ns_ErrorInfo_t error_info, void *ucs_user_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

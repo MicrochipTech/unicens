@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['target',['target',['../struct_ucs___sd___segment__t_a730fee420fdc6d921c296c9920ce4135.html#a730fee420fdc6d921c296c9920ce4135',1,'Ucs_Sd_Segment_t']]],
+  ['target',['target',['../struct_ucs___fdx___segment__t_a730fee420fdc6d921c296c9920ce4135.html#a730fee420fdc6d921c296c9920ce4135',1,'Ucs_Fdx_Segment_t']]],
   ['target_5faddress',['target_address',['../struct_c_programming_aaf0157ff97cce6b8ba8f142f65ef36e9.html#aaf0157ff97cce6b8ba8f142f65ef36e9',1,'CProgramming']]],
-  ['tel',['tel',['../struct_msg___most_tel__t_a3176fc4da0eba67428fa0627e15f86b6.html#a3176fc4da0eba67428fa0627e15f86b6',1,'Msg_MostTel_t']]],
+  ['tel',['tel',['../struct_ucs___message__t_a3176fc4da0eba67428fa0627e15f86b6.html#a3176fc4da0eba67428fa0627e15f86b6',1,'Ucs_Message_t']]],
   ['tel_5fcnt',['tel_cnt',['../struct_msg___tel_data__t_a0102c84947aadd0fd212a7972d2fb10d.html#a0102c84947aadd0fd212a7972d2fb10d',1,'Msg_TelData_t']]],
   ['tel_5fdata_5fptr',['tel_data_ptr',['../struct_msg___tel_data__t_afb4f9db23cd1c16b44c1e479e3f5e1cf.html#afb4f9db23cd1c16b44c1e479e3f5e1cf',1,'Msg_TelData_t']]],
   ['tel_5fid',['tel_id',['../struct_msg___tel_data__t_a880ca776e9ea8d0bbb714a7333da52cc.html#a880ca776e9ea8d0bbb714a7333da52cc',1,'Msg_TelData_t']]],

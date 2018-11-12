@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -77,9 +77,9 @@ void Fsm_Ctor(CFsm *self, void *inst_ptr, const Fsm_StateElem_t *trans_table_ptr
 }
 
 /*! \brief   Determine required action
- *  \details This function determines the required action in dependency of the current state 
- *           and the triggered event. The current state will be transitioned to the next state. 
- *           The internal event variable will be cleared and the determined action will be 
+ *  \details This function determines the required action in dependency of the current state
+ *           and the triggered event. The current state will be transitioned to the next state.
+ *           The internal event variable will be cleared and the determined action will be
  *           returned.
  *  \param   self    Instance pointer
  *  \return  Determined required action
@@ -89,12 +89,12 @@ static Fsm_Act_t Fsm_StateEval(CFsm *self)
 {
     Fsm_Act_t retval = NULL;                                    /* Set default return value */
 
-    if(self->event_occured != FSM_E_NILEVENT)                   /* Event occurred ? */
+    if (self->event_occured != FSM_E_NILEVENT)                   /* Event occurred ? */
     {
-        if((uint8_t)self->event_occured <= self->num_events)    /* Check if event is valid */
+        if ((uint8_t)self->event_occured <= self->num_events)    /* Check if event is valid */
         {
             /* Get state-matrix-element in dependency of current state and triggered event */
-            uint8_t i = ((uint8_t)self->current_state * self->num_events) + (uint8_t)self->event_occured;
+            uint8_t i = (uint8_t)(((uint8_t)self->current_state *self->num_events) + (uint8_t)self->event_occured);
             Fsm_StateElem_t stateEvaluation = self->transition_table_ptr[i];
             self->current_state = stateEvaluation.next_state;   /* Set new state */
             self->internal_state = FSM_STATE_IDLE;              /* Set internal state to \c IDLE */
@@ -112,8 +112,8 @@ static Fsm_Act_t Fsm_StateEval(CFsm *self)
 }
 
 /*! \brief   Service function for Finite State Machines
- *  \details The state machine will be serviced until it will be stopped by the user or no 
- *           further event is triggered. If a state transition occurred the associated action 
+ *  \details The state machine will be serviced until it will be stopped by the user or no
+ *           further event is triggered. If a state transition occurred the associated action
  *           will be executed.
  *  \param   self    Instance pointer
  *  \return  Internal state of the state machine (see \ref Fsm_State_t).
@@ -121,10 +121,10 @@ static Fsm_Act_t Fsm_StateEval(CFsm *self)
 Fsm_State_t Fsm_Service(CFsm *self)
 {
     /* Internal state is set to \c FSM_STATE_SERVICE and any event is triggered? */
-    while((self->internal_state == FSM_STATE_SERVICE)  && (self->event_occured != FSM_E_NILEVENT))
+    while ((self->internal_state == FSM_STATE_SERVICE)  && (self->event_occured != FSM_E_NILEVENT))
     {
         Fsm_Act_t action_fptr = Fsm_StateEval(self);    /* Execute state transition */
-        if(action_fptr != NULL)                          /* Action required ? */
+        if (action_fptr != NULL)                          /* Action required ? */
         {
             (*action_fptr)(self->inst_ptr);             /* Execute action */
         }
@@ -134,14 +134,14 @@ Fsm_State_t Fsm_Service(CFsm *self)
 }
 
 /*! \brief   Set an event
- *  \details This function sets the given event and triggers the service for the given 
+ *  \details This function sets the given event and triggers the service for the given
  *           state machine.
  *  \param   self    Instance pointer
  *  \param   e       New event
  */
 void Fsm_SetEvent(CFsm *self, int8_t e)
 {
-    if(self->internal_state != FSM_STATE_END)
+    if (self->internal_state != FSM_STATE_END)
     {
         self->event_occured  = e;                  /* Set new event */
         self->internal_state = FSM_STATE_SERVICE;  /* Set internal state to \c FSM_STATE_SERVICE */
@@ -155,7 +155,7 @@ void Fsm_SetEvent(CFsm *self, int8_t e)
  */
 void Fsm_Wait(CFsm *self)
 {
-    if(self->internal_state != FSM_STATE_END)
+    if (self->internal_state != FSM_STATE_END)
     {
         self->internal_state = FSM_STATE_WAIT;     /* Set internal state to \c WAIT */
     }

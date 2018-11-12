@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -74,15 +74,15 @@ typedef struct Ucs_Lld_TxMsg_
 {
     struct Ucs_Lld_TxMsg_ *custom_next_msg_ptr;/*!< \brief     Shall be used by the LLD implementation to queue messages for
                                                 *              asynchronous transmission
-                                                *   \details   UNICENS will set this value to \c NULL since only 
-                                                *              single messages are forwarded to the LLD. Within the transmit function 
-                                                *              it is recommended that the LLD queues the message for asynchronous 
-                                                *              transmission. Despite a driver's transmit function might signal busy for 
-                                                *              a short term the UNICENS library might forward multiple messages for 
+                                                *   \details   UNICENS will set this value to \c NULL since only
+                                                *              single messages are forwarded to the LLD. Within the transmit function
+                                                *              it is recommended that the LLD queues the message for asynchronous
+                                                *              transmission. Despite a driver's transmit function might signal busy for
+                                                *              a short term the UNICENS library might forward multiple messages for
                                                 *              transmission. If a driver works asynchronously (interrupt driven) it
-                                                *              can easily use this pointer build a queue of waiting messages. 
+                                                *              can easily use this pointer build a queue of waiting messages.
                                                 *              Nonetheless, it is important that \ref Ucs_Lld_Api_t::tx_release_fptr
-                                                *              "tx_release_fptr" is invoked for every message separately. The Interface 
+                                                *              "tx_release_fptr" is invoked for every message separately. The Interface
                                                 *              between the UNICENS library and the LLD does only support single messages.
                                                 */
     Ucs_Mem_Buffer_t *memory_ptr;              /*!< \brief     Points to the data buffer */
@@ -98,7 +98,7 @@ typedef struct Ucs_Lld_RxMsg_
 } Ucs_Lld_RxMsg_t;
 
 /*!
- * @} 
+ * @}
  * \addtogroup  G_UCS_LLD_API
  * @{
  */
@@ -106,9 +106,9 @@ typedef struct Ucs_Lld_RxMsg_
 /*------------------------------------------------------------------------------------------------*/
 /* Low-level driver API                                                                           */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Allocates an Rx message object 
+/*! \brief  Allocates an Rx message object
  *  \param  inst_ptr    Reference to an internal UNICENS handler
- *  \param  buffer_size The size in bytes of the received Rx message. 
+ *  \param  buffer_size The size in bytes of the received Rx message.
  *                      Valid values: 6..72.
  *  \return The Rx message object or \c NULL if no message object is available. In the latter
  *          case the low-level driver can wait until Ucs_Lld_RxMsgAvailableCb_t() is invoked.
@@ -117,7 +117,7 @@ typedef struct Ucs_Lld_RxMsg_
  *          low-level driver must set Ucs_Lld_RxMsg_t::data_size to the actual message size.
  *          \warning
  *          The function will also return \c NULL if the requested \c buffer_size exceeds the valid range.
- *          In such a case the UNICENS cannot guarantee that Ucs_Lld_RxMsgAvailableCb_t() is 
+ *          In such a case the UNICENS cannot guarantee that Ucs_Lld_RxMsgAvailableCb_t() is
  *          called as expected. Received messages exceeding the valid range must be discarded by the LLD.
  */
 typedef Ucs_Lld_RxMsg_t* (*Ucs_Lld_RxAllocateCb_t)(void *inst_ptr, uint16_t buffer_size);
@@ -154,7 +154,7 @@ typedef struct Ucs_Lld_Api_
 } Ucs_Lld_Api_t;
 
 /*!
- * @} 
+ * @}
  * \addtogroup  G_UCS_LLD
  * @{
  */
@@ -171,22 +171,22 @@ typedef struct Ucs_Lld_Api_
 typedef void (*Ucs_Lld_StartCb_t)(Ucs_Lld_Api_t* api_ptr, void *inst_ptr, void *lld_user_ptr);
 
 /*! \brief      Notifies the LLD to stop/abort transmitting and receiving messages
- *  \details    As soon as this function is called the low-level driver is not allowed 
+ *  \details    As soon as this function is called the low-level driver is not allowed
  *              to call any UNICENS API function.
  *  \param      lld_user_ptr    User defined pointer which is provided in \ref Ucs_Lld_Callbacks_t structure.
  */
 typedef void (*Ucs_Lld_StopCb_t)(void *lld_user_ptr);
 
 /*! \brief      Notifies the LLD to reset the INIC
- *  \details    If this function is called the low-level driver is responsible to 
+ *  \details    If this function is called the low-level driver is responsible to
  *              perform an INIC hardware reset.
  *  \param      lld_user_ptr    User defined pointer which is provided in \ref Ucs_Lld_Callbacks_t structure.
  */
 typedef void (*Ucs_Lld_ResetInicCb_t)(void *lld_user_ptr);
 
 /*! \brief      Callback function which is invoked as soon as port message objects are available again.
- *  \details    By implementing this callback function the low-level driver can avoid polling for 
- *              Rx message objects. The low-level driver should wait for the function call as soon 
+ *  \details    By implementing this callback function the low-level driver can avoid polling for
+ *              Rx message objects. The low-level driver should wait for the function call as soon
  *              as Ucs_Lld_RxAllocateCb_t() returns NULL. Only then it shall call those functions again.
  *  \param      lld_user_ptr    User defined pointer which is provided in \ref Ucs_Lld_Callbacks_t structure.
  */
@@ -199,7 +199,7 @@ typedef void (*Ucs_Lld_RxMsgAvailableCb_t)(void *lld_user_ptr);
 typedef void (*Ucs_Lld_TxTransmitCb_t)(Ucs_Lld_TxMsg_t *msg_ptr, void *lld_user_ptr);
 
 /*!
- * @} 
+ * @}
  * \addtogroup  G_UCS_LLD_TYPES
  * @{
  */
@@ -209,11 +209,12 @@ typedef void (*Ucs_Lld_TxTransmitCb_t)(Ucs_Lld_TxMsg_t *msg_ptr, void *lld_user_
 typedef struct Ucs_Lld_Callbacks_
 {
     void                      *lld_user_ptr;       /*!< \brief    Optional pointer that is passed when invoking a callback function which is assigned in Ucs_Lld_Callbacks_t. */
-    Ucs_Lld_StartCb_t          start_fptr;         /*!< \brief    Callback function to initialize the low-level driver and 
-                                                    *             start the transmission and reception of messages */
-    Ucs_Lld_StopCb_t           stop_fptr;          /*!< \brief    Callback function to stop/abort the transmission and reception of messages */
-    Ucs_Lld_RxMsgAvailableCb_t rx_available_fptr;  /*!< \brief    Callback function which is invoked as soon as Rx message objects are available again */
-    Ucs_Lld_TxTransmitCb_t     tx_transmit_fptr;   /*!< \brief    Callback function to transmit one or multiple messages to the INIC */
+    Ucs_Lld_StartCb_t          start_fptr;         /*!< \brief    Mandatory callback function to initialize the low-level driver and
+                                                    *             start the transmission and reception of messages. */
+    Ucs_Lld_StopCb_t           stop_fptr;          /*!< \brief    Mandatory callback function to stop/abort the transmission and reception of messages */
+    Ucs_Lld_ResetInicCb_t      reset_fptr;         /*!< \brief    Mandatory callback function to perform an INIC hardware reset. */
+    Ucs_Lld_TxTransmitCb_t     tx_transmit_fptr;   /*!< \brief    Mandatory callback function to transmit one or multiple messages to the INIC */
+    Ucs_Lld_RxMsgAvailableCb_t rx_available_fptr;  /*!< \brief    Optional callback function which is invoked as soon as Rx message objects are available again */
 
 } Ucs_Lld_Callbacks_t;
 

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -70,7 +70,7 @@ void Lldp_Ctor(CLldPool *self, void *owner_ptr, void* ucs_user_ptr)
 
 /*! \brief  Returns an unused LLD Tx message object back to the pool
  *  \param  self    The instance
- *  \param  msg_ptr The unused LLD Tx message object 
+ *  \param  msg_ptr The unused LLD Tx message object
  */
 void Lldp_ReturnTxToPool(CLldPool *self, Lld_IntTxMsg_t *msg_ptr)
 {
@@ -79,7 +79,7 @@ void Lldp_ReturnTxToPool(CLldPool *self, Lld_IntTxMsg_t *msg_ptr)
 
 /*! \brief  Allocates an unused LLD Tx message object from the pool
  *  \param  self    The instance
- *  \return An internal LLD Tx message object or \c NULL if no message object is 
+ *  \return An internal LLD Tx message object or \c NULL if no message object is
  *          available.
  */
 Lld_IntTxMsg_t* Lldp_GetTxFromPool(CLldPool *self)

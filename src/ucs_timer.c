@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -75,7 +75,7 @@ static void Tm_SetTimerInternal(CTimerManagement *self,
  *  \param init_ptr    Reference to the initialization data
  *  \param  ucs_user_ptr User reference that needs to be passed in every callback function
  */
-void Tm_Ctor(CTimerManagement *self, CScheduler *scd, const Tm_InitData_t *init_ptr, void * ucs_user_ptr)
+void Tm_Ctor(CTimerManagement *self, CScheduler *scd, const Tm_InitData_t *init_ptr, void *ucs_user_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     self->ucs_user_ptr = ucs_user_ptr;
@@ -83,7 +83,7 @@ void Tm_Ctor(CTimerManagement *self, CScheduler *scd, const Tm_InitData_t *init_
     Ssub_Ctor(&self->get_tick_count_subject, self->ucs_user_ptr);
     (void)Ssub_AddObserver(&self->get_tick_count_subject,
                            init_ptr->get_tick_count_obs_ptr);
-    if(init_ptr->set_application_timer_obs_ptr != NULL)
+    if (init_ptr->set_application_timer_obs_ptr != NULL)
     {
         self->delayed_tm_service_enabled = true;
         Ssub_Ctor(&self->set_application_timer_subject, self->ucs_user_ptr);
@@ -106,10 +106,10 @@ static void Tm_Service(void *self)
 
     Srv_GetEvent(&self_->tm_srv, &event_mask);
 
-    if(TM_EVENT_UPDATE_TIMERS == (event_mask & TM_EVENT_UPDATE_TIMERS))     /* Is event pending? */
+    if (TM_EVENT_UPDATE_TIMERS == (event_mask & TM_EVENT_UPDATE_TIMERS))     /* Is event pending? */
     {
         Srv_ClearEvent(&self_->tm_srv, TM_EVENT_UPDATE_TIMERS);
-        Tm_UpdateTimers(self_); 
+        Tm_UpdateTimers(self_);
     }
 }
 
@@ -123,7 +123,7 @@ static void Tm_UpdateTimers(CTimerManagement *self)
     uint16_t current_tick_count;
     Ssub_Notify(&self->get_tick_count_subject, &current_tick_count, false);
 
-    if(self->timer_list.head != NULL)      /* At least one timer is running? */
+    if (self->timer_list.head != NULL)      /* At least one timer is running? */
     {
         bool continue_loop = true;
         /* Calculate time difference between the current and the last TM service run */
@@ -132,32 +132,32 @@ static void Tm_UpdateTimers(CTimerManagement *self)
         self->last_tick_count = current_tick_count;
 
         /* Loop while timer list is not empty */
-        while((self->timer_list.head != NULL) && (continue_loop!= false))
+        while ((self->timer_list.head != NULL) && (continue_loop!= false))
         {
             /* Is not first timer in list elapsed yet? */
-            if(tick_count_diff <= ((CTimer *)self->timer_list.head->data_ptr)->delta)
+            if (tick_count_diff <= ((CTimer *)self->timer_list.head->data_ptr)->delta)
             {
                 /* Update delta of first timer in list */
-                ((CTimer *)self->timer_list.head->data_ptr)->delta -= tick_count_diff;
+                ((CTimer *)self->timer_list.head->data_ptr)->delta = (uint16_t)(((CTimer *)self->timer_list.head->data_ptr)->delta - tick_count_diff);
                 tick_count_diff = 0U;
             }
             else    /* At least first timer in list elapsed */
             {
                 /* Update tick count difference for next timer in list */
-                tick_count_diff -= ((CTimer *)self->timer_list.head->data_ptr)->delta;
+                tick_count_diff = (uint16_t)(tick_count_diff - ((CTimer *)self->timer_list.head->data_ptr)->delta);
                 /* First timer elapsed */
                 ((CTimer *)self->timer_list.head->data_ptr)->delta = 0U;
             }
 
             /* First timer in list elapsed? */
-            if(0U == ((CTimer *)self->timer_list.head->data_ptr)->delta)
+            if (0U == ((CTimer *)self->timer_list.head->data_ptr)->delta)
             {
                 /* Handle elapsed timer */
                 continue_loop = Tm_HandleElapsedTimer(self);
             }
             else    /* No elapsed timer in list. */
             {
-                /* First timer in list updated! Set trigger to inform application (see 
+                /* First timer in list updated! Set trigger to inform application (see
                    Tm_CheckForNextService()) and stop TM service. */
                 self->set_service_timer = true;
                 continue_loop = false;
@@ -166,7 +166,7 @@ static void Tm_UpdateTimers(CTimerManagement *self)
     }
 }
 
-/*! \brief  This function is called if the first timer in list is elapsed. The timer handler 
+/*! \brief  This function is called if the first timer in list is elapsed. The timer handler
  *          callback function is invoked. If the timer is a periodic timer it is wound up again.
  *  \param  self    Instance pointer
  *  \return \c true if the next timer must be check.
@@ -177,21 +177,21 @@ static bool Tm_HandleElapsedTimer(CTimerManagement *self)
     bool ret_val = true;
 
     CDlNode *node = self->timer_list.head;
-    /* Reset flag to be able to check if timer object has changed within handler 
+    /* Reset flag to be able to check if timer object has changed within handler
         callback function */
     ((CTimer *)node->data_ptr)->changed = false;
     /* Call timer handler callback function */
     ((CTimer *)node->data_ptr)->handler_fptr(((CTimer *)node->data_ptr)->args_ptr);
 
     /* Timer object hasn't changed within handler callback function? */
-    if(false == ((CTimer *)node->data_ptr)->changed)
+    if (false == ((CTimer *)node->data_ptr)->changed)
     {
         /* Remove current timer from list */
         (void)Dl_Remove(&self->timer_list, node);
         /* Mark timer as unused */
         ((CTimer *)node->data_ptr)->in_use = false;
         /* Is current timer a periodic timer? */
-        if(((CTimer *)node->data_ptr)->period > 0U)
+        if (((CTimer *)node->data_ptr)->period > 0U)
         {
             /* Reload current timer */
             Tm_SetTimerInternal(self,
@@ -201,7 +201,7 @@ static bool Tm_HandleElapsedTimer(CTimerManagement *self)
                                 ((CTimer *)node->data_ptr)->period,
                                 ((CTimer *)node->data_ptr)->period);
 
-            if(node == self->timer_list.head)  /* Is current timer new head of list? */
+            if (node == self->timer_list.head)  /* Is current timer new head of list? */
             {
                 /* Set trigger to inform application (see Tm_CheckForNextService()) and
                    stop TM service. */
@@ -214,7 +214,7 @@ static bool Tm_HandleElapsedTimer(CTimerManagement *self)
     return ret_val;
 }
 
-/*! \brief Calls an application callback function to inform the application that the UCS must be 
+/*! \brief Calls an application callback function to inform the application that the UCS must be
  *         serviced not later than the passed time period. If the timer list is empty a possible
  *         running application timer will be stopped. This function is called at the end of
  *         Ucs_Service().
@@ -222,20 +222,20 @@ static bool Tm_HandleElapsedTimer(CTimerManagement *self)
  */
 void Tm_CheckForNextService(CTimerManagement *self)
 {
-    if(self->delayed_tm_service_enabled != false)
+    if (self->delayed_tm_service_enabled != false)
     {
         uint16_t current_tick_count;
         Ssub_Notify(&self->get_tick_count_subject, &current_tick_count, false);
         /* Has head of timer list changed? */
-        if(self->set_service_timer != false)
+        if (self->set_service_timer != false)
         {
             uint16_t new_time;
-            uint16_t diff = current_tick_count - self->last_tick_count;
+            uint16_t diff = (uint16_t)(current_tick_count - self->last_tick_count);
             self->set_service_timer = false;
             if (self->timer_list.head != NULL)
             {
                 /* Timer expired since last TM service? */
-                if(diff >= ((CTimer *)self->timer_list.head->data_ptr)->delta)
+                if (diff >= ((CTimer *)self->timer_list.head->data_ptr)->delta)
                 {
                     new_time = 1U;  /* Return minimum value */
                 }
@@ -257,13 +257,13 @@ void Tm_CheckForNextService(CTimerManagement *self)
 }
 
 /*! \brief Helper function to set the TM service event.
- *  \details  This function is used by the application to trigger a service call of the Timer 
+ *  \details  This function is used by the application to trigger a service call of the Timer
  *            Management if the application timer has expired.
  *  \param self            Instance pointer
  */
 void Tm_TriggerService(CTimerManagement *self)
 {
-    if(self->timer_list.head != NULL)      /* At least one timer is running? */
+    if (self->timer_list.head != NULL)      /* At least one timer is running? */
     {
         Srv_SetEvent(&self->tm_srv, TM_EVENT_UPDATE_TIMERS);
     }
@@ -286,7 +286,7 @@ void Tm_StopService(CTimerManagement *self)
     self->timer_list.head = NULL;
 }
 
-/*! \brief Creates a new timer. The timer expires at the specified elapse time and then after 
+/*! \brief Creates a new timer. The timer expires at the specified elapse time and then after
  *         every specified period. When the timer expires the specified callback function is
  *         called.
  *  \param self            Instance pointer
@@ -348,7 +348,7 @@ static void Tm_SetTimerInternal(CTimerManagement *self,
     /* Create back link to be able to point from node to timer object */
     timer_ptr->node.data_ptr = (void *)timer_ptr;
 
-    if(self->timer_list.head == NULL)            /* Is timer list empty? */
+    if (self->timer_list.head == NULL)            /* Is timer list empty? */
     {
         Dl_InsertHead(&self->timer_list, &timer_ptr->node);    /* Add first timer to list */
         /* Save current tick count */
@@ -359,13 +359,13 @@ static void Tm_SetTimerInternal(CTimerManagement *self,
         CDlNode *result_ptr = NULL;
 
         /* Set delta value in relation to last saved tick count (last TM service) */
-        timer_ptr->delta += (uint16_t)(current_tick_count - self->last_tick_count);
+        timer_ptr->delta = (uint16_t)(timer_ptr->delta + (uint16_t)(current_tick_count - self->last_tick_count));
 
         /* Search slot where new timer must be inserted. Update delta of new timer
            and delta of the following timer in the list. */
         result_ptr = Dl_Foreach(&self->timer_list, &Tm_UpdateTimersAdd, (void *)timer_ptr);
 
-        if(result_ptr != NULL)                   /* Slot found? */
+        if (result_ptr != NULL)                   /* Slot found? */
         {
             /* Insert new timer at found position */
             Dl_InsertBefore(&self->timer_list, result_ptr, &timer_ptr->node);
@@ -386,14 +386,14 @@ static void Tm_SetTimerInternal(CTimerManagement *self,
  */
 void Tm_ClearTimer(CTimerManagement *self, CTimer *timer_ptr)
 {
-    if(timer_ptr->in_use != false)          /* Is timer currently in use? */
+    if (timer_ptr->in_use != false)          /* Is timer currently in use? */
     {
         timer_ptr->changed = true;          /* Flag is needed by Tm_UpdateTimers() */
 
-        if(timer_ptr->node.next != NULL)     /* Has deleted timer a follower? */
+        if (timer_ptr->node.next != NULL)     /* Has deleted timer a follower? */
         {
             /* Adjust delta of following timer */
-            ((CTimer *)timer_ptr->node.next->data_ptr)->delta += timer_ptr->delta;
+            ((CTimer *)timer_ptr->node.next->data_ptr)->delta = (uint16_t)(((CTimer *)timer_ptr->node.next->data_ptr)->delta + timer_ptr->delta);
         }
 
         (void)Dl_Remove(&self->timer_list, &timer_ptr->node);
@@ -416,16 +416,16 @@ static bool Tm_UpdateTimersAdd(void *c_timer_ptr, void *n_timer_ptr)
     bool ret_val;
 
     /* Is current timer lesser than new timer? */
-    if(current_timer_ptr->delta <= new_timer_ptr->delta)
+    if (current_timer_ptr->delta <= new_timer_ptr->delta)
     {
         /* Update delta of new timer and continue foreach loop */
-        new_timer_ptr->delta -= current_timer_ptr->delta;
+        new_timer_ptr->delta = (uint16_t)(new_timer_ptr->delta - current_timer_ptr->delta);
         ret_val = false;
     }
     else                                                    /* Slot found! */
     {
         /* Correct delta of current timer and stop foreach loop */
-        current_timer_ptr->delta -= new_timer_ptr->delta;
+        current_timer_ptr->delta = (uint16_t)(current_timer_ptr->delta - new_timer_ptr->delta);
         ret_val = true;
     }
 

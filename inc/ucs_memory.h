@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -53,20 +53,20 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* IAllocator Types                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief      Callback function which frees memory 
+/*! \brief      Callback function which frees memory
  *  \param      allocator       Reference to the Mem_Allocator_t object
- *  \param      mem_ptr         Reference to memory chunk 
- *  \param      mem_info_ptr    Customer specific information needed to free 
+ *  \param      mem_ptr         Reference to memory chunk
+ *  \param      mem_info_ptr    Customer specific information needed to free
  *                              the related memory chunk
  */
 typedef void  (*Mem_Free_t)(void *allocator, void* mem_ptr, void* mem_info_ptr);
 
-/*! \brief      Callback function which allocated memory 
+/*! \brief      Callback function which allocated memory
  *  \param      allocator       Reference to the Mem_Allocator_t object
- *  \param      size            Size of the demanded memory chunk 
- *  \param      mem_info_ptr    Customer specific information needed to free 
+ *  \param      size            Size of the demanded memory chunk
+ *  \param      mem_info_ptr    Customer specific information needed to free
  *                              the related memory chunk
- *  \return     Reference to a memory chunk with a minimum size of \c size. 
+ *  \return     Reference to a memory chunk with a minimum size of \c size.
  *              Otherwise NULL.
  */
 typedef void* (*Mem_Allocate_t)(void *allocator, uint16_t size, void** mem_info_ptr);
@@ -91,13 +91,13 @@ typedef struct IAllocator_
 typedef struct Mem_IntBuffer_
 {
     Ucs_Mem_Buffer_t   public_buffer;  /*!< \brief      Public attributes of memory buffer
-                                        *   \details    This has to be the first member in this 
+                                        *   \details    This has to be the first member in this
                                         *               struct
                                         */
-    IAllocator        *allocator_ptr;  /*!< \brief      Reference to the allocator which is 
-                                        *               required to free the memory chunk 
+    IAllocator        *allocator_ptr;  /*!< \brief      Reference to the allocator which is
+                                        *               required to free the memory chunk
                                         */
-    void              *mem_info_ptr;   /*!< \brief      Customer specific information needed to 
+    void              *mem_info_ptr;   /*!< \brief      Customer specific information needed to
                                         *               free the related memory chunk
                                         */
 } Mem_IntBuffer_t;

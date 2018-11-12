@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -124,8 +124,8 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___xrm___default_created_port__t.html">Ucs_Xrm_DefaultCreatedPort_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a default created port. This structure is used for ports that are configured via the INIC's Configuration String and are automatically created at startup.  <a href="struct_ucs___xrm___default_created_port__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___xrm___most_socket__t.html">Ucs_Xrm_MostSocket_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a MOST socket.  <a href="struct_ucs___xrm___most_socket__t.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___xrm___network_socket__t.html">Ucs_Xrm_NetworkSocket_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a network socket.  <a href="struct_ucs___xrm___network_socket__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___xrm___mlb_port__t.html">Ucs_Xrm_MlbPort_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a MediaLB port.  <a href="struct_ucs___xrm___mlb_port__t.html#details">More...</a><br/></td></tr>
@@ -173,11 +173,8 @@ Callback Functions</h2></td></tr>
 <tr class="memdesc:ga74e06fedcde6bc971088b2cb21405173"><td class="mdescLeft">&#160;</td><td class="mdescRight">INIC Resource Object used for Extended Resource Manager jobs.  <a href="#ga74e06fedcde6bc971088b2cb21405173"></a><br/></td></tr>
 <tr class="separator:ga74e06fedcde6bc971088b2cb21405173"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab2f4b821b24db0cec150d1b30fe18783"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gab2f4b821b24db0cec150d1b30fe18783.html#gab2f4b821b24db0cec150d1b30fe18783">Ucs_Xrm_Stream_PortCfgResCb_t</a> )(uint16_t node_address, uint8_t index, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga6ea92012ace1c507dab36b727698a08e.html#ga6ea92012ace1c507dab36b727698a08e">Ucs_Stream_PortOpMode_t</a> op_mode, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga83e210aa76632ea2191bd59ef7894432.html#ga83e210aa76632ea2191bd59ef7894432">Ucs_Stream_PortOption_t</a> port_option, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga3139c2b4d435622104235bd9fd9f478c.html#ga3139c2b4d435622104235bd9fd9f478c">Ucs_Stream_PortClockMode_t</a> clock_mode, <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#ga16d6cd08e925676dfade13e980f460b0">Ucs_Stream_PortClockDataDelay_t</a> clock_data_delay, <a class="el" href="struct_ucs___std_result__t.html">Ucs_StdResult_t</a> result, void *user_ptr)</td></tr>
-<tr class="memdesc:gab2f4b821b24db0cec150d1b30fe18783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_ga481fb8455d6165c5913ead778765d46e.html#ga481fb8455d6165c5913ead778765d46e" title="This function is used to configure a Streaming Port.">Ucs_Xrm_Stream_SetPortConfig()</a> and <a class="el" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_ga05e65cb477a3ff894de32425eb41294f.html#ga05e65cb477a3ff894de32425eb41294f" title="This function requests the configurations of a Streaming Port.">Ucs_Xrm_Stream_GetPortConfig()</a>.  <a href="#gab2f4b821b24db0cec150d1b30fe18783"></a><br/></td></tr>
+<tr class="memdesc:gab2f4b821b24db0cec150d1b30fe18783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_ga8fbfe64d0c67ade39e1823ee8e60a399.html#ga8fbfe64d0c67ade39e1823ee8e60a399" title="This function is used to configure a Streaming Port.">Ucs_Xrm_Stream_SetPortConfig()</a> and <a class="el" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_gafe0b74afb91b4f85f7579e1fb239decd.html#gafe0b74afb91b4f85f7579e1fb239decd" title="This function requests the configurations of a Streaming Port.">Ucs_Xrm_Stream_GetPortConfig()</a>.  <a href="#gab2f4b821b24db0cec150d1b30fe18783"></a><br/></td></tr>
 <tr class="separator:gab2f4b821b24db0cec150d1b30fe18783"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga10b22839e9b7b2fe0148713aeea0172c"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_ga10b22839e9b7b2fe0148713aeea0172c.html#ga10b22839e9b7b2fe0148713aeea0172c">Ucs_Xrm_ResourceDebugCb_t</a> )(<a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#gac238d98be8f9df6340eb4ee72de36ccc">Ucs_Xrm_ResourceType_t</a> resource_type, <a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_ga74e06fedcde6bc971088b2cb21405173.html#ga74e06fedcde6bc971088b2cb21405173">Ucs_Xrm_ResObject_t</a> *resource_ptr, <a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_ga5299ac232aaeba37eb6fceb53e32b2ea.html#ga5299ac232aaeba37eb6fceb53e32b2ea">Ucs_Xrm_ResourceInfos_t</a> resource_infos, void *endpoint_inst_ptr, void *user_ptr)</td></tr>
-<tr class="memdesc:ga10b22839e9b7b2fe0148713aeea0172c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for monitoring the XRM resources.  <a href="#ga10b22839e9b7b2fe0148713aeea0172c"></a><br/></td></tr>
-<tr class="separator:ga10b22839e9b7b2fe0148713aeea0172c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -206,7 +203,7 @@ Enumerations</h2></td></tr>
 <tr class="memitem:gac238d98be8f9df6340eb4ee72de36ccc"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#gac238d98be8f9df6340eb4ee72de36ccc">Ucs_Xrm_ResourceType_t</a> { <br/>
 &#160;&#160;<a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccacf416b59b369504088ef6810b4c545e1">UCS_XRM_RC_TYPE_DC_PORT</a> = 0x00U, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccaeebb673b9abc5172f688f8e9e692441c">UCS_XRM_RC_TYPE_MOST_SOCKET</a> = 0x01U, 
+&#160;&#160;<a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca3ef70ccdea3e80ce549be70baf9c16a7">UCS_XRM_RC_TYPE_NW_SOCKET</a> = 0x01U, 
 <br/>
 &#160;&#160;<a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca2c31643fe2ccea0ecb44424ef0ba0472">UCS_XRM_RC_TYPE_MLB_PORT</a> = 0x02U, 
 <br/>
@@ -277,12 +274,12 @@ Enumerations</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

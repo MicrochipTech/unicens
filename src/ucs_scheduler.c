@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -62,7 +62,7 @@ static bool Scd_SearchSlot(void *current_prio_ptr, void *new_prio_ptr);
  *  \param init_ptr    Reference to the initialization data
  *  \param ucs_user_ptr User reference that needs to be passed in every callback function
  */
-void Scd_Ctor(CScheduler *self, Scd_InitData_t *init_ptr, void * ucs_user_ptr)
+void Scd_Ctor(CScheduler *self, Scd_InitData_t *init_ptr, void *ucs_user_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     self->ucs_user_ptr = ucs_user_ptr;
@@ -85,12 +85,12 @@ Scd_Ret_t Scd_AddService(CScheduler *self, CService *srv_ptr)
     Scd_Ret_t ret_val;
 
     /* Check that service is not already part of scheduler */
-    if(Dl_IsNodeInList(&self->srv_list, &srv_ptr->list_node) == false) 
+    if (Dl_IsNodeInList(&self->srv_list, &srv_ptr->list_node) == false)
     {
         /* Search slot where the service must be inserted depending on the priority value.  */
         CDlNode *result_ptr = Dl_Foreach(&self->srv_list, &Scd_SearchSlot, &srv_ptr->priority);
 
-        if(result_ptr != NULL)   /* Slot found? */
+        if (result_ptr != NULL)   /* Slot found? */
         {
             Dl_InsertBefore(&self->srv_list, result_ptr, &srv_ptr->list_node);
         }
@@ -122,7 +122,7 @@ Scd_Ret_t Scd_RemoveService(CScheduler *self, CService *srv_ptr)
     Scd_Ret_t ret_val = SCD_OK;
 
     /* Error occurred? */
-    if(Dl_Remove(&self->srv_list, &srv_ptr->list_node) == DL_UNKNOWN_NODE)
+    if (Dl_Remove(&self->srv_list, &srv_ptr->list_node) == DL_UNKNOWN_NODE)
     {
         ret_val = SCD_UNKNOWN_SRV;
     }
@@ -140,17 +140,17 @@ void Scd_Service(CScheduler *self)
     /* Scheduler service is running. Important for event handling */
     self->scd_srv_is_running = true;
 
-    while(current_srv_ptr != NULL)   /* Process registered services */
+    while (current_srv_ptr != NULL)   /* Process registered services */
     {
-        if(current_srv_ptr->service_fptr != NULL)
+        if (current_srv_ptr->service_fptr != NULL)
         {
             /* Are events pending for the current service */
-            if(current_srv_ptr->event_mask != SRV_EMPTY_EVENT_MASK)
+            if (current_srv_ptr->event_mask != SRV_EMPTY_EVENT_MASK)
             {
                 /* Execute service callback function */
                 current_srv_ptr->service_fptr(current_srv_ptr->instance_ptr);
                 /* Was the current service removed from the schedulers list? */
-                if((current_srv_ptr->list_node.prev == NULL) && (current_srv_ptr->list_node.next == NULL))
+                if ((current_srv_ptr->list_node.prev == NULL) && (current_srv_ptr->list_node.next == NULL))
                 {
                     break;  /* Abort scheduler service */
                 }
@@ -172,9 +172,9 @@ bool Scd_AreEventsPending(CScheduler *self)
     bool ret_val = false;
     CService *current_srv_ptr = (CService *)(void*)self->srv_list.head;
 
-    while(current_srv_ptr != NULL)
+    while (current_srv_ptr != NULL)
     {
-        if(current_srv_ptr->event_mask != SRV_EMPTY_EVENT_MASK)
+        if (current_srv_ptr->event_mask != SRV_EMPTY_EVENT_MASK)
         {
             ret_val = true;
             break;
@@ -185,10 +185,10 @@ bool Scd_AreEventsPending(CScheduler *self)
     return ret_val;
 }
 
-/*! \brief  Searches the slot where the new service has to be inserted. The position depends on 
+/*! \brief  Searches the slot where the new service has to be inserted. The position depends on
  *          the given priority. If a the priority of the new service is higher than the priority
  *          of the current service \c true is returned which stops the search.
- *  \param  current_prio_ptr   Current service which is analyzed 
+ *  \param  current_prio_ptr   Current service which is analyzed
  *  \param  new_prio_ptr       Priority of the new service
  *  \return false: The priority of the current service is greater than the new priority
  *  \return true: The priority of the current service is less than or equal to the new priority
@@ -199,7 +199,7 @@ static bool Scd_SearchSlot(void *current_prio_ptr, void *new_prio_ptr)
     uint8_t new_prio_ = *((uint8_t*)new_prio_ptr);
     bool ret_val = false;
 
-    if(current_prio_ptr_ <= new_prio_)
+    if (current_prio_ptr_ <= new_prio_)
     {
         ret_val = true;
     }
@@ -232,7 +232,7 @@ void Srv_Ctor(CService *self, uint8_t priority, void *instance_ptr, Srv_Cb_t ser
 void Srv_SetEvent(CService *self, Srv_Event_t event_mask)
 {
     self->event_mask |= event_mask;
-    if(self->scd_ptr->scd_srv_is_running == false) 
+    if (self->scd_ptr->scd_srv_is_running == false)
     {
         Ssub_Notify(&self->scd_ptr->service_request_subject, NULL, false);
     }

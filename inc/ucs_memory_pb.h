@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -57,7 +57,7 @@ extern "C"
 typedef struct Ucs_Mem_Buffer_
 {
     struct Ucs_Mem_Buffer_  *next_buffer_ptr;   /*!< \brief Points to an additional memory buffer
-                                                 *          that belongs to the same message. 
+                                                 *          that belongs to the same message.
                                                  */
     uint8_t                 *data_ptr;          /*!< \brief Points to the data buffer */
     uint16_t                 data_size;         /*!< \brief Size of the data buffer */

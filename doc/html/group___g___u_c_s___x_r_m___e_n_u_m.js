@@ -24,20 +24,20 @@ var group___g___u_c_s___x_r_m___e_n_u_m =
       [ "UCS_MLB_SCKT_DISC_FRAME_PHASE", "group___g___u_c_s___x_r_m___e_n_u_m_gaf3facaf3378409c31465c68380990b53.html#ggaf3facaf3378409c31465c68380990b53aa26b21e1fb0aca35442102baa8f4a11a", null ],
       [ "UCS_MLB_SCKT_IPC_PACKET", "group___g___u_c_s___x_r_m___e_n_u_m_gaf3facaf3378409c31465c68380990b53.html#ggaf3facaf3378409c31465c68380990b53ac365dd966ebfeeff2906e73f16c5e441", null ]
     ] ],
-    [ "Ucs_Most_PortAvail_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga902951b9083ff58a88e19e151b57106a.html#ga902951b9083ff58a88e19e151b57106a", [
-      [ "UCS_MOST_PORT_AVAIL", "group___g___u_c_s___x_r_m___e_n_u_m_ga902951b9083ff58a88e19e151b57106a.html#gga902951b9083ff58a88e19e151b57106aaa0255a1f099a88d43d562c2c3f9e7307", null ],
-      [ "UCS_MOST_PORT_NOT_AVAIL", "group___g___u_c_s___x_r_m___e_n_u_m_ga902951b9083ff58a88e19e151b57106a.html#gga902951b9083ff58a88e19e151b57106aa367f9c085169b943f1084f48e2db430c", null ]
+    [ "Ucs_Network_PortAvail_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga6e02e7a2dd0e71f0edf6a5663d7ca550.html#ga6e02e7a2dd0e71f0edf6a5663d7ca550", [
+      [ "UCS_NW_PORT_AVAIL", "group___g___u_c_s___x_r_m___e_n_u_m_ga6e02e7a2dd0e71f0edf6a5663d7ca550.html#gga6e02e7a2dd0e71f0edf6a5663d7ca550a3db46e1a0da51320b1997bc84c740102", null ],
+      [ "UCS_NW_PORT_NOT_AVAIL", "group___g___u_c_s___x_r_m___e_n_u_m_ga6e02e7a2dd0e71f0edf6a5663d7ca550.html#gga6e02e7a2dd0e71f0edf6a5663d7ca550ad9b56db2090e72ce2e95e6161086ee91", null ]
     ] ],
-    [ "Ucs_Most_PortAvailInfo_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga24bf81b4e52fc1fb01deba9165d7c79e.html#ga24bf81b4e52fc1fb01deba9165d7c79e", [
-      [ "UCS_MOST_PRT_AVL_INF_REGULAR", "group___g___u_c_s___x_r_m___e_n_u_m_ga24bf81b4e52fc1fb01deba9165d7c79e.html#gga24bf81b4e52fc1fb01deba9165d7c79eae407528edcdb4d1b773340cf024e7c30", null ],
-      [ "UCS_MOST_PRT_AVL_INF_UNSTABLE", "group___g___u_c_s___x_r_m___e_n_u_m_ga24bf81b4e52fc1fb01deba9165d7c79e.html#gga24bf81b4e52fc1fb01deba9165d7c79ea2c0ceb407c48e14845e2218c121dfeea", null ],
-      [ "UCS_MOST_PRT_AVL_INF_STABLE", "group___g___u_c_s___x_r_m___e_n_u_m_ga24bf81b4e52fc1fb01deba9165d7c79e.html#gga24bf81b4e52fc1fb01deba9165d7c79ea0633c428576d7cd9411e2594166b9227", null ]
+    [ "Ucs_Network_PortAvailInfo_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga1c3239d96b20d50866035c62d8b0fa05.html#ga1c3239d96b20d50866035c62d8b0fa05", [
+      [ "UCS_NW_PORT_AVAIL_INFO_REGULAR", "group___g___u_c_s___x_r_m___e_n_u_m_ga1c3239d96b20d50866035c62d8b0fa05.html#gga1c3239d96b20d50866035c62d8b0fa05a39f8ba112021d191fc830e183ab7f6aa", null ],
+      [ "UCS_NW_PORT_AVAIL_INFO_UNSTABLE", "group___g___u_c_s___x_r_m___e_n_u_m_ga1c3239d96b20d50866035c62d8b0fa05.html#gga1c3239d96b20d50866035c62d8b0fa05a60f830b97dd6240520b12d1433763cf7", null ],
+      [ "UCS_NW_PORT_AVAIL_INFO_STABLE", "group___g___u_c_s___x_r_m___e_n_u_m_ga1c3239d96b20d50866035c62d8b0fa05.html#gga1c3239d96b20d50866035c62d8b0fa05a047a8666ec37e3f5ab0bb57f20b0c743", null ]
     ] ],
-    [ "Ucs_Most_SocketDataType_t", "group___g___u_c_s___x_r_m___e_n_u_m_gab29e10223e27331045485facbe4102ee.html#gab29e10223e27331045485facbe4102ee", [
-      [ "UCS_MOST_SCKT_SYNC_DATA", "group___g___u_c_s___x_r_m___e_n_u_m_gab29e10223e27331045485facbe4102ee.html#ggab29e10223e27331045485facbe4102eea345ad57d9919545fa5e5bf8393b0224f", null ],
-      [ "UCS_MOST_SCKT_AV_PACKETIZED", "group___g___u_c_s___x_r_m___e_n_u_m_gab29e10223e27331045485facbe4102ee.html#ggab29e10223e27331045485facbe4102eeac9bedb4912676bc0a2fdca379f5dc9e7", null ],
-      [ "UCS_MOST_SCKT_QOS_IP", "group___g___u_c_s___x_r_m___e_n_u_m_gab29e10223e27331045485facbe4102ee.html#ggab29e10223e27331045485facbe4102eeab11bbea636b1bbfbba10d9073ba09896", null ],
-      [ "UCS_MOST_SCKT_DISC_FRAME_PHASE", "group___g___u_c_s___x_r_m___e_n_u_m_gab29e10223e27331045485facbe4102ee.html#ggab29e10223e27331045485facbe4102eea17d7e05acbb595e6d96d985e90c874ba", null ]
+    [ "Ucs_Network_SocketDataType_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga08137994e7d855f0e2f959ec96bd9f89.html#ga08137994e7d855f0e2f959ec96bd9f89", [
+      [ "UCS_NW_SCKT_SYNC_DATA", "group___g___u_c_s___x_r_m___e_n_u_m_ga08137994e7d855f0e2f959ec96bd9f89.html#gga08137994e7d855f0e2f959ec96bd9f89aa761241fb9a680fcc2f0378e1b1318dc", null ],
+      [ "UCS_NW_SCKT_AV_PACKETIZED", "group___g___u_c_s___x_r_m___e_n_u_m_ga08137994e7d855f0e2f959ec96bd9f89.html#gga08137994e7d855f0e2f959ec96bd9f89a2302325fe488549188542e702a2c715e", null ],
+      [ "UCS_NW_SCKT_QOS_IP", "group___g___u_c_s___x_r_m___e_n_u_m_ga08137994e7d855f0e2f959ec96bd9f89.html#gga08137994e7d855f0e2f959ec96bd9f89a1f71232299880b434639829f23144a89", null ],
+      [ "UCS_NW_SCKT_DISC_FRAME_PHASE", "group___g___u_c_s___x_r_m___e_n_u_m_ga08137994e7d855f0e2f959ec96bd9f89.html#gga08137994e7d855f0e2f959ec96bd9f89ac962b7fe32aee7d13efa91254ce173ef", null ]
     ] ],
     [ "Ucs_Pci_SocketDataType_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga066850ed913a19025120619cca07fac6.html#ga066850ed913a19025120619cca07fac6", [
       [ "UCS_PCI_SCKT_AV_PACKETIZED", "group___g___u_c_s___x_r_m___e_n_u_m_ga066850ed913a19025120619cca07fac6.html#gga066850ed913a19025120619cca07fac6a20039c896aa6b0c03a6e753040ae4db2", null ]
@@ -62,6 +62,7 @@ var group___g___u_c_s___x_r_m___e_n_u_m =
     [ "Ucs_Stream_PortClockDataDelay_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#ga16d6cd08e925676dfade13e980f460b0", [
       [ "UCS_STREAM_PORT_CLK_DLY_NONE", "group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#gga16d6cd08e925676dfade13e980f460b0a4a03b7fe83667b4e5f2a355e2810ed6f", null ],
       [ "UCS_STREAM_PORT_CLK_DLY_DELAYED", "group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#gga16d6cd08e925676dfade13e980f460b0a57fd16fd3f918e55cb4fc665f4023c79", null ],
+      [ "UCS_STREAM_PORT_CLK_DLY_BDO", "group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#gga16d6cd08e925676dfade13e980f460b0a94541e03def58960bd2a3f13afcba344", null ],
       [ "UCS_STREAM_PORT_CLK_DLY_WILD", "group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#gga16d6cd08e925676dfade13e980f460b0ae852c8c7676b739182f522d3ac1d54bd", null ]
     ] ],
     [ "Ucs_Stream_PortClockMode_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga3139c2b4d435622104235bd9fd9f478c.html#ga3139c2b4d435622104235bd9fd9f478c", [
@@ -74,7 +75,9 @@ var group___g___u_c_s___x_r_m___e_n_u_m =
       [ "UCS_STREAM_PORT_ALGN_LEFT24BIT", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa64ff85efa59d4760e4dba13678c7b802", null ],
       [ "UCS_STREAM_PORT_ALGN_RIGHT16BIT", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfae288dcb736db417e450f52b59da4efd6", null ],
       [ "UCS_STREAM_PORT_ALGN_RIGHT24BIT", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa1c36b204751eff3352215d86b703d9d6", null ],
-      [ "UCS_STREAM_PORT_ALGN_SEQ", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa8511f386d32e3e1eacfb7763528ae198", null ]
+      [ "UCS_STREAM_PORT_ALGN_SEQ", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa8511f386d32e3e1eacfb7763528ae198", null ],
+      [ "UCS_STREAM_PORT_ALGN_TDM16BIT", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa53ab9fe32f7ff7b87a9256f89bf4ab33", null ],
+      [ "UCS_STREAM_PORT_ALGN_TDM24BIT", "group___g___u_c_s___x_r_m___e_n_u_m_ga02741bef1059621aaf6cf4fa956cfccf.html#gga02741bef1059621aaf6cf4fa956cfccfa4069c9ff11d4f3a6d58c645398ba0755", null ]
     ] ],
     [ "Ucs_Stream_PortOpMode_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga6ea92012ace1c507dab36b727698a08e.html#ga6ea92012ace1c507dab36b727698a08e", [
       [ "UCS_STREAM_PORT_OP_MODE_GENERIC", "group___g___u_c_s___x_r_m___e_n_u_m_ga6ea92012ace1c507dab36b727698a08e.html#gga6ea92012ace1c507dab36b727698a08ea10bf424b1ddb5c25b7659991fa761946", null ]
@@ -99,7 +102,7 @@ var group___g___u_c_s___x_r_m___e_n_u_m =
     ] ],
     [ "Ucs_Usb_PhysicalLayer_t", "group___g___u_c_s___x_r_m___e_n_u_m_gaa573e5854eb036998eec837e9fbf0ae1.html#gaa573e5854eb036998eec837e9fbf0ae1", [
       [ "UCS_USB_PHY_LAYER_STANDARD", "group___g___u_c_s___x_r_m___e_n_u_m_gaa573e5854eb036998eec837e9fbf0ae1.html#ggaa573e5854eb036998eec837e9fbf0ae1aea428e9f9e380e629584c3989e4318b3", null ],
-      [ "UCS_USB_PHY_LAYER_HSCI", "group___g___u_c_s___x_r_m___e_n_u_m_gaa573e5854eb036998eec837e9fbf0ae1.html#ggaa573e5854eb036998eec837e9fbf0ae1a94962f9a6bce23c8ab29d9da551ef2c3", null ]
+      [ "UCS_USB_PHY_LAYER_HSIC", "group___g___u_c_s___x_r_m___e_n_u_m_gaa573e5854eb036998eec837e9fbf0ae1.html#ggaa573e5854eb036998eec837e9fbf0ae1a996ca17074773ef06015367e17b4deac", null ]
     ] ],
     [ "Ucs_Usb_SocketDataType_t", "group___g___u_c_s___x_r_m___e_n_u_m_gafd56377a5a1f782e64260d18caf17dc9.html#gafd56377a5a1f782e64260d18caf17dc9", [
       [ "UCS_USB_SCKT_SYNC_DATA", "group___g___u_c_s___x_r_m___e_n_u_m_gafd56377a5a1f782e64260d18caf17dc9.html#ggafd56377a5a1f782e64260d18caf17dc9a4df4e4d4848358e18a3ef6386db80acf", null ],

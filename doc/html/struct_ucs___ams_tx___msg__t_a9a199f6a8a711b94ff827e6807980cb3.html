@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -98,7 +98,8 @@ $(document).ready(function(){initNavTree('struct_ucs___ams_tx___msg__t.html','')
       </table>
 </div><div class="memdoc">
 
-<p>Destination address. </p>
+<p>Destination address of the message. </p>
+<p>A destination address can be a node address, group address or broadcast address. Broadcast messages or groupcast messages concerning the local node are not are not transmitted internally and received as Rx messages. The transmission to the own node address is not supported and will fail with the result code <a class="el" href="group___g___u_c_s___a_m_s___t_y_p_e_s_ga36b630c866dc0c03134f60e98be39f0b.html#gga36b630c866dc0c03134f60e98be39f0ba99426ad75c697a377095fd16ac9f64dd">UCS_AMSTX_RES_ERR_INVALID_TGT</a> and information <a class="el" href="group___g___u_c_s___a_m_s___t_y_p_e_s_ga667b741121fdfbda2fe19fa23ffc7479.html#gga667b741121fdfbda2fe19fa23ffc7479a3a9611a4c6c74652c619b5c9ddea9170">UCS_AMSTX_I_ERR_FATAL_OA</a>. </p>
 
 </div>
 </div>
@@ -108,12 +109,12 @@ $(document).ready(function(){initNavTree('struct_ucs___ams_tx___msg__t.html','')
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="struct_ucs___ams_tx___msg__t.html">Ucs_AmsTx_Msg_t</a></li>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

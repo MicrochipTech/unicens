@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -41,6 +41,11 @@
 /*------------------------------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <stddef.h>
+#ifndef __cplusplus
+#   if __STDC_VERSION__ >= 199901L /* parasoft-suppress  MISRA2004-19_11* "Identifier bool must be adapted to user target system" */
+#       include <stdbool.h>
+#   endif
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -63,7 +68,9 @@ extern "C"
 
 /* Definition of boolean type, typically defined in <stdbool.h> */
 #ifndef __cplusplus
-   typedef uint8_t bool;            /* parasoft-suppress  MISRA2004-20_2 "Boolean data type not available on this system" */
+#   ifndef bool
+#       define bool  uint8_t        /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a MISRA2004-19_4 "Identifier must be adapted to user target system" */
+#   endif
 #endif
 
 /*------------------------------------------------------------------------------------------------*/
@@ -71,16 +78,20 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Definition of boolean values "true" and "false" */
 #ifndef __cplusplus
-#   define true  ((bool)1)          /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user application/system" */
-#   define false ((bool)0)          /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user application/system" */
+#   ifndef true
+#       define true  ((bool)1)      /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user target system" */
+#   endif
+#   ifndef false
+#       define false ((bool)0)      /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user target system" */
+#   endif
 #endif
 
 /* Definition of NULL pointer */
 #ifndef NULL
 #   ifndef __cplusplus
-#       define NULL ((void *)0)     /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user application/system" */
+#       define NULL ((void *)0)     /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user target system" */
 #   else   /* C++ */
-#       define NULL 0               /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user application/system" */
+#       define NULL 0               /* parasoft-suppress MISRA2004-20_2 MISRA2004-20_1_a "Identifier must be adapted to user target system" */
 #   endif  /* C++ */
 #endif
 
@@ -89,7 +100,6 @@ extern "C"
 #endif
 
 #endif      /* #ifndef UCS_TYPES_H */
-
 /*------------------------------------------------------------------------------------------------*/
 /* End of file                                                                                    */
 /*------------------------------------------------------------------------------------------------*/

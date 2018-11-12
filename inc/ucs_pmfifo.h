@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -67,7 +67,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Callback function which is invoked when receiving an Rx message 
+/*! \brief  Callback function which is invoked when receiving an Rx message
  *  \param  self    The Instance (of the host)
  *  \param  msg_ptr The Rx message
  */
@@ -101,7 +101,7 @@ typedef struct Fifo_Config_
                                          *   \details The value needs to be smaller or equal than \c rx_credits.
                                          *          Valid values are:
                                          *          - 0,1:              Single message acknowledge
-                                         *          - 2..rx_credits:    Implicit acknowledge is triggered after 
+                                         *          - 2..rx_credits:    Implicit acknowledge is triggered after
                                          *                              the specified number of messages.
                                          */
     uint8_t         tx_wd_timeout;      /*!< \brief Idle timeout in x100ms. Formerly known as watchdog timeout */
@@ -116,7 +116,7 @@ typedef struct Fifo_Config_
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief The synchronization status  */
 typedef enum Fifo_SyncState_
-{ 
+{
     FIFO_S_UNSYNCED_INIT,
     FIFO_S_SYNCING,
     FIFO_S_UNSYNCED_BUSY,
@@ -143,10 +143,10 @@ typedef struct CPmFifo_
         CTimer              timer;              /*!< \brief The timer object */
         CPmCommand          wd_cmd;             /*!< \brief The watchdog command message */
         uint16_t            timer_value;        /*!< \brief The internal timer value used by PMC to trigger the watchdog */
-        bool                request_started;    /*!< \brief Is used to check if the INIC responds with a status before the 
+        bool                request_started;    /*!< \brief Is used to check if the INIC responds with a status before the
                                                  *          next Cmd.REQUEST_STATUS is triggered.
                                                  */
-    } wd; 
+    } wd;
 
     struct CPmFifo_rx_
     {
@@ -157,11 +157,11 @@ typedef struct CPmFifo_
         void *on_complete_inst;                 /*!< \brief Instance which is referred when invoking rx_cb_fptr */
 
         uint8_t ack_threshold;                  /*!< \brief Number of unacknowledged Rx credits */
-        uint8_t ack_last_ok_sid;                /*!< \brief Latest SID which was acknowledged with "success" */ 
+        uint8_t ack_last_ok_sid;                /*!< \brief Latest SID which was acknowledged with "success" */
         uint8_t expected_sid;                   /*!< \brief The next expected Rx message SeqId */
         uint8_t busy_num;                       /*!< \brief The number of currently processing data messages */
 
-        bool wait_processing;                   /*!< \brief If set: Wait until transmission of e.g. NACK has finished 
+        bool wait_processing;                   /*!< \brief If set: Wait until transmission of e.g. NACK has finished
                                                  *          before continuing with further Rx message processing.
                                                  *          The flag is used if a status must be sent explicitly.
                                                  */
@@ -189,7 +189,7 @@ typedef struct CPmFifo_
         uint8_t current_code;                   /*!< \brief Tracks the latest valid FIFO status code received from the INIC */
 
         bool status_waiting_release;            /*!< \brief Is \c true if status notification wasn't completed due to messages
-                                                 *          which are not yet released by the LLD. 
+                                                 *          which are not yet released by the LLD.
                                                  */
         bool cancel_all_running;                /*!< \brief Is \c true during pending command CANCEL_ALL. This command is required
                                                  *          if the front-most message is segmented which requires to discard all

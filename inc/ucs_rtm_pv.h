@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -103,6 +103,10 @@ typedef struct Ucs_Rm_RouteInt_
     uint8_t notify_termination;
     /*! \brief Specifies the observer object for sink endpoint. */
     CObserver sink_ep_observer;
+    /*! \brief Specifies if the ATD value has been updated after net event */
+    bool atd_up_to_date;
+    /*! \brief The calculated ATD value */
+    uint16_t atd_value;
 
 } Ucs_Rm_RouteInt_t;
 

@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -112,16 +112,16 @@ Data Structures</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
 <tr class="memitem:ga14238b74c9e86db4e775461f2cf9b1cb"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga14238b74c9e86db4e775461f2cf9b1cb.html#ga14238b74c9e86db4e775461f2cf9b1cb">Ucs_Gpio_CreatePortResCb_t</a> )(uint16_t node_address, uint16_t gpio_port_handle, <a class="el" href="struct_ucs___gpio___result__t.html">Ucs_Gpio_Result_t</a> result, void *user_ptr)</td></tr>
-<tr class="memdesc:ga14238b74c9e86db4e775461f2cf9b1cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_ga76f4de37c98b0cdd7cc25a22a9dac8a9.html#ga76f4de37c98b0cdd7cc25a22a9dac8a9" title="Creates the GPIO port with its associated port instance identifier.">Ucs_Gpio_CreatePort()</a>  <a href="#ga14238b74c9e86db4e775461f2cf9b1cb"></a><br/></td></tr>
+<tr class="memdesc:ga14238b74c9e86db4e775461f2cf9b1cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_gaf4f73584f8e7070f74dfce863ccbdf35.html#gaf4f73584f8e7070f74dfce863ccbdf35" title="Creates the GPIO port with its associated port instance identifier.">Ucs_Gpio_CreatePort()</a>.  <a href="#ga14238b74c9e86db4e775461f2cf9b1cb"></a><br/></td></tr>
 <tr class="separator:ga14238b74c9e86db4e775461f2cf9b1cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga69f4d52dfc38232662abd4568e18e3c2"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga69f4d52dfc38232662abd4568e18e3c2.html#ga69f4d52dfc38232662abd4568e18e3c2">Ucs_Gpio_ConfigPinModeResCb_t</a> )(uint16_t node_address, uint16_t gpio_port_handle, <a class="el" href="struct_ucs___gpio___pin_configuration__t.html">Ucs_Gpio_PinConfiguration_t</a> pin_cfg_list[], uint8_t list_sz, <a class="el" href="struct_ucs___gpio___result__t.html">Ucs_Gpio_Result_t</a> result, void *user_ptr)</td></tr>
-<tr class="memdesc:ga69f4d52dfc38232662abd4568e18e3c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_gaf9ecc1f20870bf49d40521db09854a68.html#gaf9ecc1f20870bf49d40521db09854a68" title="Configures the pin mode of the given GPIO port.">Ucs_Gpio_SetPinMode()</a> and <a class="el" href="group___g___u_c_s___g_p_i_o_ga10b73bad28ba7e0f24d3676f082a11a1.html#ga10b73bad28ba7e0f24d3676f082a11a1" title="Retrieves the pin mode configuration of the given GPIO port.">Ucs_Gpio_GetPinMode()</a>.  <a href="#ga69f4d52dfc38232662abd4568e18e3c2"></a><br/></td></tr>
+<tr class="memdesc:ga69f4d52dfc38232662abd4568e18e3c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_ga70b6249848c50f130f84a3fae18997f1.html#ga70b6249848c50f130f84a3fae18997f1" title="Configures the pin mode of the given GPIO port.">Ucs_Gpio_SetPinMode()</a> and <a class="el" href="group___g___u_c_s___g_p_i_o_gad7cfd9f8b8e7c5b4f7675f0603cca756.html#gad7cfd9f8b8e7c5b4f7675f0603cca756" title="Retrieves the pin mode configuration of the given GPIO port.">Ucs_Gpio_GetPinMode()</a>.  <a href="#ga69f4d52dfc38232662abd4568e18e3c2"></a><br/></td></tr>
 <tr class="separator:ga69f4d52dfc38232662abd4568e18e3c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga106c6afdd6f996c8bc5d632f08236912"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga106c6afdd6f996c8bc5d632f08236912.html#ga106c6afdd6f996c8bc5d632f08236912">Ucs_Gpio_PinStateResCb_t</a> )(uint16_t node_address, uint16_t gpio_port_handle, uint16_t current_state, uint16_t sticky_state, <a class="el" href="struct_ucs___gpio___result__t.html">Ucs_Gpio_Result_t</a> result, void *user_ptr)</td></tr>
-<tr class="memdesc:ga106c6afdd6f996c8bc5d632f08236912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_gaff68acc9fb26096cae9374694b43ae92.html#gaff68acc9fb26096cae9374694b43ae92" title="Writes data to the given GPIO port.">Ucs_Gpio_WritePort()</a> and <a class="el" href="group___g___u_c_s___g_p_i_o_gaa2dc67622555e9e64e4bb524a8e18642.html#gaa2dc67622555e9e64e4bb524a8e18642" title="Reads the pin state of the given GPIO port.">Ucs_Gpio_ReadPort()</a>.  <a href="#ga106c6afdd6f996c8bc5d632f08236912"></a><br/></td></tr>
+<tr class="memdesc:ga106c6afdd6f996c8bc5d632f08236912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___g_p_i_o_ga9cf147f951d36a1a94588f1f1cce0ce9.html#ga9cf147f951d36a1a94588f1f1cce0ce9" title="Writes data to the given GPIO port.">Ucs_Gpio_WritePort()</a> and <a class="el" href="group___g___u_c_s___g_p_i_o_ga0a851f26c08dcd023544d12d2045d52d.html#ga0a851f26c08dcd023544d12d2045d52d" title="Reads the pin state of the given GPIO port.">Ucs_Gpio_ReadPort()</a>.  <a href="#ga106c6afdd6f996c8bc5d632f08236912"></a><br/></td></tr>
 <tr class="separator:ga106c6afdd6f996c8bc5d632f08236912"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga99bb3bcb2b588bc66d41f3e03d478020"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga99bb3bcb2b588bc66d41f3e03d478020.html#ga99bb3bcb2b588bc66d41f3e03d478020">Ucs_Gpio_TriggerEventResultCb_t</a> )(uint16_t node_address, uint16_t gpio_port_handle, uint16_t rising_edges, uint16_t falling_edges, uint16_t levels, void *user_ptr)</td></tr>
-<tr class="memdesc:ga99bb3bcb2b588bc66d41f3e03d478020"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by Gpio_TriggerEvents()  <a href="#ga99bb3bcb2b588bc66d41f3e03d478020"></a><br/></td></tr>
+<tr class="memdesc:ga99bb3bcb2b588bc66d41f3e03d478020"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by Gpio_TriggerEvents().  <a href="#ga99bb3bcb2b588bc66d41f3e03d478020"></a><br/></td></tr>
 <tr class="separator:ga99bb3bcb2b588bc66d41f3e03d478020"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
@@ -198,12 +198,12 @@ Enumerations</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

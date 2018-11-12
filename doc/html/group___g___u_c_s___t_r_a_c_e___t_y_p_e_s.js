@@ -16,13 +16,13 @@ var group___g___u_c_s___t_r_a_c_e___t_y_p_e_s =
       [ "tel_id", "struct_msg___tel_data__t_a880ca776e9ea8d0bbb714a7333da52cc.html#a880ca776e9ea8d0bbb714a7333da52cc", null ],
       [ "tel_len", "struct_msg___tel_data__t_a92083234f7755755f06bb85b3a6f2ea4.html#a92083234f7755755f06bb85b3a6f2ea4", null ]
     ] ],
-    [ "Msg_MostTel_t", "struct_msg___most_tel__t.html", [
-      [ "destination_addr", "struct_msg___most_tel__t_a67473c671719a1e3f3fe0ad16e95dd83.html#a67473c671719a1e3f3fe0ad16e95dd83", null ],
-      [ "id", "struct_msg___most_tel__t_a6d80d11eae3ae15f09cc8aff3dabb89b.html#a6d80d11eae3ae15f09cc8aff3dabb89b", null ],
-      [ "info_ptr", "struct_msg___most_tel__t_abc779299d755d192cd021eb2c2a68013.html#abc779299d755d192cd021eb2c2a68013", null ],
-      [ "opts", "struct_msg___most_tel__t_a9420136f5d99f8b6c48445b5eb048d60.html#a9420136f5d99f8b6c48445b5eb048d60", null ],
-      [ "source_addr", "struct_msg___most_tel__t_a703fce339153ac2b164c185137b59717.html#a703fce339153ac2b164c185137b59717", null ],
-      [ "tel", "struct_msg___most_tel__t_a3176fc4da0eba67428fa0627e15f86b6.html#a3176fc4da0eba67428fa0627e15f86b6", null ]
+    [ "Ucs_Message_t", "struct_ucs___message__t.html", [
+      [ "destination_addr", "struct_ucs___message__t_a67473c671719a1e3f3fe0ad16e95dd83.html#a67473c671719a1e3f3fe0ad16e95dd83", null ],
+      [ "id", "struct_ucs___message__t_a6d80d11eae3ae15f09cc8aff3dabb89b.html#a6d80d11eae3ae15f09cc8aff3dabb89b", null ],
+      [ "info_ptr", "struct_ucs___message__t_abc779299d755d192cd021eb2c2a68013.html#abc779299d755d192cd021eb2c2a68013", null ],
+      [ "opts", "struct_ucs___message__t_a9420136f5d99f8b6c48445b5eb048d60.html#a9420136f5d99f8b6c48445b5eb048d60", null ],
+      [ "source_addr", "struct_ucs___message__t_a703fce339153ac2b164c185137b59717.html#a703fce339153ac2b164c185137b59717", null ],
+      [ "tel", "struct_ucs___message__t_a3176fc4da0eba67428fa0627e15f86b6.html#a3176fc4da0eba67428fa0627e15f86b6", null ]
     ] ],
     [ "UCS_ADDR_BROADCAST_BLOCKING", "group___g___u_c_s___t_r_a_c_e___t_y_p_e_s_ga3d9b0fe84140fbc49ba03b685f6c0443.html#ga3d9b0fe84140fbc49ba03b685f6c0443", null ],
     [ "UCS_ADDR_BROADCAST_UNBLOCKING", "group___g___u_c_s___t_r_a_c_e___t_y_p_e_s_gaed7f13e95bb2324327de175834aa02ff.html#gaed7f13e95bb2324327de175834aa02ff", null ],

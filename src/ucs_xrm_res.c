@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -57,7 +57,7 @@ static uint16_t Xrm_CreatePortHandle(CExtendedResourceManager *self,
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Creates the corresponding INIC port handle depending on the given port type and the
  *          given port instance id.
- *  \param  self            Instance pointer
+ *  \param  self            Reference to the XRM instance
  *  \param  port_type       Type of the port
  *  \param  index           Port instance id
  *  \return Returns the created INIC port handle.
@@ -67,16 +67,16 @@ static uint16_t Xrm_CreatePortHandle(CExtendedResourceManager *self,
                                      uint8_t index)
 {
     MISC_UNUSED(self);
-    return ((uint16_t)((uint16_t)port_type << 8) | (uint16_t)index);
+    return (uint16_t)((uint16_t)((uint16_t)port_type << 8) | (uint16_t)index);
 }
 
 /*! \brief  Activates remote synchronization on the current device
- *  \param  self            Instance pointer
+ *  \param  self            Reference to the XRM instance
  *  \param  next_set_event  Next event to set once the remote synchronization succeeded
  *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
+ *           Value                       | Description
  *           -------------------------   | ------------------------------------
- *           UCS_RET_SUCCESS             | No error 
+ *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_BUFFER_OVERFLOW | no message buffer available
  */
 extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_Event_t next_set_event)
@@ -85,12 +85,12 @@ extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_
 
     result = Rsm_SyncDev(self->rsm_ptr, self, &Xrm_RmtDevAttachResultCb);
 
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         self->queued_event_mask |= next_set_event;
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start Synchronization of remote device", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, next_set_event);
     }
@@ -98,44 +98,44 @@ extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_
     return result;
 }
 
-/*! \brief  Triggers the creation of a MOST socket.
- *  \param  self    Instance pointer
+/*! \brief  Triggers the creation of a network socket.
+ *  \param  self    Reference to the XRM instance
  */
-void Xrm_CreateMostSocket(CExtendedResourceManager *self)
+void Xrm_CreateNetworkSocket(CExtendedResourceManager *self)
 {
-    UCS_XRM_CONST Ucs_Xrm_MostSocket_t *cfg_ptr = (UCS_XRM_CONST  Ucs_Xrm_MostSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
-    uint16_t con_label = (cfg_ptr->direction == UCS_SOCKET_DIR_INPUT) ? self->current_job_ptr->most_network_connection_label : 0xFFFFU;
-    Ucs_Return_t result = Inic_MostSocketCreate(self->inic_ptr,
-                                                cfg_ptr->most_port_handle,
-                                                cfg_ptr->direction,
-                                                cfg_ptr->data_type,
-                                                cfg_ptr->bandwidth,
-                                                con_label,
-                                                &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    UCS_XRM_CONST Ucs_Xrm_NetworkSocket_t *cfg_ptr = (UCS_XRM_CONST  Ucs_Xrm_NetworkSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
+    uint16_t con_label = (cfg_ptr->direction == UCS_SOCKET_DIR_INPUT) ? self->current_job_ptr->network_connection_label : 0xFFFFU;
+    Ucs_Return_t result = Inic_NetworkSocketCreate(self->inic_ptr,
+                                                   cfg_ptr->nw_port_handle,
+                                                   cfg_ptr->direction,
+                                                   cfg_ptr->data_type,
+                                                   cfg_ptr->bandwidth,
+                                                   con_label,
+                                                   &self->obs.std_result_obs);
+    if (result == UCS_RET_SUCCESS)
     {
-        TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating MOST socket", 0U));
+        TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating network socket", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
     else
     {
         self->report_result.code = UCS_XRM_RES_ERR_BUILD;
-        self->report_result.details.resource_type = UCS_XRM_RC_TYPE_MOST_SOCKET;
+        self->report_result.details.resource_type = UCS_XRM_RC_TYPE_NW_SOCKET;
         self->report_result.details.resource_index = Xrm_GetResourceObjectIndex(self,
                                                                                 self->current_job_ptr,
                                                                                 self->current_obj_pptr);
         self->report_result.details.result_type = UCS_XRM_RESULT_TYPE_INT;
         self->report_result.details.int_result = result;
         Xrm_HandleError(self);
-        TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating MOST socket failed. Return value: 0x%02X", 1U, result));
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating network socket failed. Return value: 0x%02X", 1U, result));
     }
 }
 
 /*! \brief  Triggers the creation of the MediaLB port.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateMlbPort(CExtendedResourceManager *self)
 {
@@ -144,11 +144,11 @@ void Xrm_CreateMlbPort(CExtendedResourceManager *self)
                                              cfg_ptr->index,
                                              cfg_ptr->clock_config,
                                              &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating MediaLB port", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -167,14 +167,14 @@ void Xrm_CreateMlbPort(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a MediaLB socket.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateMlbSocket(CExtendedResourceManager *self)
 {
     Ucs_Return_t result;
     uint16_t mlb_port_handle;
     UCS_XRM_CONST Ucs_Xrm_MlbSocket_t *cfg_ptr = (UCS_XRM_CONST Ucs_Xrm_MlbSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
-    if(Xrm_IsDefaultCreatedPort(self, cfg_ptr->mlb_port_obj_ptr) != false)
+    if (Xrm_IsDefaultCreatedPort(self, cfg_ptr->mlb_port_obj_ptr) != false)
     {
         mlb_port_handle = Xrm_CreatePortHandle(self,
                                                UCS_XRM_PORT_TYPE_MLB,
@@ -191,11 +191,11 @@ void Xrm_CreateMlbSocket(CExtendedResourceManager *self)
                                   cfg_ptr->bandwidth,
                                   cfg_ptr->channel_address,
                                   &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating MediaLB socket", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -214,7 +214,7 @@ void Xrm_CreateMlbSocket(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of the USB port.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateUsbPort(CExtendedResourceManager *self)
 {
@@ -226,11 +226,11 @@ void Xrm_CreateUsbPort(CExtendedResourceManager *self)
                                              cfg_ptr->streaming_if_ep_out_count,
                                              cfg_ptr->streaming_if_ep_in_count,
                                              &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating USB port", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -249,14 +249,14 @@ void Xrm_CreateUsbPort(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a USB socket.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateUsbSocket(CExtendedResourceManager *self)
 {
     Ucs_Return_t result;
     uint16_t usb_port_handle;
     UCS_XRM_CONST Ucs_Xrm_UsbSocket_t *cfg_ptr = (UCS_XRM_CONST Ucs_Xrm_UsbSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
-    if(Xrm_IsDefaultCreatedPort(self, cfg_ptr->usb_port_obj_ptr) != false)
+    if (Xrm_IsDefaultCreatedPort(self, cfg_ptr->usb_port_obj_ptr) != false)
     {
         usb_port_handle = Xrm_CreatePortHandle(self,
                                                UCS_XRM_PORT_TYPE_USB,
@@ -273,11 +273,11 @@ void Xrm_CreateUsbSocket(CExtendedResourceManager *self)
                                   cfg_ptr->end_point_addr,
                                   cfg_ptr->frames_per_transfer,
                                   &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating USB socket", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -296,7 +296,7 @@ void Xrm_CreateUsbSocket(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of the RMCK port.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateRmckPort(CExtendedResourceManager *self)
 {
@@ -306,11 +306,11 @@ void Xrm_CreateRmckPort(CExtendedResourceManager *self)
                                                  cfg_ptr->clock_source,
                                                  cfg_ptr->divisor,
                                                  &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating RMCK port", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -329,7 +329,7 @@ void Xrm_CreateRmckPort(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a streaming port.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateStreamPort(CExtendedResourceManager *self)
 {
@@ -339,11 +339,11 @@ void Xrm_CreateStreamPort(CExtendedResourceManager *self)
                                                 cfg_ptr->clock_config,
                                                 cfg_ptr->data_alignment,
                                                 &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating streaming port", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -362,14 +362,14 @@ void Xrm_CreateStreamPort(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a streaming data socket.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateStreamSocket(CExtendedResourceManager *self)
 {
     Ucs_Return_t result;
     uint16_t stream_port_handle;
     UCS_XRM_CONST Ucs_Xrm_StrmSocket_t *cfg_ptr = (UCS_XRM_CONST Ucs_Xrm_StrmSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
-    if(Xrm_IsDefaultCreatedPort(self, cfg_ptr->stream_port_obj_ptr) != false)
+    if (Xrm_IsDefaultCreatedPort(self, cfg_ptr->stream_port_obj_ptr) != false)
     {
         stream_port_handle = Xrm_CreatePortHandle(self,
                                                   UCS_XRM_PORT_TYPE_STRM,
@@ -386,11 +386,11 @@ void Xrm_CreateStreamSocket(CExtendedResourceManager *self)
                                      cfg_ptr->bandwidth,
                                      cfg_ptr->stream_pin_id,
                                      &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating streaming data socket", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -409,7 +409,7 @@ void Xrm_CreateStreamSocket(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a synchronous data connection.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateSyncCon(CExtendedResourceManager *self)
 {
@@ -423,11 +423,11 @@ void Xrm_CreateSyncCon(CExtendedResourceManager *self)
                                           cfg_ptr->mute_mode,
                                           cfg_ptr->offset,
                                           &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating synchronous data connection", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -446,7 +446,7 @@ void Xrm_CreateSyncCon(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a DiscreteFrame Isochronous streaming phase connection.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateDfiPhaseCon(CExtendedResourceManager *self)
 {
@@ -457,11 +457,11 @@ void Xrm_CreateDfiPhaseCon(CExtendedResourceManager *self)
                                               in_socket_handle,
                                               out_socket_handle,
                                               &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating DFIPhase connection", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -480,7 +480,7 @@ void Xrm_CreateDfiPhaseCon(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a combiner resource.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateCombiner(CExtendedResourceManager *self)
 {
@@ -488,14 +488,14 @@ void Xrm_CreateCombiner(CExtendedResourceManager *self)
     uint16_t port_socket_handle = Xrm_GetResourceHandle(self, self->current_job_ptr, cfg_ptr->port_socket_obj_ptr, NULL);
     Ucs_Return_t result = Inic_CombinerCreate(self->inic_ptr,
                                               port_socket_handle,
-                                              cfg_ptr->most_port_handle,
+                                              cfg_ptr->nw_port_handle,
                                               cfg_ptr->bytes_per_frame,
                                               &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating combiner resource", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -514,7 +514,7 @@ void Xrm_CreateCombiner(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a splitter resource.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateSplitter(CExtendedResourceManager *self)
 {
@@ -522,14 +522,14 @@ void Xrm_CreateSplitter(CExtendedResourceManager *self)
     uint16_t socket_handle_in = Xrm_GetResourceHandle(self, self->current_job_ptr, cfg_ptr->socket_in_obj_ptr, NULL);
     Ucs_Return_t result = Inic_SplitterCreate(self->inic_ptr,
                                               socket_handle_in,
-                                              cfg_ptr->most_port_handle,
+                                              cfg_ptr->nw_port_handle,
                                               cfg_ptr->bytes_per_frame,
                                               &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating splitter resource", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -548,7 +548,7 @@ void Xrm_CreateSplitter(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a A/V packetized isochronous streaming data connection.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateAvpCon(CExtendedResourceManager *self)
 {
@@ -560,11 +560,11 @@ void Xrm_CreateAvpCon(CExtendedResourceManager *self)
                                          out_socket_handle,
                                          cfg_ptr->isoc_packet_size,
                                          &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating A/V packetized isochronous streaming data connection", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -583,7 +583,7 @@ void Xrm_CreateAvpCon(CExtendedResourceManager *self)
 }
 
 /*! \brief  Triggers the creation of a Quality of Service IP streaming data connection.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_CreateQoSCon(CExtendedResourceManager *self)
 {
@@ -594,11 +594,11 @@ void Xrm_CreateQoSCon(CExtendedResourceManager *self)
                                          in_socket_handle,
                                          out_socket_handle,
                                          &self->obs.std_result_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating QoS IP streaming data connection", 0U));
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_PROCESS);
     }
@@ -617,8 +617,8 @@ void Xrm_CreateQoSCon(CExtendedResourceManager *self)
 }
 
 /*! \brief  Process the result of the INIC resource monitor.
- *  \param  self        Instance pointer
- *  \param  result_ptr  Reference to result data. Result must be casted into data type 
+ *  \param  self        Reference to the XRM instance
+ *  \param  result_ptr  Reference to result data. Result must be casted into data type
  *                      Inic_StdResult_t.
  */
 void Xrm_ResourceMonitorCb(void *self, void *result_ptr)
@@ -626,35 +626,36 @@ void Xrm_ResourceMonitorCb(void *self, void *result_ptr)
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
 
-    if((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
+    if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
     {
         Ucs_Resource_MonitorState_t state = *((Ucs_Resource_MonitorState_t *)result_ptr_->data_info);
-        if(state == UCS_INIC_RES_MON_STATE_ACT_REQ)
+        if (state == UCS_INIC_RES_MON_STATE_ACT_REQ)
         {
             Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_REQ_INV_RES_LST);
         }
-        else if((state == UCS_INIC_RES_MON_STATE_OK) && (self_->obs.check_unmute_fptr != NULL))
+        else if ((state == UCS_INIC_RES_MON_STATE_OK) && (self_->obs.check_unmute_fptr != NULL))
         {
-            self_->obs.check_unmute_fptr(Inic_GetTargetAddress(self_->inic_ptr), self_->base_ptr->ucs_user_ptr);
+            self_->obs.check_unmute_fptr(Addr_ReplaceLocalAddrApi(&self_->base_ptr->addr, Inic_GetTargetAddress(self_->inic_ptr)),
+                                         self_->base_ptr->ucs_user_ptr);
         }
     }
 }
 
 /*! \brief  Retrieves the list of invalid resources.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_RequestResourceList(CExtendedResourceManager *self)
 {
-    if(Xrm_IsApiFree(self) != false)
+    if (Xrm_IsApiFree(self) != false)
     {
         Ucs_Return_t result;
         result = Inic_ResourceInvalidList_Get(self->inic_ptr,
                                                 &self->obs.resource_invalid_list_obs);
-        if(result == UCS_RET_SUCCESS)
+        if (result == UCS_RET_SUCCESS)
         {
             Xrm_ApiLocking(self, true);
         }
-        else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+        else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
         {
             Xrm_WaitForTxMsgObj(self, XRM_EVENT_REQ_INV_RES_LST);
         }
@@ -674,8 +675,8 @@ void Xrm_RequestResourceList(CExtendedResourceManager *self)
 }
 
 /*! \brief  Process the received list of invalid resources.
- *  \param  self        Instance pointer
- *  \param  result_ptr  Reference to result data. Result must be casted into data type 
+ *  \param  self        Reference to the XRM instance
+ *  \param  result_ptr  Reference to result data. Result must be casted into data type
  *                      Inic_StdResult_t.
  */
 void Xrm_RequestResourceListResultCb(void *self, void *result_ptr)
@@ -683,14 +684,14 @@ void Xrm_RequestResourceListResultCb(void *self, void *result_ptr)
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
 
-    if((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
+    if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
     {
         Inic_ResHandleList_t resource_handle_list = *((Inic_ResHandleList_t *)result_ptr_->data_info);
-        if((resource_handle_list.res_handles != NULL) && (resource_handle_list.num_handles > 0U))
+        if ((resource_handle_list.res_handles != NULL) && (resource_handle_list.num_handles > 0U))
         {
             MISC_MEM_CPY(&self_->inv_resource_handle_list[0],
                          &resource_handle_list.res_handles[0],
-                         (resource_handle_list.num_handles * sizeof(resource_handle_list.res_handles[0])));
+                         (uint16_t)(resource_handle_list.num_handles * (uint16_t)sizeof(resource_handle_list.res_handles[0])));
         }
         self_->inv_resource_handle_list_size = resource_handle_list.num_handles;
         self_->inv_resource_handle_index     = 0U;
@@ -722,7 +723,7 @@ void Xrm_RequestResourceListResultCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Triggers the destruction of INIC resources.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  result_fptr Result callback function pointer
  */
 void Xrm_DestroyResources(CExtendedResourceManager *self, Sobs_UpdateCb_t result_fptr)
@@ -739,22 +740,22 @@ void Xrm_DestroyResources(CExtendedResourceManager *self, Sobs_UpdateCb_t result
     {
         list.num_handles = self->inv_resource_handle_list_size;
         self->curr_dest_resource_handle_size = list.num_handles;
-        if(self->inv_resource_handle_list[(self->inv_resource_handle_index + self->inv_resource_handle_list_size) - 1U] == XRM_INVALID_RESOURCE_HANDLE)
+        if (self->inv_resource_handle_list[(uint16_t)(self->inv_resource_handle_index + self->inv_resource_handle_list_size) - 1U] == XRM_INVALID_RESOURCE_HANDLE)
         {
             list.num_handles--;
         }
     }
     Sobs_Ctor(&self->obs.resource_destroy_obs, self, result_fptr);
     result = Inic_ResourceDestroy(self->inic_ptr,
-                                  list, 
+                                  list,
                                   &self->obs.resource_destroy_obs);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         /* No error */
 #ifdef UCS_TR_INFO
         uint8_t i;
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Destruction of invalid resource handles been successfully started:", 0U));
-        for(i=0U; i<list.num_handles; i++)
+        for (i=0U; i<list.num_handles; i++)
         {
             TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "--> Handle: 0x%04X", 1U, list.res_handles[i]));
         }
@@ -769,7 +770,7 @@ void Xrm_DestroyResources(CExtendedResourceManager *self, Sobs_UpdateCb_t result
             Srv_SetEvent(&self->xrm_srv, XRM_EVENT_RESET_RES_MONITOR);
         }
     }
-    else if(result == UCS_RET_ERR_BUFFER_OVERFLOW)
+    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
         Xrm_WaitForTxMsgObj(self, XRM_EVENT_DESTROY_INV_RES);
     }
@@ -785,12 +786,12 @@ void Xrm_DestroyResources(CExtendedResourceManager *self, Sobs_UpdateCb_t result
 }
 
 /*! \brief  Resets the INIC's Resource Monitor.
- *  \param  self    Instance pointer
+ *  \param  self    Reference to the XRM instance
  */
 void Xrm_ResetResourceMonitor(CExtendedResourceManager *self)
 {
     Ucs_Return_t result = Inic_ResourceMonitor_Set(self->inic_ptr, UCS_INIC_RES_MON_CTRL_RESET);
-    if(result == UCS_RET_SUCCESS)
+    if (result == UCS_RET_SUCCESS)
     {
         Srv_SetEvent(&self->xrm_srv, XRM_EVENT_NOTIFY_AUTO_DEST_RES);
     }
@@ -802,15 +803,15 @@ void Xrm_ResetResourceMonitor(CExtendedResourceManager *self)
 
 
 /*! \brief  Handles the result of resource destructions.
- *  \param  self        Instance pointer
- *  \param  result_ptr  Reference to result data. Result must be casted into data type 
+ *  \param  self        Reference to the XRM instance
+ *  \param  result_ptr  Reference to result data. Result must be casted into data type
  *                      Inic_StdResult_t.
  */
 void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr)
 {
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-    if(result_ptr_->result.code == UCS_RES_SUCCESS)
+    if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         (void)Xrm_ReleaseResourceHandles(self_,
                                    NULL,
@@ -820,15 +821,15 @@ void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr)
 
         if (self_->inv_resource_handle_list_size >= self_->curr_dest_resource_handle_size)
         {
-            self_->inv_resource_handle_list_size -= self_->curr_dest_resource_handle_size;
+            self_->inv_resource_handle_list_size = (uint16_t)(self_->inv_resource_handle_list_size - self_->curr_dest_resource_handle_size);
             if (self_->inv_resource_handle_list_size > 0U)
             {
-                self_->inv_resource_handle_index += self_->curr_dest_resource_handle_size;
+                self_->inv_resource_handle_index = (uint16_t)(self_->inv_resource_handle_index + self_->curr_dest_resource_handle_size);
                 Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_DESTROY_INV_RES);
             }
             else
             {
-                if(self_->inv_resource_handle_list[(self_->inv_resource_handle_index + self_->curr_dest_resource_handle_size) - 1U] != XRM_INVALID_RESOURCE_HANDLE)
+                if (self_->inv_resource_handle_list[(uint16_t)(self_->inv_resource_handle_index + self_->curr_dest_resource_handle_size) - 1U] != XRM_INVALID_RESOURCE_HANDLE)
                 {
                     Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_REQ_INV_RES_LST);
                 }
@@ -850,9 +851,9 @@ void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr)
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Destruction of invalid resources failed. Internal resources handles List is corrupted", 0U));
         }
     }
-    else if(result_ptr_->result.code == UCS_RES_ERR_BUSY)
+    else if (result_ptr_->result.code == UCS_RES_ERR_BUSY)
     {
-        uint8_t stop_index;
+        uint16_t stop_index;
         uint16_t failed_resource_handle;
         MISC_DECODE_WORD(&(failed_resource_handle), &(result_ptr_->result.info_ptr[3]));
         stop_index = Xrm_ReleaseResourceHandles(self_,
@@ -864,7 +865,7 @@ void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr)
         if (stop_index > 0U)
         {
             self_->inv_resource_handle_index = stop_index;
-            self_->inv_resource_handle_list_size -= stop_index;
+            self_->inv_resource_handle_list_size = (uint16_t)(self_->inv_resource_handle_list_size - stop_index);
         }
         Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_DESTROY_INV_RES);
     }
@@ -890,15 +891,15 @@ void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Handles the result of resource destructions for all resources of a job.
- *  \param  self        Instance pointer
- *  \param  result_ptr  Reference to result data. Result must be casted into data type 
+ *  \param  self        Reference to the XRM instance
+ *  \param  result_ptr  Reference to result data. Result must be casted into data type
  *                      Inic_StdResult_t.
  */
 void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr)
 {
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-    if(result_ptr_->result.code == UCS_RES_SUCCESS)
+    if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         (void)Xrm_ReleaseResourceHandles(self_,
                                    self_->current_job_ptr,
@@ -908,7 +909,7 @@ void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr)
 
         if (self_->inv_resource_handle_list_size >= self_->curr_dest_resource_handle_size)
         {
-            self_->inv_resource_handle_list_size -= self_->curr_dest_resource_handle_size;
+            self_->inv_resource_handle_list_size = (uint16_t)(self_->inv_resource_handle_list_size - self_->curr_dest_resource_handle_size);
             self_->inv_resource_handle_index = 0U;
             Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_RESUME_JOB_DESTRUCT);
             TR_INFO((self_->base_ptr->ucs_user_ptr, "[XRM]", "INIC resources been successfully destroyed.", 0U));
@@ -924,7 +925,7 @@ void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr)
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Destruction of invalid resources failed. Internal resources handles List is corrupted", 0U));
         }
     }
-    else if(result_ptr_->result.code == UCS_RES_ERR_BUSY)
+    else if (result_ptr_->result.code == UCS_RES_ERR_BUSY)
     {
         uint16_t failed_handle;
         MISC_DECODE_WORD(&(failed_handle), &(result_ptr_->result.info_ptr[3]));
@@ -959,8 +960,8 @@ void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Handles the result of "create port", "create socket" and "create connection" operations.
- *  \param  self        Instance pointer
- *  \param  result_ptr  Reference to result data. Result must be casted into data type 
+ *  \param  self        Reference to the XRM instance
+ *  \param  result_ptr  Reference to result data. Result must be casted into data type
  *                      Inic_StdResult_t.
  */
 void Xrm_StdResultCb(void *self, void *result_ptr)
@@ -968,14 +969,14 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
 
-    if((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
+    if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
     {
         uint16_t resource_handle = 0U;
-        if(*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr) == UCS_XRM_RC_TYPE_MOST_SOCKET)
+        if (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr) == UCS_XRM_RC_TYPE_NW_SOCKET)
         {
-            Inic_MostSocketCreate_Result_t res_ack = {0U, 0U};
-            res_ack = *((Inic_MostSocketCreate_Result_t *)result_ptr_->data_info);
-            resource_handle = res_ack.most_socket_handle;
+            Inic_NwSocketCreateResult_t res_ack = {0U, 0U};
+            res_ack = *((Inic_NwSocketCreateResult_t *)result_ptr_->data_info);
+            resource_handle = res_ack.nw_socket_handle;
             self_->current_job_ptr->connection_label = res_ack.conn_label;
         }
         else
@@ -983,11 +984,11 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
             resource_handle = *((uint16_t *)result_ptr_->data_info);
         }
 
-        if(Xrm_StoreResourceHandle(self_, resource_handle, self_->current_job_ptr, *self_->current_obj_pptr) != false)
+        if (Xrm_StoreResourceHandle(self_, resource_handle, self_->current_job_ptr, *self_->current_obj_pptr) != false)
         {
             if (self_->res_debugging_fptr != NULL)
             {
-                self_->res_debugging_fptr(*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr), *self_->current_obj_pptr, UCS_XRM_INFOS_BUILT, 
+                self_->res_debugging_fptr(*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr), *self_->current_obj_pptr, UCS_XRM_INFOS_BUILT,
                                             self_->current_job_ptr->user_arg, self_->base_ptr->ucs_user_ptr);
             }
 
@@ -1030,7 +1031,7 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
             self_->res_debugging_fptr(*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr),
                                   *self_->current_obj_pptr, UCS_XRM_INFOS_ERR_BUILT, self_->current_job_ptr->user_arg, self_->base_ptr->ucs_user_ptr);
         }
-        TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Creation of resource failed. Result code: 0x%02X", 1U, result_ptr_->result.code));
+        TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Creation of resource failed: node=0x%03X, result code=0x%02X", 2U, Inic_GetNodeAddress(self_->inic_ptr), result_ptr_->result.code));
         if (result_ptr_->result.info_ptr != NULL)
         {
             TR_ERROR_INIC_RESULT(self_->base_ptr->ucs_user_ptr, "[XRM]", result_ptr_->result.info_ptr, result_ptr_->result.info_size);
@@ -1039,7 +1040,7 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
 }
 
 /*! \brief  Handles the result of "device.sync" operations.
- *  \param  self        Instance pointer
+ *  \param  self        Reference to the XRM instance
  *  \param  result      RSM result
  */
 void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result)
@@ -1053,8 +1054,8 @@ void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result)
     }
     else
     {
-        /* In case of StreamingConfig, simulate an error configuration since there 
-         * is currently no possibility to signal SyncLost  
+        /* In case of StreamingConfig, simulate an error configuration since there
+         * is currently no possibility to signal SyncLost
          */
         if ((self_->queued_event_mask  == XRM_EVENT_STREAMPORT_CONFIG_SET) ||
             (self_->queued_event_mask  == XRM_EVENT_STREAMPORT_CONFIG_GET))
@@ -1102,15 +1103,15 @@ void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result)
 /* Implementation of class CExtendedResourceManager (INIC Resource Management API)                */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   This function is used to configure a Streaming Port.
- *  \param   self               Instance pointer
- *  \param   index              Streaming Port instance.
- *  \param   op_mode            Operation mode of the Streaming Port.
- *  \param   port_option        Direction of the physical pins of the indexed Streaming Port.
- *  \param   clock_mode         Configuration of the FSY/SCK signals.
- *  \param   clock_data_delay   Configuration of the FSY/SCK signals for Generic Streaming.
+ *  \param   self               Reference to the XRM instance
+ *  \param   index              Streaming Port instance
+ *  \param   op_mode            Operation mode of the Streaming Port
+ *  \param   port_option        Direction of the physical pins of the indexed Streaming Port
+ *  \param   clock_mode         Configuration of the FSY/SCK signals
+ *  \param   clock_data_delay   Configuration of the FSY/SCK signals for Generic Streaming
  *  \param   result_fptr        Required result callback
  *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
+ *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_PARAM           | Invalid callback pointer
@@ -1129,7 +1130,7 @@ Ucs_Return_t Xrm_Stream_SetPortConfig(CExtendedResourceManager *self,
 
     if ((self != NULL)  && (result_fptr != NULL) )
     {
-        if(Xrm_IsApiFree(self) != false)
+        if (Xrm_IsApiFree(self) != false)
         {
             Xrm_ApiLocking(self, true);
 
@@ -1152,9 +1153,9 @@ Ucs_Return_t Xrm_Stream_SetPortConfig(CExtendedResourceManager *self,
 }
 
 /*! \brief   This function is used to configure a Streaming Port.
- *  \param   self               Instance pointer
+ *  \param   self               Reference to the XRM instance
  *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
+ *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_PARAM           | Invalid callback pointer
@@ -1178,11 +1179,11 @@ Ucs_Return_t Xrm_SetStreamPortConfiguration (CExtendedResourceManager *self)
                                                 self->current_streamport_config.clock_mode,
                                                 self->current_streamport_config.clock_data_delay,
                                                 &self->obs.stream_port_config_obs);
-        if(ret_val == UCS_RET_SUCCESS)
+        if (ret_val == UCS_RET_SUCCESS)
         {
             self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
         }
-        else if(ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
+        else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
         {
             Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_SET);
         }
@@ -1196,11 +1197,11 @@ Ucs_Return_t Xrm_SetStreamPortConfiguration (CExtendedResourceManager *self)
 }
 
 /*! \brief   This function requests the configurations of a Streaming Port.
- *  \param   self           Instance pointer
- *  \param   index          Streaming Port instance.
+ *  \param   self           Reference to the XRM instance
+ *  \param   index          Streaming Port instance
  *  \param   result_fptr    Required result callback
  *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
+ *           Value                       | Description
  *           --------------------------- | ----------------------------------------------
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
@@ -1214,9 +1215,9 @@ Ucs_Return_t Xrm_Stream_GetPortConfig(CExtendedResourceManager *self,
 {
     Ucs_Return_t ret_val = UCS_RET_ERR_API_LOCKED;
 
-    if((self != NULL) && (result_fptr != NULL) )
+    if ((self != NULL) && (result_fptr != NULL) )
     {
-        if(Xrm_IsApiFree(self) != false)
+        if (Xrm_IsApiFree(self) != false)
         {
             Xrm_ApiLocking(self, true);
 
@@ -1240,13 +1241,13 @@ Ucs_Return_t Xrm_Stream_GetPortConfig(CExtendedResourceManager *self,
 }
 
 /*! \brief   This function is used to configure a Streaming Port.
- *  \param   self               Instance pointer
+ *  \param   self               Reference to the XRM instance
  *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
+ *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_PARAM           | Invalid callback pointer
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available 
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
  */
 Ucs_Return_t Xrm_GetStreamPortConfiguration (CExtendedResourceManager *self)
 {
@@ -1261,11 +1262,11 @@ Ucs_Return_t Xrm_GetStreamPortConfiguration (CExtendedResourceManager *self)
         ret_val = Inic_StreamPortConfig_Get(self->inic_ptr,
                                             self->current_streamport_config.index,
                                             &self->obs.stream_port_config_obs);
-        if(ret_val == UCS_RET_SUCCESS)
+        if (ret_val == UCS_RET_SUCCESS)
         {
             self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
         }
-        else if(ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
+        else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
         {
             Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_GET);
         }
@@ -1276,7 +1277,7 @@ Ucs_Return_t Xrm_GetStreamPortConfiguration (CExtendedResourceManager *self)
 
 /*! \brief Observer callback for Inic_StreamPortConfig_Get(). Casts the result and invokes
  *         the application result callback.
- *  \param self         Instance pointer
+ *  \param self         Reference to the XRM instance
  *  \param result_ptr   Reference to result
  */
 void Xrm_Stream_PortConfigResult(void *self, void *result_ptr)
@@ -1286,9 +1287,9 @@ void Xrm_Stream_PortConfigResult(void *self, void *result_ptr)
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
     Ucs_StdResult_t res = result_ptr_->result;
 
-    if(self_->obs.stream_port_config_fptr != NULL)
+    if (self_->obs.stream_port_config_fptr != NULL)
     {
-        if((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
+        if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
         {
             status = *((Inic_StreamPortConfigStatus_t *)result_ptr_->data_info);
         }
@@ -1301,7 +1302,7 @@ void Xrm_Stream_PortConfigResult(void *self, void *result_ptr)
             status.clock_mode       = UCS_STREAM_PORT_CLK_MODE_OUTPUT;
             status.clock_data_delay = UCS_STREAM_PORT_CLK_DLY_NONE;
         }
-        self_->obs.stream_port_config_fptr(Inic_GetTargetAddress(self_->inic_ptr),
+        self_->obs.stream_port_config_fptr(Addr_ReplaceLocalAddrApi(&self_->base_ptr->addr, Inic_GetTargetAddress(self_->inic_ptr)),
                                            status.index,
                                            status.op_mode,
                                            status.port_option,
@@ -1314,125 +1315,26 @@ void Xrm_Stream_PortConfigResult(void *self, void *result_ptr)
     Xrm_ApiLocking(self_, false);
 }
 
-/*! \brief   Enables or disables a specific MOST Network Port.
- *  \param   self               Instance pointer
- *  \param   most_port_handle   Port resource handle.
- *  \param   enabled            State of the MOST Port.
- *  \param   result_fptr        Optional result callback.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available 
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- */
-Ucs_Return_t Xrm_Most_EnablePort(CExtendedResourceManager *self,
-                                 uint16_t most_port_handle, 
-                                 bool enabled, 
-                                 Ucs_StdResultCb_t result_fptr)
-{
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-
-    if(Xrm_IsApiFree(self) != false)
-    {
-        ret_val = Inic_MostPortEnable(self->inic_ptr,
-                                        most_port_handle,
-                                        enabled,
-                                        &self->obs.most_port_enable_obs);
-        if(ret_val == UCS_RET_SUCCESS)
-        {
-            self->obs.most_port_enable_fptr = result_fptr;
-        }
-    }
-
-    return ret_val;
-}
-
-/*! \brief   Enables full streaming for a specific MOST Network Port.
- *  \param   self               Instance pointer
- *  \param   most_port_handle   Port resource handle.
- *  \param   enabled            State of the MOST Port related to full streaming.
- *  \param   result_fptr        Optional result callback.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description 
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error 
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available 
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- */
-Ucs_Return_t Xrm_Most_PortEnFullStr(CExtendedResourceManager *self,
-                                    uint16_t most_port_handle, 
-                                    bool enabled, 
-                                    Ucs_StdResultCb_t result_fptr)
-{
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-
-    if(Xrm_IsApiFree(self) != false)
-    {
-        ret_val = Inic_MostPortEnFullStr(self->inic_ptr,
-                                            most_port_handle,
-                                            enabled,
-                                            &self->obs.most_port_en_full_str_obs);
-        if(ret_val == UCS_RET_SUCCESS)
-        {
-            self->obs.most_port_en_full_str_fptr = result_fptr;
-        }
-    }
-
-    return ret_val;
-}
-
-/*! \brief Observer callback for Inic_MostPortEnable(). Casts the result and invokes
- *         the application result callback.
- *  \param self         Instance pointer
- *  \param result_ptr   Reference to result
- */
-void Xrm_Most_PortEnableResult(void *self, void *result_ptr)
-{
-    CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
-    if(self_->obs.most_port_enable_fptr != NULL)
-    {
-        Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-        self_->obs.most_port_enable_fptr(result_ptr_->result, self_->base_ptr->ucs_user_ptr);
-    }
-}
-
-/*! \brief Observer callback for Inic_MostPortEnFullStr(). Casts the result and invokes
- *         the application result callback.
- *  \param self         Instance pointer
- *  \param result_ptr   Reference to result
- */
-void Xrm_Most_PortEnFullStrResult(void *self, void *result_ptr)
-{
-    CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
-    if(self_->obs.most_port_en_full_str_fptr != NULL)
-    {
-        Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-        self_->obs.most_port_en_full_str_fptr(result_ptr_->result, self_->base_ptr->ucs_user_ptr);
-    }
-}
 
 /*! \brief  Sets the current job pointer of the CExtendedResourceManager instance.
- *  \param  resrc_ptr       Reference to the resource handle list to be looked for.
- *  \param  resrc_handle    Reference to the resource handle to be found.
- *  \param  job_ptr         Reference to the job to be looked for.
- *  \param  user_arg        Reference to a user argument.
+ *  \param  resrc_ptr       Reference to the resource handle list to be looked for
+ *  \param  resrc_handle    Reference to the resource handle to be found
+ *  \param  job_ptr         Reference to the job to be looked for
+ *  \param  user_arg        Reference to a user argument
  *  \return \c false to continue the for-each-loop of the resources list table, otherwise \c true
  */
-bool Xrm_SetCurrJobPtr(void *resrc_ptr, void *resrc_handle, void *job_ptr, void * user_arg)
+bool Xrm_SetCurrJobPtr(void *resrc_ptr, void *resrc_handle, void *job_ptr, void *user_arg)
 {
     bool ret_val = false;
-    Xrm_ResourceHandleListItem_t * resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
-    uint16_t * resrc_handle_ = (uint16_t *)resrc_handle;
+    Xrm_ResourceHandleListItem_t *resrc_ptr_ = (Xrm_ResourceHandleListItem_t *)resrc_ptr;
+    uint16_t *resrc_handle_ = (uint16_t *)resrc_handle;
     CExtendedResourceManager *self = (CExtendedResourceManager *)user_arg;
 
     MISC_UNUSED(job_ptr);
 
     if ((resrc_ptr_->resource_handle == *resrc_handle_) &&
         (*resrc_handle_ != XRM_INVALID_RESOURCE_HANDLE) &&
-        (Dl_IsNodeInList(&self->job_list, &resrc_ptr_->job_ptr->node)))
+        (Dl_IsNodeInList(&self->job_list, &resrc_ptr_->job_ptr->node) != false))
     {
         self->current_job_ptr = resrc_ptr_->job_ptr;
         ret_val = true;

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -63,10 +63,8 @@
 #define INIC_API_SYNC_MUTE                  0x0020U
 /*! \brief API locking Bitmask of method Inic_SyncDemute(). */
 #define INIC_API_SYNC_DEMUTE                0x0040U
-/*! \brief API locking Bitmask of method Inic_MostPortEnable(). */
-#define INIC_API_MOST_PORT_ENABLE           0x0080U
-/*! \brief API locking Bitmask of method Inic_MostPortEnFullStr(). */
-#define INIC_API_MOST_PORT_EN_FULL_STR      0x0100U
+/* free: 0x0080U */
+/* free: 0x0100U */
 /*! \brief API locking Bitmask of method Inic_GpioPortPinMode_SetGet(). */
 #define INIC_API_GPIO_PIN_MODE              0x0200U
 /*! \brief API locking Bitmask of method Inic_GpioPortPinState_SetGet(). */
@@ -75,12 +73,15 @@
 #define INIC_API_I2C_PORT_WR                0x0800U
 /*! \brief Bitmask for API method Inic_DeviceSync() used by API locking manager */
 #define INIC_API_DEVICE_SYNC                0x1000U
-
+/*! \brief Bitmask for API method Inic_ResourceInfo() used by API locking manager */
+#define INIC_API_RES_INFO                   0x2000U
+/*! \brief Bitmask for API method Inic_NetworkInfo() used by API locking manager */
+#define INIC_API_NET_INFO                   0x4000U
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
 static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr);
-static void Inic_ResMsgTxStatusCb(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status);
+static void Inic_ResMsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
@@ -106,7 +107,7 @@ static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr)
 {
     CInic *self_ = (CInic *)self;
     Alm_ModuleMask_t method_mask = *((Alm_ModuleMask_t *)method_mask_ptr);
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = NULL;
     res_data.result.code     = UCS_RES_ERR_TIMEOUT;
@@ -142,14 +143,6 @@ static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr)
             Ssub_Notify(&self_->ssubs[INIC_SSUB_SYNC_DEMUTE], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_SyncDemute().", 0U));
             break;
-        case INIC_API_MOST_PORT_ENABLE:
-            Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_ENABLE], &res_data, true);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_MostPortEnable().", 0U));
-            break;
-        case INIC_API_MOST_PORT_EN_FULL_STR:
-            Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_EN_FULL_STR], &res_data, true);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_MostPortEnFullStr().", 0U));
-            break;
         case INIC_API_GPIO_PIN_MODE:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_GPIO_PIN_MODE], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_GpioPortPinMode_SetGet().", 0U));
@@ -161,6 +154,14 @@ static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr)
         case INIC_API_DEVICE_SYNC:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_SYNC], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_DeviceSync_StartResult().", 0U));
+            break;
+        case INIC_API_RES_INFO:
+            Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method INIC_API_RES_INFO_Status().", 0U));
+            break;
+        case INIC_API_NET_INFO:
+            Ssub_Notify(&self_->ssubs[INIC_SSUB_NET_INFO], &res_data, true);
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method INIC_API_NET_INFO_Status().", 0U));
             break;
         default:
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "Unknown API locking bitmask detected. Mask: 0x%02X", 1U, method_mask));
@@ -186,25 +187,25 @@ void Inic_DelObsrvResMonitor(CInic *self, CObserver *obs_ptr)
     (void)Sub_RemoveObserver(&self->subs[INIC_SUB_RES_MONITOR], obs_ptr);
 }
 
-/*! \brief Add an observer to the MOSTPortStatus subject
+/*! \brief Add an observer to the NetworkPortStatus subject
  *  \param self     Instance of CInic
  *  \param obs_ptr  Pointer to observer to be informed
  */
-void Inic_AddObsrvMostPortStatus(CInic *self, CObserver *obs_ptr)
+void Inic_AddObsrvNetworkPortStatus(CInic *self, CObserver *obs_ptr)
 {
-    if (Sub_AddObserver(&self->subs[INIC_SUB_MOST_PORT_STATUS], obs_ptr) != SUB_UNKNOWN_OBSERVER)
+    if (Sub_AddObserver(&self->subs[INIC_SUB_NETWORK_PORT_STATUS], obs_ptr) != SUB_UNKNOWN_OBSERVER)
     {
-        Sub_Notify(&self->subs[INIC_SUB_MOST_PORT_STATUS], &self->most_port_status);
+        Sub_Notify(&self->subs[INIC_SUB_NETWORK_PORT_STATUS], &self->nw_port_status);
     }
 }
 
-/*! \brief Delete an observer from the MOSTPortStatus subject
+/*! \brief Delete an observer from the NetworkPortStatus subject
  *  \param self     Instance of CInic
  *  \param obs_ptr  Pointer to observer to be informed
  */
-void Inic_DelObsrvMostPortStatus(CInic *self, CObserver *obs_ptr)
+void Inic_DelObsrvNetworkPortStatus(CInic *self, CObserver *obs_ptr)
 {
-    (void)Sub_RemoveObserver(&self->subs[INIC_SUB_MOST_PORT_STATUS], obs_ptr);
+    (void)Sub_RemoveObserver(&self->subs[INIC_SUB_NETWORK_PORT_STATUS], obs_ptr);
 }
 
 /*! \brief Add an observer to the GpioTriggerEvent subject
@@ -242,10 +243,10 @@ Ucs_Return_t Inic_ResourceDestroy(CInic *self,
     Ucs_Return_t result = UCS_RET_SUCCESS;
     uint8_t len;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_RESOURCE_DESTROY) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_RESOURCE_DESTROY) != false)
     {
         /* sender handle + number of resource handles */
-        len = 2U * res_handle_list.num_handles;
+        len = (uint8_t)(2U * res_handle_list.num_handles);
 
         if ((len == 0U)  || ((MAX_INVALID_HANDLES_LIST << 1) < len))
         {
@@ -254,7 +255,7 @@ Ucs_Return_t Inic_ResourceDestroy(CInic *self,
         }
         else
         {
-            Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, len);
+            Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, len);
 
             if (msg_ptr != NULL)
             {
@@ -306,9 +307,9 @@ Ucs_Return_t Inic_ResourceInvalidList_Get(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_RESOURCE_INVAL_LIST) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_RESOURCE_INVAL_LIST) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 0U);
 
         if (msg_ptr != NULL)
         {
@@ -347,7 +348,7 @@ Ucs_Return_t Inic_ResourceMonitor_Set(CInic *self, Ucs_Resource_MonitorCtrl_t co
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
     if (msg_ptr != NULL)
     {
@@ -381,7 +382,7 @@ Ucs_Return_t Inic_Notification_Set(CInic *self, Ucs_Inic_NotificationCtrl_t cont
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
     /* control + device_id + size of the funcids list */
-    uint8_t len = 1U + 2U + (2U * fktid_list.num_fktids);
+    uint8_t len = (uint8_t)(1U + 2U + (2U * fktid_list.num_fktids));
 
     if (len > MSG_MAX_SIZE_PAYLOAD)
     {
@@ -389,7 +390,7 @@ Ucs_Return_t Inic_Notification_Set(CInic *self, Ucs_Inic_NotificationCtrl_t cont
     }
     else
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, len);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, len);
 
         if (msg_ptr != NULL)
         {
@@ -406,6 +407,7 @@ Ucs_Return_t Inic_Notification_Set(CInic *self, Ucs_Inic_NotificationCtrl_t cont
             msg_ptr->tel.tel_data_ptr[1] = MISC_HB(device_id);
             msg_ptr->tel.tel_data_ptr[2] = MISC_LB(device_id);
 
+            /* We do not check for <= 4 FktIds. This can be done in INIC.  */
             if ((len > 3U) && (fktid_list.fktids_ptr != NULL) )
             {
                 for (i=0U; i < fktid_list.num_fktids; ++i)
@@ -439,9 +441,9 @@ Ucs_Return_t Inic_Notification_Get(CInic *self, uint16_t fktid, CSingleObserver 
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_NOTIFICATION) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_NOTIFICATION) != false)
     {
-        Msg_MostTel_t * msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -475,6 +477,50 @@ Ucs_Return_t Inic_Notification_Get(CInic *self, uint16_t fktid, CSingleObserver 
     return result;
 }
 
+/*! \brief  Creates a request message to get the ResourceInfo data from a INIC resource.
+ *  \param  self                        Reference to CInic instance.
+ *  \param  resource_handle             Handle of the requested INIC resource.
+ *  \param  obs_ptr                     Reference to an optional observer.
+ *  \return UCS_RET_SUCCESS             If message was created successful.
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW No message buffer available.
+  *  \return UCS_RET_ERR_API_LOCKED     Resource API is already used by another command.
+ */
+Ucs_Return_t Inic_ResourceInfo_Get(CInic *self, uint16_t resource_handle, CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t result = UCS_RET_SUCCESS;
+
+    if (Al_Lock(&self->lock.res_api, INIC_API_RES_INFO) != false)
+    {
+        Ucs_Message_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+
+        if (msg_ptr != NULL)
+        {
+            msg_ptr->destination_addr  = self->target_address;
+            msg_ptr->id.fblock_id   = FB_INIC;
+            msg_ptr->id.instance_id = 0U;
+            msg_ptr->id.function_id = INIC_FID_RESOURCE_INFO;
+            msg_ptr->id.op_type     = UCS_OP_GET;
+            msg_ptr->info_ptr       = &self->ssubs[INIC_SSUB_RES_INFO];
+
+            msg_ptr->tel.tel_data_ptr[0]= MISC_HB(resource_handle);
+            msg_ptr->tel.tel_data_ptr[1]= MISC_LB(resource_handle);
+
+            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_RES_INFO], obs_ptr);
+        }
+        else
+        {
+            Al_Release(&self->lock.res_api, INIC_API_RES_INFO);
+            result = UCS_RET_ERR_BUFFER_OVERFLOW;
+        }
+    }
+    else
+    {
+        result = UCS_RET_ERR_API_LOCKED;
+    }
+    return result;
+}
+
 /*! \brief  Creates a synchronous data connection. The connection can be directly associated with
  *          an input and output socket.
  *  \param  self                Reference to CInic instance
@@ -502,9 +548,9 @@ Ucs_Return_t Inic_SyncCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
 
         if (msg_ptr != NULL)
         {
@@ -558,9 +604,9 @@ Ucs_Return_t Inic_SyncMute(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_SYNC_MUTE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_SYNC_MUTE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -608,9 +654,9 @@ Ucs_Return_t Inic_SyncDemute(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_SYNC_DEMUTE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_SYNC_DEMUTE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -618,7 +664,7 @@ Ucs_Return_t Inic_SyncDemute(CInic *self,
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_SYNC_DEMUTE;
+            msg_ptr->id.function_id = INIC_FID_SYNC_UNMUTE;
             msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
             msg_ptr->tel.tel_data_ptr[0] = MISC_HB(sync_handle);
@@ -663,9 +709,9 @@ Ucs_Return_t Inic_DfiPhaseCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -706,10 +752,10 @@ Ucs_Return_t Inic_DfiPhaseCreate(CInic *self,
  *  \param  self                Reference to CInic instance
  *  \param  port_socket_handle  Only supported sockets are Streaming Port, MLB, USB (OS81118) or PCI
  *                              (OS81160) sockets of data type Synchronous. Direction must be OUT.
- *  \param  most_port_handle    When the splitter is created with a MOST socket, the socket must be
+ *  \param  most_port_handle    When the splitter is created with a network socket, the socket must be
  *                              created on the same port indicated by this handle.
  *  \param  bytes_per_frame     Specifies the total number of data bytes that are to be transferred
- *                              each MOST frame.
+ *                              each network frame.
  *  \param  obs_ptr             Reference to an optional observer
  *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
@@ -723,9 +769,9 @@ Ucs_Return_t Inic_CombinerCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -768,10 +814,10 @@ Ucs_Return_t Inic_CombinerCreate(CInic *self,
  *  \param  self                Reference to CInic instance
  *  \param  socket_handle_in    All sockets of data type Synchronous are supported, regardless of
  *                              the port the socket is created on. The direction must be IN.
- *  \param  most_port_handle    When the splitter is created with a MOST socket, the socket must be
+ *  \param  most_port_handle    When the splitter is created with a network socket, the socket must be
  *                              created on the same port indicated by this handle.
  *  \param  bytes_per_frame     Specifies the total number of data bytes that are to be transferred
- *                              each MOST frame.
+ *                              each network frame.
  *  \param  obs_ptr             Reference to an optional observer
  *  \return UCS_RET_SUCCESS               message was created
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
@@ -785,9 +831,9 @@ Ucs_Return_t Inic_SplitterCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -843,9 +889,9 @@ Ucs_Return_t Inic_QoSCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -899,9 +945,9 @@ Ucs_Return_t Inic_IpcCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -958,9 +1004,9 @@ Ucs_Return_t Inic_AvpCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -998,16 +1044,16 @@ Ucs_Return_t Inic_AvpCreate(CInic *self,
     return result;
 }
 
-/*! \brief  This function creates a MOST socket bound to the MOST Network Port.
+/*! \brief  This function creates a network socket bound to the Network Port.
  *  \param  self                Reference to CInic instance
- *  \param  most_port_handle    MOST Network Port resource handle
+ *  \param  most_port_handle    Network Port resource handle
  *  \param  direction           indicates the direction of the data stream from the perspective of
  *                              the INIC
  *  \param  data_type           Specifies the data type
  *  \param  bandwidth           Required socket bandwidth in bytes. Maximum value depends on current
  *                              free network resources.
- *  \param  connection_label    MOST network connection label. When used as parameter with direction
- *                              Input, the connection label is used to connect to the appropriate MOST
+ *  \param  connection_label    network connection label. When used as parameter with direction
+ *                              Input, the connection label is used to connect to the appropriate network
  *                              frame bytes. When used as parameter with direction Output, the
  *                              connection label is not used and must be set to 0xFFFF.
  *  \param  obs_ptr             Reference to an optional observer
@@ -1015,19 +1061,19 @@ Ucs_Return_t Inic_AvpCreate(CInic *self,
  *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
  */
-Ucs_Return_t Inic_MostSocketCreate(CInic *self,
-                                   uint16_t most_port_handle,
-                                   Ucs_SocketDirection_t direction,
-                                   Ucs_Most_SocketDataType_t data_type,
-                                   uint16_t bandwidth,
-                                   uint16_t connection_label,
-                                   CSingleObserver *obs_ptr)
+Ucs_Return_t Inic_NetworkSocketCreate(CInic *self,
+                                      uint16_t most_port_handle,
+                                      Ucs_SocketDirection_t direction,
+                                      Ucs_Network_SocketDataType_t data_type,
+                                      uint16_t bandwidth,
+                                      uint16_t connection_label,
+                                      CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
 
         if (msg_ptr != NULL)
         {
@@ -1035,7 +1081,7 @@ Ucs_Return_t Inic_MostSocketCreate(CInic *self,
 
             msg_ptr->id.fblock_id   = FB_INIC;
             msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_SOCKET_CREATE;
+            msg_ptr->id.function_id = INIC_FID_NETWORK_SOCKET_CREATE;
             msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
 
             msg_ptr->tel.tel_data_ptr[0] = MISC_HB(most_port_handle);
@@ -1071,7 +1117,7 @@ Ucs_Return_t Inic_MostSocketCreate(CInic *self,
  *  \param  self            Reference to CInic instance
  *  \param  index           MediaLB Port instance
  *  \param  clock_config    Stores the clock speed configuration. The value is a multiple
- *                          of the MOST network frame rate Fs; this means the MediaLB Port
+ *                          of the network frame rate Fs; this means the MediaLB Port
  *                          can only be frequency locked to the network's system clock.
  *  \param  obs_ptr         Reference to an optional observer
  *  \return UCS_RET_SUCCESS               message was created
@@ -1085,9 +1131,9 @@ Ucs_Return_t Inic_MlbPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -1148,9 +1194,9 @@ Ucs_Return_t Inic_MlbSocketCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 8U);
 
         if (msg_ptr != NULL)
         {
@@ -1213,9 +1259,9 @@ Ucs_Return_t Inic_UsbPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -1262,7 +1308,7 @@ Ucs_Return_t Inic_UsbPortCreate(CInic *self,
  *  \param  data_type            Specifies the data type
  *  \param  end_point_addr       Denotes the address of a USB endpoint as per its description in the
  *                               USB 2.0 Specification
- *  \param  frames_per_transfer  Indicates the number of MOST frames per transfer per one USB
+ *  \param  frames_per_transfer  Indicates the number of network frames per transfer per one USB
  *                               transaction
  *  \param  obs_ptr              Reference to an optional observer
  *  \return UCS_RET_SUCCESS               message was created
@@ -1279,9 +1325,9 @@ Ucs_Return_t Inic_UsbSocketCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 7U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 7U);
 
         if (msg_ptr != NULL)
         {
@@ -1341,9 +1387,9 @@ Ucs_Return_t Inic_StreamPortConfig_SetGet(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_STREAM_PORT_CONFIG) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_STREAM_PORT_CONFIG) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 5U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 5U);
 
         if (msg_ptr != NULL)
         {
@@ -1393,9 +1439,9 @@ Ucs_Return_t Inic_StreamPortConfig_Get(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_STREAM_PORT_CONFIG) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_STREAM_PORT_CONFIG) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
         if (msg_ptr != NULL)
         {
@@ -1446,9 +1492,9 @@ Ucs_Return_t Inic_StreamPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 3U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 3U);
 
         if (msg_ptr != NULL)
         {
@@ -1508,9 +1554,9 @@ Ucs_Return_t Inic_StreamSocketCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 7U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 7U);
 
         if (msg_ptr != NULL)
         {
@@ -1567,9 +1613,9 @@ Ucs_Return_t Inic_RmckPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -1625,9 +1671,9 @@ Ucs_Return_t Inic_I2cPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -1683,9 +1729,9 @@ Ucs_Return_t Inic_I2cPortRead(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_I2C_PORT_WR) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_I2C_PORT_WR) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -1749,10 +1795,10 @@ Ucs_Return_t Inic_I2cPortWrite(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_I2C_PORT_WR) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_I2C_PORT_WR) != false)
     {
         uint8_t i;
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, (8U + data_len));
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, (uint8_t)(8U + data_len));
 
         if (msg_ptr != NULL)
         {
@@ -1800,117 +1846,6 @@ Ucs_Return_t Inic_I2cPortWrite(CInic *self,
     return result;
 }
 
-/*! \brief  This function creates an PCIe Port with its associated port instance identifier.
- *  \param  self            Reference to CInic instance
- *  \param  index           PCIe Port instance
- *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
- *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
- */
-Ucs_Return_t Inic_PciPortCreate(CInic *self,
-                                uint8_t index,
-                                CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
-    {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
-
-        if (msg_ptr != NULL)
-        {
-            msg_ptr->destination_addr  = self->target_address;
-
-            msg_ptr->id.fblock_id   = FB_INIC;
-            msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_PCI_PORT_CREATE;
-            msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
-
-            msg_ptr->tel.tel_data_ptr[0] = index;
-
-            self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
-            msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
-
-            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
-        }
-        else
-        {
-            Al_Release(&self->lock.res_api, INIC_API_CREATE_CLASS);
-            result = UCS_RET_ERR_BUFFER_OVERFLOW;
-        }
-    }
-    else
-    {
-        result = UCS_RET_ERR_API_LOCKED;
-    }
-
-    return result;
-}
-
-/*! \brief  This function creates a PCIe socket bound to the PCIe Port with the associated port
- *          instance identifier. If the EHC detaches, the PCIe socket will be automatically
- *          destroyed.
- *  \param  self                 Reference to CInic instance
- *  \param  pci_port_handle      PCIe Port resource handle
- *  \param  direction            Indicates the direction of the data stream from the perspective of
- *                               the INIC
- *  \param  data_type            Specifies the data type
- *  \param  dma_channel          Specifies the DMA channel
- *  \param  obs_ptr              Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
- *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
- */
-Ucs_Return_t Inic_PciSocketCreate(CInic *self,
-                                  uint16_t pci_port_handle,
-                                  Ucs_SocketDirection_t direction,
-                                  Ucs_Pci_SocketDataType_t data_type,
-                                  uint8_t dma_channel,
-                                  CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
-    {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 5U);
-
-        if (msg_ptr != NULL)
-        {
-            msg_ptr->destination_addr  = self->target_address;
-
-            msg_ptr->id.fblock_id   = FB_INIC;
-            msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_PCI_SOCKET_CREATE;
-            msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
-
-            msg_ptr->tel.tel_data_ptr[0] = MISC_HB(pci_port_handle);
-            msg_ptr->tel.tel_data_ptr[1] = MISC_LB(pci_port_handle);
-            msg_ptr->tel.tel_data_ptr[2] = (uint8_t)direction;
-            msg_ptr->tel.tel_data_ptr[3] = (uint8_t)data_type;
-            msg_ptr->tel.tel_data_ptr[4] = dma_channel;
-
-            self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
-            msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
-
-            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
-        }
-        else
-        {
-            Al_Release(&self->lock.res_api, INIC_API_CREATE_CLASS);
-            result = UCS_RET_ERR_BUFFER_OVERFLOW;
-        }
-    }
-    else
-    {
-        result = UCS_RET_ERR_API_LOCKED;
-    }
-
-    return result;
-}
-
 /*! \brief  This function creates a GPIO Port with its associated port instance identifier.
  *  \param  self            Reference to CInic instance
  *  \param  gpio_port_index GPIO Port instance
@@ -1927,9 +1862,9 @@ Ucs_Return_t Inic_GpioPortCreate(CInic *self,
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_CREATE_CLASS) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 3U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 3U);
 
         if (msg_ptr != NULL)
         {
@@ -1964,58 +1899,6 @@ Ucs_Return_t Inic_GpioPortCreate(CInic *self,
     return result;
 }
 
-/*! \brief  This function enables or disables a specific MOST Network Port.
- *  \param  self                Reference to CInic instance
- *  \param  most_port_handle    Port resource handle
- *  \param  enabled             Indicates whether a MOST Network Port should be enabled or disabled
- *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
- *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
- */
-Ucs_Return_t Inic_MostPortEnable(CInic *self,
-                                 uint16_t most_port_handle,
-                                 bool enabled,
-                                 CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-
-    if(Al_Lock(&self->lock.res_api, INIC_API_MOST_PORT_ENABLE) != false)
-    {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 3U);
-
-        if (msg_ptr != NULL)
-        {
-            msg_ptr->destination_addr  = self->target_address;
-
-            msg_ptr->id.fblock_id   = FB_INIC;
-            msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_MOST_PORT_ENABLE;
-            msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
-
-            msg_ptr->tel.tel_data_ptr[0] = MISC_HB(most_port_handle);
-            msg_ptr->tel.tel_data_ptr[1] = MISC_LB(most_port_handle);
-            msg_ptr->tel.tel_data_ptr[2] = (enabled != false) ? 1U : 0U;
-
-            self->ssubs[INIC_SSUB_MOST_PORT_ENABLE].user_mask = INIC_API_MOST_PORT_ENABLE;
-            msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_MOST_PORT_ENABLE];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
-
-            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_MOST_PORT_ENABLE], obs_ptr);
-        }
-        else
-        {
-            Al_Release(&self->lock.res_api, INIC_API_MOST_PORT_ENABLE);
-            result = UCS_RET_ERR_BUFFER_OVERFLOW;
-        }
-    }
-    else
-    {
-        result = UCS_RET_ERR_API_LOCKED;
-    }
-
-    return result;
-}
 
 /*! \brief  This function retrieves the current pin mode of the given GPIO Port.
  *  \param  self              Reference to CInic instance
@@ -2029,9 +1912,9 @@ Ucs_Return_t  Inic_GpioPortPinMode_Get(CInic *self, uint16_t gpio_handle, CSingl
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_MODE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_MODE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -2079,9 +1962,9 @@ Ucs_Return_t  Inic_GpioPortPinMode_SetGet(CInic *self, uint16_t gpio_handle, uin
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_MODE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_MODE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 4U);
 
         if (msg_ptr != NULL)
         {
@@ -2129,9 +2012,9 @@ Ucs_Return_t  Inic_GpioPortPinState_Get(CInic *self, uint16_t gpio_handle, CSing
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_STATE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_STATE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
 
         if (msg_ptr != NULL)
         {
@@ -2179,9 +2062,9 @@ Ucs_Return_t  Inic_GpioPortPinState_SetGet(CInic *self, uint16_t gpio_handle, ui
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_STATE) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_GPIO_PIN_STATE) != false)
     {
-        Msg_MostTel_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 6U);
 
         if (msg_ptr != NULL)
         {
@@ -2219,41 +2102,19 @@ Ucs_Return_t  Inic_GpioPortPinState_SetGet(CInic *self, uint16_t gpio_handle, ui
     return result;
 }
 
-/*! \brief  This function enables full streaming for a specific MOST Network Port.
- *  \param  self                Reference to CInic instance
- *  \param  most_port_handle    Port resource handle
- *  \param  enabled             Indicates whether full streaming is enabled or disabled
- *  \param  obs_ptr             Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
- *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
- */
-Ucs_Return_t Inic_MostPortEnFullStr(CInic *self,
-                                    uint16_t most_port_handle,
-                                    bool enabled,
-                                    CSingleObserver *obs_ptr)
-{
-    MISC_UNUSED(self);
-    MISC_UNUSED(most_port_handle);
-    MISC_UNUSED(enabled);
-    MISC_UNUSED(obs_ptr);
-
-    return UCS_RET_ERR_NOT_SUPPORTED;
-}
-
 /*! \brief  Allows remote synchronization of the given device
  *  \param  self            Reference to CInic instance
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
 Ucs_Return_t Inic_DeviceSync(CInic *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t     result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_DEVICE_SYNC) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_DEVICE_SYNC) != false)
     {
-        Msg_MostTel_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
 
         if (msg_ptr != NULL)
         {
@@ -2289,16 +2150,17 @@ Ucs_Return_t Inic_DeviceSync(CInic *self, CSingleObserver *obs_ptr)
 /*! \brief  Un-synchronizes to the given remote device
  *  \param  self            Reference to CInic instance
  *  \param  obs_ptr         Reference to an optional observer
- *  \return UCS_RET_SUCCESS               message was created 
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available 
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
  */
 Ucs_Return_t Inic_DeviceUnsync(CInic *self, CSingleObserver *obs_ptr)
 {
-    Ucs_Return_t     result = UCS_RET_SUCCESS;
-    Msg_MostTel_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+    Ucs_Return_t result = UCS_RET_SUCCESS;
 
-    if(Al_Lock(&self->lock.res_api, INIC_API_DEVICE_SYNC) != false)
+    if (Al_Lock(&self->lock.res_api, INIC_API_DEVICE_SYNC) != false)
     {
+        Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+
         if (msg_ptr != NULL)
         {
             msg_ptr->destination_addr  = self->target_address;
@@ -2338,14 +2200,14 @@ Ucs_Return_t Inic_DeviceUnsync(CInic *self, CSingleObserver *obs_ptr)
  *  \param tel_ptr  Reference to transmitted message
  *  \param status   Status of the transmitted message
  */
-static void Inic_ResMsgTxStatusCb(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status)
+static void Inic_ResMsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status)
 {
     CInic *self_ = (CInic *)self;
     CSingleSubject *ssub_ptr = (CSingleSubject *)tel_ptr->info_ptr;
 
     if ((status != UCS_MSG_STAT_OK) && (tel_ptr->info_ptr != NULL))
     {
-        Inic_StdResult_t res_data;
+        Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
         res_data.data_info        = &status;
         res_data.result.code      = UCS_RES_ERR_TRANSMISSION;
@@ -2376,10 +2238,10 @@ static void Inic_ResMsgTxStatusCb(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxS
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceDestroy_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceDestroy_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
@@ -2392,10 +2254,10 @@ void Inic_ResourceDestroy_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceDestroy_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceDestroy_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     MISC_UNUSED(msg_ptr);
 
     res_data.data_info       = NULL;
@@ -2409,10 +2271,10 @@ void Inic_ResourceDestroy_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceInvalidList_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceInvalidList_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     Inic_ResHandleList_t result;
     uint8_t i;
     uint16_t inv_res_handles[22];   /* Max. ICM message size is 45 -> max. 22 16-bit values */
@@ -2424,7 +2286,7 @@ void Inic_ResourceInvalidList_Status(void *self, Msg_MostTel_t *msg_ptr)
     /* Length of message must be even, since 16-Bit values are transmitted via two 8-bit fields. */
     TR_ASSERT(self_->base_ptr->ucs_user_ptr, "[INIC_RES]", ((msg_ptr->tel.tel_len % 2U) == 0U));
 
-    for(i=0U; (i < (uint8_t)(msg_ptr->tel.tel_len >> 1)); i++)
+    for (i=0U; (i < (uint8_t)(msg_ptr->tel.tel_len >> 1)); i++)
     {
         MISC_DECODE_WORD(&inv_res_handles[i],
                          &(msg_ptr->tel.tel_data_ptr[(uint8_t)((uint8_t)i << 1)]));
@@ -2439,10 +2301,10 @@ void Inic_ResourceInvalidList_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceInvalidList_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceInvalidList_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2456,10 +2318,10 @@ void Inic_ResourceInvalidList_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceMonitor_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceMonitor_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     Ucs_Resource_MonitorState_t state;
 
     res_data.data_info       = &state;
@@ -2473,10 +2335,10 @@ void Inic_ResourceMonitor_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_ResourceMonitor_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_ResourceMonitor_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2485,14 +2347,56 @@ void Inic_ResourceMonitor_Error(void *self, Msg_MostTel_t *msg_ptr)
     Sub_Notify(&self_->subs[INIC_SUB_RES_MONITOR], &res_data);
 }
 
+/*! \brief Handler function for Inic_ResourceInfo_Status.
+ *  \details Function maps the received message to the resource info status structure and notifies corresponding observer.
+ *  \param self     Reference to INIC object.
+ *  \param msg_ptr  Pointer to the received message.
+ */
+void Inic_ResourceInfo_Status(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    ResourceInfoStatus_t resource_info;
+
+    res_data.data_info       = &resource_info;
+    res_data.result.code     = UCS_RES_SUCCESS;
+    res_data.result.info_ptr = NULL;
+
+    MISC_DECODE_WORD(&resource_info.resource_handle, &msg_ptr->tel.tel_data_ptr[0]);
+    resource_info.info_id = msg_ptr->tel.tel_data_ptr[2];
+    resource_info.info_list_ptr = &msg_ptr->tel.tel_data_ptr[3];
+
+    Al_Release(&self_->lock.res_api, INIC_API_RES_INFO);
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
+}
+
+/*! \brief Handler function for Inic_ResourceInfor_Error.
+ *  \details Function translates the received error code and notifies corresponding observer.
+ *  \param self     Reference to INIC object.
+ *  \param msg_ptr  Pointer to the received message.
+ */
+void Inic_ResourceInfo_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "Inic_ResourceInfo_Error %d", 1U, msg_ptr->tel.tel_data_ptr[0]));
+    res_data.data_info = NULL;
+    res_data.result = Inic_TranslateError(self_,
+                                          &msg_ptr->tel.tel_data_ptr[0],
+                                          msg_ptr->tel.tel_len);
+
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
+    Al_Release(&self_->lock.res_api, INIC_API_RES_INFO);
+}
+
 /*! \brief Handler function for INIC.SyncCreate.ErrorAck
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_SyncCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2507,11 +2411,11 @@ void Inic_SyncCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_SyncCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2526,10 +2430,10 @@ void Inic_SyncCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SyncMute_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncMute_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info  = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2543,10 +2447,10 @@ void Inic_SyncMute_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SyncMute_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncMute_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
@@ -2561,10 +2465,10 @@ void Inic_SyncMute_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SyncDemute_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncDemute_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info  = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2578,10 +2482,10 @@ void Inic_SyncDemute_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SyncDemute_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SyncDemute_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 
@@ -2596,10 +2500,10 @@ void Inic_SyncDemute_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_DfiPhaseCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DfiPhaseCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2614,11 +2518,11 @@ void Inic_DfiPhaseCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_DfiPhaseCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DfiPhaseCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2632,10 +2536,10 @@ void Inic_DfiPhaseCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_CombinerCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_CombinerCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2649,11 +2553,11 @@ void Inic_CombinerCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_CombinerCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_CombinerCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2667,10 +2571,10 @@ void Inic_CombinerCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SplitterCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SplitterCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2684,11 +2588,11 @@ void Inic_SplitterCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  * \param  self     reference to INIC object
  * \param  msg_ptr  received message
  */
-void Inic_SplitterCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_SplitterCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2702,10 +2606,10 @@ void Inic_SplitterCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_QoSCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_QoSCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2720,11 +2624,11 @@ void Inic_QoSCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_QoSCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_QoSCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2738,10 +2642,10 @@ void Inic_QoSCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_IpcCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_IpcCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2756,11 +2660,11 @@ void Inic_IpcCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_IpcCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_IpcCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2774,10 +2678,10 @@ void Inic_IpcCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_AvpCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_AvpCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2792,11 +2696,11 @@ void Inic_AvpCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
  */
-void Inic_AvpCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_AvpCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &handle;
@@ -2806,52 +2710,52 @@ void Inic_AvpCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
 
-/*! \brief Handler function for INIC.MOSTPortStatus.Status
+/*! \brief Handler function for INIC.NetworkPortStatus.Status
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_MostPortStatus_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkPortStatus_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_MostPortStatus_t result;
+    Inic_NetworkPortStatus_t result;
 
-    MISC_DECODE_WORD(&(result.most_port_handle), &(msg_ptr->tel.tel_data_ptr[0]));
-    result.availability          = (Ucs_Most_PortAvail_t)msg_ptr->tel.tel_data_ptr[2];
-    result.avail_info            = (Ucs_Most_PortAvailInfo_t)msg_ptr->tel.tel_data_ptr[3];
+    MISC_DECODE_WORD(&(result.nw_port_handle), &(msg_ptr->tel.tel_data_ptr[0]));
+    result.availability          = (Ucs_Network_PortAvail_t)msg_ptr->tel.tel_data_ptr[2];
+    result.avail_info            = (Ucs_Network_PortAvailInfo_t)msg_ptr->tel.tel_data_ptr[3];
     result.fullstreaming_enabled = (msg_ptr->tel.tel_data_ptr[4] != 0U) ? true : false;
     MISC_DECODE_WORD(&(result.freestreaming_bw), &(msg_ptr->tel.tel_data_ptr[5]));
 
-    self_->most_port_status = result;
+    self_->nw_port_status = result;
 
-    Sub_Notify(&self_->subs[INIC_SUB_MOST_PORT_STATUS], &result);
+    Sub_Notify(&self_->subs[INIC_SUB_NETWORK_PORT_STATUS], &result);
 }
 
-/*! \brief Handler function for INIC.MOSTPortStatus.Error
+/*! \brief Handler function for INIC.NetworkPortStatus.Error
  *  \param self      Reference to CInic instance
  *  \param msg_ptr   Pointer to received message
  */
-void Inic_MostPortStatus_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkPortStatus_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           msg_ptr->tel.tel_len);
 
-    Sub_Notify(&self_->subs[INIC_SUB_MOST_PORT_STATUS], &res_data);
+    Sub_Notify(&self_->subs[INIC_SUB_NETWORK_PORT_STATUS], &res_data);
 }
 
-/*! \brief Handler function for INIC.MOSTSocketCreate.ErrorAck. Result is delivered via the
+/*! \brief Handler function for INIC.NetworkSocketCreate.ErrorAck. Result is delivered via the
  *         SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
  *  \param self     Reference to CInic instance
  *  \param msg_ptr  Pointer to received message
  */
-void Inic_MostSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2861,20 +2765,20 @@ void Inic_MostSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
 
-/*! \brief   Handler function for INIC.MOSTSocketCreate.ResultAck
+/*! \brief   Handler function for INIC.NetworkSocketCreate.ResultAck
  *  \details Result is delivered via the SingleObserver element ssubs[INIC_SSUB_CREATE_CLASS]. Element
- *           res_data.data_info points to a variable of type Inic_MostSocketCreate_Result_t
- *           which holds the results of the MOSTSocketCreate command.
+ *           res_data.data_info points to a variable of type Inic_NwSocketCreate_Result_t
+ *           which holds the results of the NetworkSocketCreate command.
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_MostSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_NetworkSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-    Inic_MostSocketCreate_Result_t  res;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    Inic_NwSocketCreateResult_t  res;
 
-    MISC_DECODE_WORD(&(res.most_socket_handle), &(msg_ptr->tel.tel_data_ptr[0]));
+    MISC_DECODE_WORD(&(res.nw_socket_handle), &(msg_ptr->tel.tel_data_ptr[0]));
     MISC_DECODE_WORD(&(res.conn_label),         &(msg_ptr->tel.tel_data_ptr[2]));
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -2889,10 +2793,10 @@ void Inic_MostSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_MlbPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_MlbPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info      = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2909,11 +2813,11 @@ void Inic_MlbPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_MlbPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_MlbPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t mlb_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&mlb_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &mlb_port_handle;
@@ -2928,10 +2832,10 @@ void Inic_MlbPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_MlbSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_MlbSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2948,11 +2852,11 @@ void Inic_MlbSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_MlbSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_MlbSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t mlb_socket_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&mlb_socket_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &mlb_socket_handle;
@@ -2967,10 +2871,10 @@ void Inic_MlbSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_UsbPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_UsbPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -2986,11 +2890,11 @@ void Inic_UsbPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_UsbPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_UsbPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t usb_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&usb_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &usb_port_handle;
@@ -3005,10 +2909,10 @@ void Inic_UsbPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_UsbSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_UsbSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3025,11 +2929,11 @@ void Inic_UsbSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_UsbSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_UsbSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t usb_socket_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&usb_socket_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &usb_socket_handle;
@@ -3046,11 +2950,11 @@ void Inic_UsbSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamPortConfig_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamPortConfig_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_StreamPortConfigStatus_t res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -3071,10 +2975,10 @@ void Inic_StreamPortConfig_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamPortConfig_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamPortConfig_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3089,10 +2993,10 @@ void Inic_StreamPortConfig_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3109,11 +3013,11 @@ void Inic_StreamPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t stream_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&stream_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &stream_port_handle;
@@ -3128,10 +3032,10 @@ void Inic_StreamPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3148,11 +3052,11 @@ void Inic_StreamSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_StreamSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_StreamSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t stream_socket_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&stream_socket_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &stream_socket_handle;
@@ -3167,10 +3071,10 @@ void Inic_StreamSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_RmckPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_RmckPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3187,11 +3091,11 @@ void Inic_RmckPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_RmckPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_RmckPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t rmck_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&rmck_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &rmck_port_handle;
@@ -3206,10 +3110,10 @@ void Inic_RmckPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3226,11 +3130,11 @@ void Inic_I2cPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t i2c_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&i2c_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &i2c_port_handle;
@@ -3245,10 +3149,10 @@ void Inic_I2cPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortRead_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortRead_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3265,11 +3169,11 @@ void Inic_I2cPortRead_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortRead_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortRead_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_I2cReadResStatus_t i2c_read_res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = &i2c_read_res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -3289,10 +3193,10 @@ void Inic_I2cPortRead_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortWrite_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortWrite_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3309,11 +3213,11 @@ void Inic_I2cPortWrite_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_I2cPortWrite_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_I2cPortWrite_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_I2cWriteResStatus_t i2c_write_res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = &i2c_write_res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -3327,89 +3231,15 @@ void Inic_I2cPortWrite_Result(void *self, Msg_MostTel_t *msg_ptr)
     Al_Release(&self_->lock.res_api, INIC_API_I2C_PORT_WR);
 }
 
-/*! \brief   Handler function for INIC.PCIPortCreate.ErrorAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_PciPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    res_data.data_info = NULL;
-    res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0],
-                                          (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
-}
-
-/*! \brief   Handler function for INIC.PCIPortCreate.ResultAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_PciPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    uint16_t pci_port_handle;
-    Inic_StdResult_t res_data;
-
-    MISC_DECODE_WORD(&pci_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
-    res_data.data_info       = &pci_port_handle;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
-}
-
-/*! \brief   Handler function for INIC.PCISocketCreate.ErrorAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_PciSocketCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    res_data.data_info = NULL;
-    res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0],
-                                          (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
-}
-
-/*! \brief   Handler function for INIC.PCISocketCreate.ResultAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_PciSocketCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    uint16_t pci_socket_port_handle;
-    Inic_StdResult_t res_data;
-
-    MISC_DECODE_WORD(&pci_socket_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
-    res_data.data_info       = &pci_socket_port_handle;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
-}
-
 /*! \brief   Handler function for INIC.GPIOPortCreate.ErrorAck
  *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_CREATE_CLASS].
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3424,11 +3254,11 @@ void Inic_GpioPortCreate_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     uint16_t gpio_port_handle;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_DECODE_WORD(&gpio_port_handle, &(msg_ptr->tel.tel_data_ptr[0]));
     res_data.data_info       = &gpio_port_handle;
@@ -3438,42 +3268,6 @@ void Inic_GpioPortCreate_Result(void *self, Msg_MostTel_t *msg_ptr)
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
 
-/*! \brief   Handler function for INIC.MOSTPortEnable.ErrorAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_MOST_PORT_ENABLE].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_MostPortEnable_Error(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    res_data.data_info = NULL;
-    res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0],
-                                          (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_ENABLE], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_MOST_PORT_ENABLE);
-}
-
-/*! \brief   Handler function for INIC.MOSTPortEnable.ResultAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_MOST_PORT_ENABLE].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_MostPortEnable_Result(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-    MISC_UNUSED(msg_ptr);
-
-    res_data.data_info       = NULL;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_ENABLE], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_MOST_PORT_ENABLE);
-}
-
 /*! \brief   Handler function for INIC.GPIOPortPinMode.Status
  *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_GPIO_PIN_MODE].
  *           Element res_data.data_info points to a variable of type Inic_GpioPortPinModeStatus_t
@@ -3481,22 +3275,22 @@ void Inic_MostPortEnable_Result(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortPinMode_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortPinMode_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_GpioPortPinModeStatus_t res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     uint8_t i = 2U, j = 0U;
     Ucs_Gpio_PinConfiguration_t pin_ls[16U];
 
     res.cfg_list             = &pin_ls[0];
-    res.len                  = (msg_ptr->tel.tel_len - 2U) >> 1U;
+    res.len                  = (uint8_t)((msg_ptr->tel.tel_len - 2U) >> 1U);
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
 
     MISC_DECODE_WORD(&res.gpio_handle, &(msg_ptr->tel.tel_data_ptr[0]));
-    for (; (i < msg_ptr->tel.tel_len) && (j < 16U); i=i+2U)
+    for (; (i < msg_ptr->tel.tel_len) && (j < 16U); i=(uint8_t)(i+2U))
     {
         pin_ls[j].pin  = msg_ptr->tel.tel_data_ptr[i];
         pin_ls[j].mode = (Ucs_Gpio_PinMode_t)msg_ptr->tel.tel_data_ptr[i+1U];
@@ -3512,10 +3306,10 @@ void Inic_GpioPortPinMode_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortPinMode_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortPinMode_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3532,11 +3326,11 @@ void Inic_GpioPortPinMode_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortPinState_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortPinState_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_GpioPortPinStateStatus_t res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -3555,10 +3349,10 @@ void Inic_GpioPortPinState_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortPinState_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortPinState_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3574,11 +3368,11 @@ void Inic_GpioPortPinState_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortTrigger_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortTrigger_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
     Inic_GpioTriggerEventStatus_t res;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
@@ -3589,7 +3383,7 @@ void Inic_GpioPortTrigger_Status(void *self, Msg_MostTel_t *msg_ptr)
     MISC_DECODE_WORD(&res.falling_edges, &(msg_ptr->tel.tel_data_ptr[4]));
     MISC_DECODE_WORD(&res.levels, &(msg_ptr->tel.tel_data_ptr[6]));
     res.is_first_report = self_->gpio_rt_status.first_report;
-    if (self_->gpio_rt_status.first_report)
+    if (self_->gpio_rt_status.first_report != false)
     {
         self_->gpio_rt_status.first_report = false;
     }
@@ -3602,10 +3396,10 @@ void Inic_GpioPortTrigger_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param   self      Reference to CInic instance
  *  \param   msg_ptr   Pointer to received message
  */
-void Inic_GpioPortTrigger_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_GpioPortTrigger_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3614,50 +3408,14 @@ void Inic_GpioPortTrigger_Error(void *self, Msg_MostTel_t *msg_ptr)
     Sub_Notify(&self_->subs[INIC_SUB_GPIO_TRIGGER_EVENT], &res_data);
 }
 
-/*! \brief   Handler function for INIC.MOSTPortEnableFullStreaming.ErrorAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_MOST_PORT_EN_FULL_STR].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_MostPortEnFullStr_Error(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-
-    res_data.data_info = NULL;
-    res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0],
-                                          (msg_ptr->tel.tel_len));
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_EN_FULL_STR], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_MOST_PORT_EN_FULL_STR);
-}
-
-/*! \brief   Handler function for INIC.MOSTPortEnableFullStreaming.ResultAck
- *  \details Result is delivered via the SingleObserver object ssubs[INIC_SSUB_MOST_PORT_EN_FULL_STR].
- *  \param   self      Reference to CInic instance
- *  \param   msg_ptr   Pointer to received message
- */
-void Inic_MostPortEnFullStr_Result(void *self, Msg_MostTel_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
-    MISC_UNUSED(msg_ptr);
-
-    res_data.data_info       = NULL;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_MOST_PORT_EN_FULL_STR], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_MOST_PORT_EN_FULL_STR);
-}
-
 /*! \brief Handler function for INIC.Notification.Error
  *  \param  self     reference to INIC object
  *  \param  msg_ptr  received message
  */
-void Inic_Notification_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_Notification_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     res_data.data_info  = NULL;
     res_data.result = Inic_TranslateError(self_,
@@ -3672,10 +3430,10 @@ void Inic_Notification_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self     reference to INIC object
  *  \param  msg_ptr  received message
  */
-void Inic_Notification_Status(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_Notification_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
     Inic_NotificationResult_t notif_res;
 
     res_data.data_info       = &notif_res;
@@ -3700,14 +3458,14 @@ void Inic_Notification_Status(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self    reference to INIC object
  *  \param  msg_ptr received message
  */
-void Inic_DeviceSync_Error(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceSync_Error(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
- 
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+
     res_data.data_info  = NULL;
     res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0], 
+                                          &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
 
     Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_SYNC], &res_data, true);
@@ -3718,10 +3476,10 @@ void Inic_DeviceSync_Error(void *self, Msg_MostTel_t *msg_ptr)
  *  \param  self    reference to INIC object
  *  \param  msg_ptr received message
  */
-void Inic_DeviceSync_Result(void *self, Msg_MostTel_t *msg_ptr)
+void Inic_DeviceSync_Result(void *self, Ucs_Message_t *msg_ptr)
 {
     CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
     MISC_UNUSED(msg_ptr);
 

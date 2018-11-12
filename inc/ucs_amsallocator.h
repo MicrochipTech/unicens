@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -45,6 +45,8 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_types_cfg.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -67,10 +69,10 @@ typedef enum Ams_MemUsage_
  *  \param  inst_ptr            Reference to the (external) memory management
  *  \param  mem_size            Reference to the required memory size in bytes. Valid values: 0..65535.
  *  \param  type                Declares how the memory is used by UNICENS
- *  \param  custom_info_pptr    Reference which is related to the memory chunk and can be set by 
+ *  \param  custom_info_pptr    Reference which is related to the memory chunk and can be set by
  *                              the application.
  *  \return Pointer to the provided memory chunk. The application has to guarantee that the memory size
- *          is equal or greater than \c mem_size. The application has to return \c NULL if it is not able 
+ *          is equal or greater than \c mem_size. The application has to return \c NULL if it is not able
  *          to allocate the required memory at this moment.
  */
 typedef void* (*Ams_AllocMemCb_t)(void *inst_ptr, uint16_t mem_size, Ams_MemUsage_t type, void** custom_info_pptr);
@@ -79,7 +81,7 @@ typedef void* (*Ams_AllocMemCb_t)(void *inst_ptr, uint16_t mem_size, Ams_MemUsag
  *  \param  inst_ptr        Reference to the (external) memory management
  *  \param  mem_ptr         Reference to the external payload memory
  *  \param  type            Declares how the memory is used by UNICENS
- *  \param  custom_info_ptr Reference to memory related information which was set by the application 
+ *  \param  custom_info_ptr Reference to memory related information which was set by the application
  *                          during memory allocation
  */
 typedef void (*Ams_FreeMemCb_t)(void *inst_ptr, void *mem_ptr, Ams_MemUsage_t type, void* custom_info_ptr);
@@ -100,7 +102,9 @@ typedef struct Ams_MemAllocator_
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMSALLOCATOR_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_AMSALLOCATOR_H */
 
 /*!
  * @}

@@ -10,6 +10,7 @@ var group___g___u_c_s___l_l_d___t_y_p_e_s =
     ] ],
     [ "Ucs_Lld_Callbacks_t", "struct_ucs___lld___callbacks__t.html", [
       [ "lld_user_ptr", "struct_ucs___lld___callbacks__t_a44afa0156353f9fba156ff0c91873968.html#a44afa0156353f9fba156ff0c91873968", null ],
+      [ "reset_fptr", "struct_ucs___lld___callbacks__t_a6b02bb0a28803f1a3b55423088736d96.html#a6b02bb0a28803f1a3b55423088736d96", null ],
       [ "rx_available_fptr", "struct_ucs___lld___callbacks__t_a90fa6db664734c2446327b71c51f5b52.html#a90fa6db664734c2446327b71c51f5b52", null ],
       [ "start_fptr", "struct_ucs___lld___callbacks__t_a96bad24b6b49ffacfd9136230447cb22.html#a96bad24b6b49ffacfd9136230447cb22", null ],
       [ "stop_fptr", "struct_ucs___lld___callbacks__t_ab0f955ca90942fda14ac12500422a437.html#ab0f955ca90942fda14ac12500422a437", null ],

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -92,7 +92,7 @@ void Fifos_Ctor(CPmFifos *self, CBase *base_ptr, CPmChannel *channel_ptr, CPmFif
     self->fifos[PMP_FIFO_ID_RCM] = rcm_fifo_ptr;
     self->fifos[PMP_FIFO_ID_MCM] = mcm_fifo_ptr;
 
-    T_Ctor(&self->init_timer); 
+    T_Ctor(&self->init_timer);
     Sub_Ctor(&self->event_subject, self->base_ptr->ucs_user_ptr);
     Obs_Ctor(&self->obs_icm, self, &Fifos_OnFifoEvent);
     Obs_Ctor(&self->obs_rcm, self, &Fifos_OnFifoEvent);
@@ -157,7 +157,7 @@ void Fifos_ForceTermination(CPmFifos *self)
  *  \details        This method shall be called before starting a synchronization or un-synchronization
  *                  or after it has finished. The current counter of synchronization attempts is reset.
  *  \param self     The instance
- *  \param retries  The number of retries until event FIFOS_EV_SYNC_FAILED or 
+ *  \param retries  The number of retries until event FIFOS_EV_SYNC_FAILED or
  *                  FIFOS_EV_UNSYNC_FAILED will be notified
  *  \param timeout  The timeout in milliseconds when the retry is performed
  */
@@ -179,7 +179,7 @@ void Fifos_ConfigureSyncParams(CPmFifos *self, uint8_t retries, uint16_t timeout
  *  \param    self        The instance
  *  \param    reset_cnt   If \c true resets the synchronization counter. In this case an automatic
  *                        retries will be done after the first synchronization timeout.
- *  \param    force_sync  If \c true the method will also trigger the synchronization of already 
+ *  \param    force_sync  If \c true the method will also trigger the synchronization of already
  *                        synced \ref CPmFifo objects.
  */
 void Fifos_Synchronize(CPmFifos *self, bool reset_cnt, bool force_sync)
@@ -189,7 +189,7 @@ void Fifos_Synchronize(CPmFifos *self, bool reset_cnt, bool force_sync)
     self->unsync_initial = false;
     TR_INFO((self->base_ptr->ucs_user_ptr, "[FIFOS]", "Fifos_Synchronize(): Synchronization started, state: %d", 1U, self->state));
 
-    if (reset_cnt)
+    if (reset_cnt != false)
     {
         self->sync_cnt = FIFOS_SYNC_CNT_INITIAL;
     }
@@ -201,15 +201,15 @@ void Fifos_Synchronize(CPmFifos *self, bool reset_cnt, bool force_sync)
     {
         if (self->fifos[cnt] != NULL)
         {
-            if (force_sync || (Fifo_GetState(self->fifos[cnt]) != FIFO_S_SYNCED))
+            if ((force_sync != false) || (Fifo_GetState(self->fifos[cnt]) != FIFO_S_SYNCED))
             {
                 Fifo_Synchronize(self->fifos[cnt]);
             }
         }
     }
 
-    Tm_SetTimer(&self->base_ptr->tm, &self->init_timer, 
-                &Fifos_OnSyncTimeout, self, 
+    Tm_SetTimer(&self->base_ptr->tm, &self->init_timer,
+                &Fifos_OnSyncTimeout, self,
                 self->cmd_timeout, 0U);
 }
 
@@ -222,8 +222,8 @@ void Fifos_Synchronize(CPmFifos *self, bool reset_cnt, bool force_sync)
  *  \param      reset_cnt  If \c true resets the synchronization counter. In this case an automatic
  *                         retries will be done after the first synchronization timeout.
  *  \param      initial    If the un-synchronization shall be executed prior to a initial synchronization
- *                         it is recommended to set the argument to \c true. After notifying the event 
- *                         FIFOS_EV_UNSYNC_COMPLETE the LLD interface will not be stopped. The subsequent 
+ *                         it is recommended to set the argument to \c true. After notifying the event
+ *                         FIFOS_EV_UNSYNC_COMPLETE the LLD interface will not be stopped. The subsequent
  *                         call of Fifos_Synchronize() will not start the LLD interface un-necessarily.
  *                         To trigger a final un-synchronization \c initial shall be set to \c false.
  *                         I.e., FIFOS_EV_UNSYNC_COMPLETE stops the LLD interface.
@@ -235,7 +235,7 @@ void Fifos_Unsynchronize(CPmFifos *self, bool reset_cnt, bool initial)
     self->unsync_initial = initial;
     TR_INFO((self->base_ptr->ucs_user_ptr, "[FIFOS]", "Fifos_Unsynchronize(): Un-synchronization started, state: %d", 1U, self->state));
 
-    if (reset_cnt)
+    if (reset_cnt != false)
     {
         self->sync_cnt = FIFOS_SYNC_CNT_INITIAL;
     }
@@ -247,15 +247,15 @@ void Fifos_Unsynchronize(CPmFifos *self, bool reset_cnt, bool initial)
     {
         if (self->fifos[cnt] != NULL)
         {
-            if (initial || (Fifo_GetState(self->fifos[cnt]) != FIFO_S_UNSYNCED_READY))
+            if ((initial != false) || (Fifo_GetState(self->fifos[cnt]) != FIFO_S_UNSYNCED_READY))
             {
                 Fifo_Unsynchronize(self->fifos[cnt]);
             }
         }
     }
 
-    Tm_SetTimer(&self->base_ptr->tm, &self->init_timer, 
-                &Fifos_OnUnsyncTimeout, self, 
+    Tm_SetTimer(&self->base_ptr->tm, &self->init_timer,
+                &Fifos_OnUnsyncTimeout, self,
                 self->cmd_timeout, 0U);
 }
 
@@ -356,13 +356,13 @@ static void Fifos_HandleFifoStateChange(CPmFifos *self, Pmp_FifoId_t fifo_id)
 {
     Fifos_Event_t the_event;
 
-    TR_INFO((self->base_ptr->ucs_user_ptr, "[FIFOS]", "Fifos_HandleFifoStateChange(): FIFOs state: %d, FIFO: %d, FIFO State: %d", 3U, 
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[FIFOS]", "Fifos_HandleFifoStateChange(): FIFOs state: %d, FIFO: %d, FIFO State: %d", 3U,
              self->state, fifo_id, Fifo_GetState(self->fifos[fifo_id])));
 
     switch (self->state)
     {
         case FIFOS_S_SYNCING:
-            if (Fifos_AreAllFifosInState(self, FIFO_S_SYNCED))
+            if (Fifos_AreAllFifosInState(self, FIFO_S_SYNCED) != false)
             {
                 self->state = FIFOS_S_SYNCED;                           /* now the complete channel is synced */
                 Tm_ClearTimer(&self->base_ptr->tm, &self->init_timer);
@@ -374,7 +374,7 @@ static void Fifos_HandleFifoStateChange(CPmFifos *self, Pmp_FifoId_t fifo_id)
             break;
 
         case FIFOS_S_UNSYNCING:
-            if (Fifos_AreAllFifosInState(self, FIFO_S_UNSYNCED_READY))
+            if (Fifos_AreAllFifosInState(self, FIFO_S_UNSYNCED_READY) != false)
             {
                 Fifos_Cleanup(self);
                 self->state = FIFOS_S_UNSYNCED;                         /* now the complete channel is un-synced */
@@ -386,18 +386,18 @@ static void Fifos_HandleFifoStateChange(CPmFifos *self, Pmp_FifoId_t fifo_id)
             break;
 
         case FIFOS_S_SYNCED:
-            if (!Fifos_AreAllFifosInState(self, FIFO_S_SYNCED))
+            if (Fifos_AreAllFifosInState(self, FIFO_S_SYNCED) == false)
             {
                 self->state = FIFOS_S_UNSYNCING;                        /* set state to 'unsyncing' and wait until all FIFOs are unsynced */
                 self->sync_cnt = 0U;                                    /* pretend having triggered an un-sync which starts the timer */
-                Tm_SetTimer(&self->base_ptr->tm, &self->init_timer, 
-                            &Fifos_OnUnsyncTimeout, self, 
+                Tm_SetTimer(&self->base_ptr->tm, &self->init_timer,
+                            &Fifos_OnUnsyncTimeout, self,
                             FIFOS_UNSYNC_TIMEOUT, 0U);
                 the_event = FIFOS_EV_SYNC_LOST;
                 Sub_Notify(&self->event_subject, &the_event);
                 TR_INFO((self->base_ptr->ucs_user_ptr, "[FIFOS]", "Fifos_HandleFifoStateChange(): Lost synchronization of Port Message channel", 0U));
             }
-            if (Fifos_AreAllFifosInState(self, FIFO_S_UNSYNCED_READY))
+            if (Fifos_AreAllFifosInState(self, FIFO_S_UNSYNCED_READY) != false)
             {
                 Fifos_Cleanup(self);
                 self->state = FIFOS_S_UNSYNCED;                         /* the complete channel suddenly goes unsynced_complete */
@@ -420,7 +420,7 @@ static void Fifos_HandleFifoStateChange(CPmFifos *self, Pmp_FifoId_t fifo_id)
     MISC_UNUSED(fifo_id);
 }
 
-/*! \brief  Helper function that evaluates if all configured FIFOs are in a given state 
+/*! \brief  Helper function that evaluates if all configured FIFOs are in a given state
  *  \param  self            The instance
  *  \param  target_state    The required state that is evaluated for all FIFOs
  *  \return \c true if all FIFOs are in the given \c target_state, otherwise \c false.

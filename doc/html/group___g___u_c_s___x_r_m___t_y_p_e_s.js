@@ -3,12 +3,12 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
     [ "XRM SubTypes", "group___g___u_c_s___x_r_m___e_n_u_m.html", "group___g___u_c_s___x_r_m___e_n_u_m" ],
     [ "Ucs_Xrm_InitData_t", "struct_ucs___xrm___init_data__t.html", [
       [ "check_unmute_fptr", "struct_ucs___xrm___init_data__t_a7ad953f5414061df43df073ece15e25b.html#a7ad953f5414061df43df073ece15e25b", null ],
-      [ "most_port_status_fptr", "struct_ucs___xrm___init_data__t_a9497e039c582e7d2804ee470d6812e91.html#a9497e039c582e7d2804ee470d6812e91", null ]
+      [ "nw_port_status_fptr", "struct_ucs___xrm___init_data__t_a0e27e6995514e505fbbd769b73331590.html#a0e27e6995514e505fbbd769b73331590", null ]
     ] ],
     [ "Ucs_Xrm_ResultDetails_t", "struct_ucs___xrm___result_details__t.html", [
       [ "inic_result", "struct_ucs___xrm___result_details__t_ac8f7bd459f5052601dbbab267d9d8067.html#ac8f7bd459f5052601dbbab267d9d8067", null ],
       [ "int_result", "struct_ucs___xrm___result_details__t_aee65ac620e16fd7b0fe4135514394901.html#aee65ac620e16fd7b0fe4135514394901", null ],
-      [ "resource_index", "struct_ucs___xrm___result_details__t_a41ee1e9319711802cf5d79a2be7adcbf.html#a41ee1e9319711802cf5d79a2be7adcbf", null ],
+      [ "resource_index", "struct_ucs___xrm___result_details__t_aa1b904ddf7d76703995819f34633adc9.html#aa1b904ddf7d76703995819f34633adc9", null ],
       [ "resource_type", "struct_ucs___xrm___result_details__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ],
       [ "result_type", "struct_ucs___xrm___result_details__t_a4cb5ea6dd91baf049cf7d682202df0f4.html#a4cb5ea6dd91baf049cf7d682202df0f4", null ],
       [ "tx_result", "struct_ucs___xrm___result_details__t_abee2d1d2c9eebcbc9da920664e9eb248.html#abee2d1d2c9eebcbc9da920664e9eb248", null ]
@@ -26,12 +26,12 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
       [ "port_type", "struct_ucs___xrm___default_created_port__t_a58cd72485f642399fb1815f026dbaae7.html#a58cd72485f642399fb1815f026dbaae7", null ],
       [ "resource_type", "struct_ucs___xrm___default_created_port__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ]
     ] ],
-    [ "Ucs_Xrm_MostSocket_t", "struct_ucs___xrm___most_socket__t.html", [
-      [ "bandwidth", "struct_ucs___xrm___most_socket__t_a0008a6d765e7752725ad3dd2eb446033.html#a0008a6d765e7752725ad3dd2eb446033", null ],
-      [ "data_type", "struct_ucs___xrm___most_socket__t_a963061c04c4b780e3f9a11d61746904e.html#a963061c04c4b780e3f9a11d61746904e", null ],
-      [ "direction", "struct_ucs___xrm___most_socket__t_a6fc8b4a0550af42e193df56d3546108e.html#a6fc8b4a0550af42e193df56d3546108e", null ],
-      [ "most_port_handle", "struct_ucs___xrm___most_socket__t_a3d1f833dbb35db5fed7638006fda4138.html#a3d1f833dbb35db5fed7638006fda4138", null ],
-      [ "resource_type", "struct_ucs___xrm___most_socket__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ]
+    [ "Ucs_Xrm_NetworkSocket_t", "struct_ucs___xrm___network_socket__t.html", [
+      [ "bandwidth", "struct_ucs___xrm___network_socket__t_a0008a6d765e7752725ad3dd2eb446033.html#a0008a6d765e7752725ad3dd2eb446033", null ],
+      [ "data_type", "struct_ucs___xrm___network_socket__t_a83b7612abe284c5279f5e68977cb3898.html#a83b7612abe284c5279f5e68977cb3898", null ],
+      [ "direction", "struct_ucs___xrm___network_socket__t_a6fc8b4a0550af42e193df56d3546108e.html#a6fc8b4a0550af42e193df56d3546108e", null ],
+      [ "nw_port_handle", "struct_ucs___xrm___network_socket__t_a76366748645faaa8b587c020b0bed266.html#a76366748645faaa8b587c020b0bed266", null ],
+      [ "resource_type", "struct_ucs___xrm___network_socket__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ]
     ] ],
     [ "Ucs_Xrm_MlbPort_t", "struct_ucs___xrm___mlb_port__t.html", [
       [ "clock_config", "struct_ucs___xrm___mlb_port__t_a7b2f976567481f67b381300eb1816c3e.html#a7b2f976567481f67b381300eb1816c3e", null ],
@@ -96,13 +96,13 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
     ] ],
     [ "Ucs_Xrm_Combiner_t", "struct_ucs___xrm___combiner__t.html", [
       [ "bytes_per_frame", "struct_ucs___xrm___combiner__t_a155bb95b36c82e42f52872c92d49e102.html#a155bb95b36c82e42f52872c92d49e102", null ],
-      [ "most_port_handle", "struct_ucs___xrm___combiner__t_a3d1f833dbb35db5fed7638006fda4138.html#a3d1f833dbb35db5fed7638006fda4138", null ],
+      [ "nw_port_handle", "struct_ucs___xrm___combiner__t_a76366748645faaa8b587c020b0bed266.html#a76366748645faaa8b587c020b0bed266", null ],
       [ "port_socket_obj_ptr", "struct_ucs___xrm___combiner__t_ab4f0942e9c11cfa5e9db135b352c17a5.html#ab4f0942e9c11cfa5e9db135b352c17a5", null ],
       [ "resource_type", "struct_ucs___xrm___combiner__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ]
     ] ],
     [ "Ucs_Xrm_Splitter_t", "struct_ucs___xrm___splitter__t.html", [
       [ "bytes_per_frame", "struct_ucs___xrm___splitter__t_a155bb95b36c82e42f52872c92d49e102.html#a155bb95b36c82e42f52872c92d49e102", null ],
-      [ "most_port_handle", "struct_ucs___xrm___splitter__t_a3d1f833dbb35db5fed7638006fda4138.html#a3d1f833dbb35db5fed7638006fda4138", null ],
+      [ "nw_port_handle", "struct_ucs___xrm___splitter__t_a76366748645faaa8b587c020b0bed266.html#a76366748645faaa8b587c020b0bed266", null ],
       [ "resource_type", "struct_ucs___xrm___splitter__t_a31e66e762767a78baf49f779d598a9cd.html#a31e66e762767a78baf49f779d598a9cd", null ],
       [ "socket_in_obj_ptr", "struct_ucs___xrm___splitter__t_ace5ef1fb3bd4337998a8f538645f47ed.html#ace5ef1fb3bd4337998a8f538645f47ed", null ]
     ] ],
@@ -118,7 +118,6 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
       [ "socket_out_obj_ptr", "struct_ucs___xrm___qo_s_con__t_a21e5760677b48c43c5e4783306819f95.html#a21e5760677b48c43c5e4783306819f95", null ]
     ] ],
     [ "Ucs_Xrm_ResObject_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga74e06fedcde6bc971088b2cb21405173.html#ga74e06fedcde6bc971088b2cb21405173", null ],
-    [ "Ucs_Xrm_ResourceDebugCb_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga10b22839e9b7b2fe0148713aeea0172c.html#ga10b22839e9b7b2fe0148713aeea0172c", null ],
     [ "Ucs_Xrm_Stream_PortCfgResCb_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_gab2f4b821b24db0cec150d1b30fe18783.html#gab2f4b821b24db0cec150d1b30fe18783", null ],
     [ "Ucs_Xrm_PortType_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga50384bb32b088e9cfd50c889ef562015.html#ga50384bb32b088e9cfd50c889ef562015", [
       [ "UCS_XRM_PORT_TYPE_MLB", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga50384bb32b088e9cfd50c889ef562015.html#gga50384bb32b088e9cfd50c889ef562015af7f4a6893afb4f0f50a16a58e815f33e", null ],
@@ -133,7 +132,7 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
     ] ],
     [ "Ucs_Xrm_ResourceType_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#gac238d98be8f9df6340eb4ee72de36ccc", [
       [ "UCS_XRM_RC_TYPE_DC_PORT", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccacf416b59b369504088ef6810b4c545e1", null ],
-      [ "UCS_XRM_RC_TYPE_MOST_SOCKET", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccaeebb673b9abc5172f688f8e9e692441c", null ],
+      [ "UCS_XRM_RC_TYPE_NW_SOCKET", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca3ef70ccdea3e80ce549be70baf9c16a7", null ],
       [ "UCS_XRM_RC_TYPE_MLB_PORT", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca2c31643fe2ccea0ecb44424ef0ba0472", null ],
       [ "UCS_XRM_RC_TYPE_MLB_SOCKET", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca51a0ec5a470cb37f90a79a73f0f83be4", null ],
       [ "UCS_XRM_RC_TYPE_USB_PORT", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca0060f6125299f66c37b3b9111358caaf", null ],

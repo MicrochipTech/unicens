@@ -15,7 +15,6 @@ var group___g___u_c_s___i_n_i_t___a_n_d___s_r_v =
       [ "rm", "struct_ucs___init_data__t_a8619aaf795810b7508046fbfef6d6907.html#a8619aaf795810b7508046fbfef6d6907", null ],
       [ "user_ptr", "struct_ucs___init_data__t_a41f828ebbe67a574ee39abd6c054bb6c.html#a41f828ebbe67a574ee39abd6c054bb6c", null ]
     ] ],
-    [ "UCS_FOOTPRINT_TINY", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaff7821fdddebc32a8a3f61a5eebc405a.html#gaff7821fdddebc32a8a3f61a5eebc405a", null ],
     [ "UCS_NUM_INSTANCES", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga750688e4ce10e995d802e288540d19c4.html#ga750688e4ce10e995d802e288540d19c4", null ],
     [ "Ucs_ErrorCb_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64926a6a194cfb06703835e3d06475c6.html#ga64926a6a194cfb06703835e3d06475c6", null ],
     [ "Ucs_GetTickCountCb_t", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga981854177aa9ebd554ab522199193bd3.html#ga981854177aa9ebd554ab522199193bd3", null ],

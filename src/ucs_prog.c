@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -41,7 +41,6 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Includes                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
-#include "ucs_inic_pb.h"
 #include "ucs_prog.h"
 #include "ucs_misc.h"
 
@@ -50,18 +49,18 @@
 /* Internal constants                                                                             */
 /*------------------------------------------------------------------------------------------------*/
 #define PRG_NUM_STATES             6U    /*!< \brief Number of state machine states */
-#define PRG_NUM_EVENTS            13U    /*!< \brief Number of state machine events */
+#define PRG_NUM_EVENTS            14U    /*!< \brief Number of state machine events */
 
 #define PRG_TIMEOUT_COMMAND      100U    /*!< \brief supervise EXC commands */
 
 #define PRG_SIGNATURE_VERSION      1U    /*!< \brief signature version used for Node Discovery */
 
-#define PRG_ADMIN_BASE_ADDR   0x0F00U    /*!< \brief bas admin address */
+#define PRG_ADMIN_BASE_ADDR   0x0F00U    /*!< \brief base admin address */
 
 
 /* Error values */
 #define PRG_HW_RESET_REQ        0x200110U   /* HW reset required */
-#define PRG_SESSION_ACTIVE      0x200111U   /* Session already active */
+#define PRG_SESSION_ACTIVE      0x200111U   /* Session already active, error message contains session id. */
 #define PRG_CFG_STRING_ERROR    0x200220U   /* A configuration string erase error has occurred. */
 #define PRG_MEM_ERASE_ERROR     0x200221U   /* An error memory erase error has occurred.*/
 #define PRG_CFG_WRITE_ERROR     0x200225U   /* Configuration memory write error. */
@@ -70,6 +69,7 @@
 #define PRG_MEMID_ERROR         0x200331U   /* The memory session does not support the requested MemID. */
 #define PRG_ADDR_EVEN_ERROR     0x200332U   /* The Address is not even when writing the configuration memory. */
 #define PRG_LEN_EVEN_ERROR      0x200333U   /* The UnitLen is not even when writing the configuration memory. */
+#define PRG_SUM_OUT_OF_RANGE    0x200334U   /* The sum of parameter values Address + UnitLen is out of range. */
 
 /*------------------------------------------------------------------------------------------------*/
 /* Service parameters                                                                             */
@@ -83,7 +83,7 @@ static const Srv_Event_t PRG_EVENT_SERVICE = 1U;
 /*------------------------------------------------------------------------------------------------*/
 /* Internal enumerators                                                                           */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Possible events of the system diagnosis state machine */
+/*! \brief Possible events of the programming state machine */
 typedef enum Prg_Events_
 {
     PRG_E_NIL                = 0U,      /*!< \brief NIL Event */
@@ -91,14 +91,16 @@ typedef enum Prg_Events_
     PRG_E_STOP               = 2U,      /*!< \brief Stop request occurred. */
     PRG_E_WELCOME_SUCCESS    = 3U,      /*!< \brief Welcome command was successful. */
     PRG_E_WELCOME_NOSUCCESS  = 4U,      /*!< \brief Welcome command was not successful. */
-    PRG_E_MEM_WRITE_CMD      = 5U,      /*!< \brief MemorySessionOpen command was succcessful */
-    PRG_E_MEM_WRITE_FINISH   = 6U,      /*!< \brief MemoryWrite command was succcessful */
-    PRG_E_MEM_CLOSE_SUCCESS  = 7U,      /*!< \brief MemorySessionClose command was succcessful */
-    PRG_E_NET_OFF            = 8U,      /*!< \brief NetOff occurred. */
-    PRG_E_TIMEOUT            = 9U,      /*!< \brief Timeout occurred. */
-    PRG_E_ERROR             = 10U,      /*!< \brief An error occurred which requires no command to be sent to the INIC. */
-    PRG_E_ERROR_INIT        = 11U,      /*!< \brief Error requires Init.Start to be sent. */
-    PRG_E_ERROR_CLOSE_INIT  = 12U       /*!< \brief Error requires MemorySessionClose.SR and Init.Start to be sent. */
+    PRG_E_MEM_WRITE_CMD      = 5U,      /*!< \brief MemorySessionOpen command was successful */
+    PRG_E_MEM_WRITE_FINISH   = 6U,      /*!< \brief MemoryWrite command was successful */
+    PRG_E_MEM_CLOSE_LAST     = 7U,      /*!< \brief MemorySessionClose command was successful for last session */
+    PRG_E_MEM_REOPEN         = 8U,      /*!< \brief MemorySessionClose command was successful, but there are still sessions to do. */
+    PRG_E_NET_OFF            = 9U,      /*!< \brief NetOff occurred. */
+    PRG_E_TIMEOUT           = 10U,      /*!< \brief Timeout occurred. */
+    PRG_E_ERROR             = 11U,      /*!< \brief An error occurred which requires no command to be sent to the INIC. */
+    PRG_E_ERROR_INIT        = 12U,      /*!< \brief Error requires Init.Start to be sent. */
+    PRG_E_ERROR_CLOSE_INIT  = 13U       /*!< \brief Error requires MemorySessionClose.SR and Init.Start to be sent. */
+
 } Prg_Events_t;
 
 
@@ -111,6 +113,7 @@ typedef enum Prg_State_
     PRG_S_WAIT_MEM_WRITE      =  3U,     /*!< \brief Wait for MemoryWrite result. */
     PRG_S_WAIT_MEM_CLOSE      =  4U,     /*!< \brief Wait for MemorySessionClose result. */
     PRG_S_WAIT_MEM_ERR_CLOSE  =  5U      /*!< \brief Wait for MemorySessionClose result in error case. */
+
 } Prg_State_t;
 
 
@@ -123,6 +126,7 @@ static void Prg_WelcomeResultCb(void *self, void *result_ptr);
 static void Prg_MemOpenResultCb(void *self, void *result_ptr);
 static void Prg_MemWriteResultCb(void *self, void *result_ptr);
 static void Prg_MemCloseResultCb(void *self, void *result_ptr);
+static void Prg_MemClose2ResultCb(void *self, void *result_ptr);
 
 static void Prg_OnTerminateEventCb(void *self, void *result_ptr);
 static void Prg_NetworkStatusCb(void *self, void *result_ptr);
@@ -131,18 +135,27 @@ static void Prg_A_Start(void *self);
 static void Prg_A_MemOpen(void *self);
 static void Prg_A_MemWrite(void *self);
 static void Prg_A_MemClose(void *self);
-static void Prg_A_InitDevice(void *self);
+static void Prg_A_ReportSuccess(void *self);
 static void Prg_A_NetOff(void *self);
 static void Prg_A_Timeout(void *self);
 static void Prg_A_Error(void *self);
 static void Prg_A_Error_Init(void *self);
 static void Prg_A_Error_Close_Init(void *self);
+static void Prg_A_Init(void *self);
 
 
 static void Prg_Check_RetVal(CProgramming *self, Ucs_Return_t  ret_val);
+
 static uint32_t Prg_CalcError(uint8_t val[]);
 
 static void Prg_TimerCb(void *self);
+
+static void Prg_Build_Array4Sonoma(Ucs_IdentString_t *ident_string, uint8_t data[]);
+static void Prg_Build_Array4Vantage(Ucs_IdentString_t *ident_string, uint8_t data[]);
+
+static uint16_t Prg_calcCCITT16( uint8_t data[], uint16_t length, uint16_t start_value);
+static uint16_t Prg_calcCCITT16Step( uint16_t crc, uint8_t value );
+static uint8_t Prg_Pack_2_6(uint8_t a, uint8_t b);
 
 /*------------------------------------------------------------------------------------------------*/
 /* State transition table (used by finite state machine)                                          */
@@ -158,9 +171,10 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_WELCOME_NOSUCCESS  */ {NULL,                       PRG_S_IDLE               },
         /* PRG_E_MEM_WRITE_CMD      */ {NULL,                       PRG_S_IDLE               },
         /* PRG_E_MEM_WRITE_FINISH   */ {NULL,                       PRG_S_IDLE               },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {NULL,                       PRG_S_IDLE               },
-        /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
-        /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
+        /* PRG_E_MEM_CLOSE_LAST     */ {NULL,                       PRG_S_IDLE               },
+        /* PRG_E_MEM_REOPEN         */ {NULL,                       PRG_S_IDLE               },
+        /* PRG_E_NET_OFF            */ {NULL,                       PRG_S_IDLE               },
+        /* PRG_E_TIMEOUT            */ {NULL,                       PRG_S_IDLE               },
         /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
         /* PRG_E_ERROR_INIT         */ {NULL,                       PRG_S_IDLE               },
         /* PRG_E_ERROR_CLOSE_INIT   */ {NULL,                       PRG_S_IDLE               },
@@ -173,7 +187,8 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_WELCOME_NOSUCCESS  */ {Prg_A_Error,                PRG_S_IDLE               },
         /* PRG_E_MEM_WRITE_CMD      */ {NULL,                       PRG_S_WAIT_WELCOME       },
         /* PRG_E_MEM_WRITE_FINISH   */ {NULL,                       PRG_S_WAIT_WELCOME       },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {NULL,                       PRG_S_WAIT_WELCOME       },
+        /* PRG_E_MEM_CLOSE_LAST     */ {NULL,                       PRG_S_WAIT_WELCOME       },
+        /* PRG_E_MEM_REOPEN         */ {NULL,                       PRG_S_WAIT_WELCOME       },
         /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
         /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
         /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
@@ -187,8 +202,9 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_WELCOME_SUCCESS    */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
         /* PRG_E_WELCOME_NOSUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
         /* PRG_E_MEM_WRITE_CMD      */ {Prg_A_MemWrite,             PRG_S_WAIT_MEM_WRITE     },
-        /* PRG_E_MEM_WRITE_FINISH   */ {Prg_A_MemClose,             PRG_S_WAIT_MEM_CLOSE     },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
+        /* PRG_E_MEM_WRITE_FINISH   */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
+        /* PRG_E_MEM_CLOSE_LAST     */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
+        /* PRG_E_MEM_REOPEN         */ {NULL,                       PRG_S_WAIT_MEM_OPEN      },
         /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
         /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
         /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
@@ -201,9 +217,10 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_STOP               */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
         /* PRG_E_WELCOME_SUCCESS    */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
         /* PRG_E_WELCOME_NOSUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
-        /* PRG_E_MEM_WRITE_CMD      */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
+        /* PRG_E_MEM_WRITE_CMD      */ {Prg_A_MemWrite,             PRG_S_WAIT_MEM_WRITE     },
         /* PRG_E_MEM_WRITE_FINISH   */ {Prg_A_MemClose,             PRG_S_WAIT_MEM_CLOSE     },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
+        /* PRG_E_MEM_CLOSE_LAST     */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
+        /* PRG_E_MEM_REOPEN         */ {NULL,                       PRG_S_WAIT_MEM_WRITE     },
         /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
         /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
         /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
@@ -218,12 +235,13 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_WELCOME_NOSUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_CLOSE     },
         /* PRG_E_MEM_WRITE_CMD      */ {NULL,                       PRG_S_WAIT_MEM_CLOSE     },
         /* PRG_E_MEM_WRITE_FINISH   */ {NULL,                       PRG_S_WAIT_MEM_CLOSE     },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {Prg_A_InitDevice,           PRG_S_IDLE               },
+        /* PRG_E_MEM_CLOSE_LAST     */ {Prg_A_ReportSuccess,        PRG_S_IDLE               },
+        /* PRG_E_MEM_REOPEN         */ {Prg_A_MemOpen,              PRG_S_WAIT_MEM_OPEN      },
         /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
         /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
         /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
         /* PRG_E_ERROR_INIT         */ {Prg_A_Error_Init,           PRG_S_IDLE               },
-        /* PRG_E_ERROR_CLOSE_INIT   */ {Prg_A_Error,                PRG_S_IDLE               },
+        /* PRG_E_ERROR_CLOSE_INIT   */ {NULL,                       PRG_S_IDLE               },
     },
     { /* State PRG_S_WAIT_MEM_ERR_CLOSE */
         /* PRG_E_NIL                */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
@@ -233,12 +251,13 @@ static const Fsm_StateElem_t prg_trans_tab[PRG_NUM_STATES][PRG_NUM_EVENTS] =    
         /* PRG_E_WELCOME_NOSUCCESS  */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
         /* PRG_E_MEM_WRITE_CMD      */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
         /* PRG_E_MEM_WRITE_FINISH   */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
-        /* PRG_E_MEM_CLOSE_SUCCESS  */ {Prg_A_Error_Init,           PRG_S_IDLE               },
+        /* PRG_E_MEM_CLOSE_LAST     */ {Prg_A_Init,                 PRG_S_IDLE               },
+        /* PRG_E_MEM_REOPEN         */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
         /* PRG_E_NET_OFF            */ {Prg_A_NetOff,               PRG_S_IDLE               },
         /* PRG_E_TIMEOUT            */ {Prg_A_Timeout,              PRG_S_IDLE               },
-        /* PRG_E_ERROR              */ {Prg_A_Error,                PRG_S_IDLE               },
+        /* PRG_E_ERROR              */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
         /* PRG_E_ERROR_INIT         */ {Prg_A_Error_Init,           PRG_S_IDLE               },
-        /* PRG_E_ERROR_CLOSE_INIT   */ {Prg_A_Error,                PRG_S_IDLE               },
+        /* PRG_E_ERROR_CLOSE_INIT   */ {NULL,                       PRG_S_WAIT_MEM_ERR_CLOSE },
     }
 
 };
@@ -259,12 +278,13 @@ void Prg_Ctor(CProgramming *self, CInic *inic, CBase *base, CExc *exc)
     self->exc        = exc;
     self->base       = base;
 
-    Fsm_Ctor(&self->fsm, self, &(prg_trans_tab[0][0]), PRG_NUM_EVENTS, PRG_E_NIL);
+    Fsm_Ctor(&self->fsm, self, &(prg_trans_tab[0][0]), PRG_NUM_EVENTS, PRG_S_IDLE);
 
     Sobs_Ctor(&self->prg_welcome,       self, &Prg_WelcomeResultCb);
     Sobs_Ctor(&self->prg_memopen,       self, &Prg_MemOpenResultCb);
     Sobs_Ctor(&self->prg_memwrite,      self, &Prg_MemWriteResultCb);
     Sobs_Ctor(&self->prg_memclose,      self, &Prg_MemCloseResultCb);
+    Sobs_Ctor(&self->prg_memclose2,     self, &Prg_MemClose2ResultCb);
 
     /* register termination events */
     Mobs_Ctor(&self->prg_terminate, self, EH_M_TERMINATION_EVENTS, &Prg_OnTerminateEventCb);
@@ -291,7 +311,7 @@ static void Prg_Service(void *self)
     CProgramming *self_ = (CProgramming *)self;
     Srv_Event_t event_mask;
     Srv_GetEvent(&self_->service, &event_mask);
-    if(PRG_EVENT_SERVICE == (event_mask & PRG_EVENT_SERVICE))   /* Is event pending? */
+    if (PRG_EVENT_SERVICE == (event_mask & PRG_EVENT_SERVICE))   /* Is event pending? */
     {
         Fsm_State_t result;
         Srv_ClearEvent(&self_->service, PRG_EVENT_SERVICE);
@@ -310,54 +330,211 @@ static void Prg_Service(void *self)
 /**************************************************************************************************/
 /*!
  *
- * \param *self Reference to Programming service object
+ * \param self  Reference to Programming service object
  */
 /*! \brief Program a node
  *
- * \param *self         Reference to Programming service object
- * \param node_id       Node position address of the node to be programmed
- * \param *signature    Signature of the node to be programmed
- * \param session_type  Defines the memory access type.
+ * \param self          Reference to Programming service object
+ * \param node_pos_addr Node position address of the node to be programmed
+ * \param signature     Signature of the node to be programmed
  * \param command_list  Refers to array of programming tasks.
  * \param report_fptr   Report callback function
+ * \return UCS_RET_SUCCESS              Operation successful
+ * \return UCS_RET_ERR_API_LOCKED       Programming was already started
  */
-void Prg_Start(CProgramming *self,
-               uint16_t node_id,
-               Ucs_Signature_t *signature,
-               Ucs_Prg_SessionType_t session_type,
-               Ucs_Prg_Command_t* command_list,
-               Ucs_Prg_ReportCb_t report_fptr)
+Ucs_Return_t Prg_Start(CProgramming *self,
+                       uint16_t node_pos_addr,
+                       Ucs_Signature_t *signature,
+                       Ucs_Prg_Command_t* command_list,
+                       Ucs_Prg_ReportCb_t report_fptr)
 {
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
-
-    self->node_id          = node_id;
-    self->signature        = *signature;
-    self->session_type     = session_type;
-    self->command_list     = command_list;
-    self->report_fptr      = report_fptr;
-    self->current_function = UCS_PRG_FKT_DUMMY;
-
-    if (self->neton == true)
+    /* lock other services, check lock */
+    if (self->exc->service_locked == false)
     {
-        Fsm_SetEvent(&self->fsm, PRG_E_START);
-        Srv_SetEvent(&self->service, PRG_EVENT_SERVICE);
+        self->node_pos_addr    = node_pos_addr;
+        self->command_list     = command_list;
+        self->command_index    = 0U;
+        self->report_fptr      = report_fptr;
+        self->current_function = UCS_PRG_FKT_DUMMY;
+        self->exc->service_locked   = true;
+        
+        if (   (signature == NULL)
+            || (command_list == NULL))
+        {
+            /* store error parameter */
+            self->error.code     = UCS_PRG_RES_PARAM;
+            self->error.function = UCS_PRG_FKT_DUMMY;
+            self->error.ret_len  = 0U;
 
-        TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start", 0U));
+            Fsm_SetEvent(&self->fsm, PRG_E_ERROR);
+            Srv_SetEvent(&self->service, PRG_EVENT_SERVICE);
+
+            TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start failed: PARAM WRONG", 0U));
+        }
+        else if (   (command_list->data == NULL)
+                 || (command_list->data_length == 0U))
+        {
+            /* store error parameter */
+            self->error.code     = UCS_PRG_RES_PARAM;
+            self->error.function = UCS_PRG_FKT_DUMMY;
+            self->error.ret_len  = 0U;
+
+            Fsm_SetEvent(&self->fsm, PRG_E_ERROR);
+            Srv_SetEvent(&self->service, PRG_EVENT_SERVICE);
+
+            TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start failed: PARAM WRONG", 0U));
+        }
+        else if (self->neton == true)
+        {
+            self->signature        = *signature;
+
+            Fsm_SetEvent(&self->fsm, PRG_E_START);
+            Srv_SetEvent(&self->service, PRG_EVENT_SERVICE);
+
+            TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start", 0U));
+        }
+        else
+        {
+            /* store error parameter */
+            self->error.code     = UCS_PRG_RES_PARAM;
+            self->error.function = UCS_PRG_FKT_DUMMY;
+            self->error.ret_len  = 0U;
+
+            Fsm_SetEvent(&self->fsm, PRG_E_NET_OFF);
+            Srv_SetEvent(&self->service, PRG_EVENT_SERVICE);
+            TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start failed: NET_OFF", 0U));
+        }
     }
     else
     {
-        if (self->report_fptr != NULL)
-        {
-            self->report_fptr(UCS_PRG_RES_NET_OFF,
-                              self->current_function,
-                              0U,
-                              NULL,
-                              self->base->ucs_user_ptr);
-        }
-        TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start failed: NET_OFF", 0U));
+        ret_val = UCS_RET_ERR_API_LOCKED;
+        TR_INFO((self->base->ucs_user_ptr, "[PRG]", "Prg_Start failed: API locked", 0U));
     }
+
+    return ret_val;
 }
 
+
+
+
+/*! Starts programming the IdentString to the patch RAM.
+ *
+ * \param self          The instance
+ * \param signature     Signature of the node to be programmed
+ * \param ident_string  The new IdentString to be programmed
+ * \param result_fptr   Result callback
+ *
+ * \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_API_LOCKED      | There is already a programming job running
+ *
+ */
+Ucs_Return_t Prg_IS_RAM(CProgramming         *self,
+                        Ucs_Signature_t      *signature,
+                        Ucs_IdentString_t    *ident_string,
+                        Ucs_Prg_ReportCb_t   result_fptr)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+    uint8_t  data[LEN_IS_DATA];                                      /* contains Version, IdentString and CRC16 */
+    uint8_t  i;
+
+    if (self->exc->service_locked == false)
+    {
+        /* build data string, calc CRC */
+        Prg_Build_Array4Sonoma(ident_string, &data[0]);
+
+        /* build command_list */
+
+        self->ident_string.command_list[0].session_type = UCS_PRG_ST_IS;
+        self->ident_string.command_list[0].mem_id       = UCS_PRG_MID_ISTEST;
+        self->ident_string.command_list[0].address      = 0U;
+        self->ident_string.command_list[0].unit_size    = 1U;
+        self->ident_string.command_list[0].data_length  = LEN_IS_DATA;
+        self->ident_string.command_list[0].data         = &(self->ident_string_data[0]);
+
+        for (i = 0U; i < LEN_IS_DATA; ++i)
+        {
+            self->ident_string.command_list[0].data[i] = data[i];
+        }
+
+        self->ident_string.command_list[1].data        = NULL;           /* termination entry */
+        self->ident_string.command_list[1].data_length = 0U;
+
+        ret_val = Prg_Start(self,
+                            signature->node_pos_addr,
+                            signature,
+                            &self->ident_string.command_list[0],
+                            result_fptr);
+    }
+    else
+    {
+        ret_val = UCS_RET_ERR_API_LOCKED;
+    }
+
+    return ret_val;
+}
+
+
+/*! Starts programming the IdentString to the flash ROM.
+ *
+ * \param self          The instance
+ * \param signature     Signature of the node to be programmed
+ * \param ident_string  The new IdentString to be programmed
+ * \param result_fptr   Result callback
+ *
+ * \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_API_LOCKED      | There is already a programming job running
+ *
+ */
+Ucs_Return_t Prg_IS_ROM(CProgramming         *self,
+                        Ucs_Signature_t      *signature,
+                        Ucs_IdentString_t    *ident_string,
+                        Ucs_Prg_ReportCb_t   result_fptr)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+    uint8_t  data[LEN_IS_DATA];                                      /* contains Version, IdentString and CRC16 */
+    uint8_t  i;
+
+    if (self->exc->service_locked == false)
+    {
+        Prg_Build_Array4Vantage(ident_string, &data[0]);
+
+
+        self->ident_string.command_list[0].session_type = UCS_PRG_ST_IS;
+        self->ident_string.command_list[0].mem_id       = UCS_PRG_MID_IS;
+        self->ident_string.command_list[0].address      = 0U;
+        self->ident_string.command_list[0].unit_size    = 1U;
+        self->ident_string.command_list[0].data_length  = LEN_IS_DATA;
+        self->ident_string.command_list[0].data        = &(self->ident_string_data[0]);
+
+        for (i = 0U; i < LEN_IS_DATA; ++i)
+        {
+            self->ident_string.command_list[0].data[i] = data[i];
+        }
+
+        self->ident_string.command_list[1].data        = NULL;           /* termination entry */
+        self->ident_string.command_list[1].data_length = 0U;
+
+        ret_val = Prg_Start(self,
+                            signature->node_pos_addr,
+                            signature,
+                            &self->ident_string.command_list[0],
+                            result_fptr);
+    }
+    else
+    {
+        ret_val = UCS_RET_ERR_API_LOCKED;
+    }
+
+    return ret_val;
+}
 
 
 /**************************************************************************************************/
@@ -365,31 +542,31 @@ void Prg_Start(CProgramming *self,
 /**************************************************************************************************/
 /*!  Action on Start command
  *
- * \param *self Reference to Node Discovery object
+ * \param self  Reference to Node Discovery object
  */
 static void Prg_A_Start(void *self)
 {
     CProgramming *self_ = (CProgramming *)self;
     Ucs_Return_t  ret_val;
 
-    if (self_->node_id == 0x0400U)
+    if (self_->node_pos_addr == 0x0400U)
     {
         self_->target_address = UCS_ADDR_LOCAL_INIC;
     }
     else
     {
-        self_->target_address = self_->node_id;
+        self_->target_address = self_->node_pos_addr;
     }
 
-    self_->admin_node_address = PRG_ADMIN_BASE_ADDR + ((self_->node_id) & 0x00FFU);
+    self_->admin_node_address = (uint16_t)((uint16_t)PRG_ADMIN_BASE_ADDR + (uint16_t)((self_->node_pos_addr) & (uint16_t)0x00FFU));
     self_->current_function = UCS_PRG_FKT_WELCOME;
 
     ret_val = Exc_Welcome_Sr(self_->exc,
-                             self_->target_address,
-                             self_->admin_node_address,
-                             PRG_SIGNATURE_VERSION,
-                             self_->signature,
-                             &self_->prg_welcome);
+                                self_->target_address,
+                                self_->admin_node_address,
+                                PRG_SIGNATURE_VERSION,
+                                self_->signature,
+                                &self_->prg_welcome);
     Prg_Check_RetVal(self_, ret_val);
 }
 
@@ -400,8 +577,10 @@ static void Prg_A_MemOpen(void *self)
 
     self_->current_function = UCS_PRG_FKT_MEM_OPEN;
 
+    self_->session_type = self_->command_list[self_->command_index].session_type;
+
     ret_val = Exc_MemSessionOpen_Sr(self_->exc,
-                                    self_->admin_node_address,
+                                    self_->target_address,
                                     self_->session_type,
                                     &self_->prg_memopen);
     Prg_Check_RetVal(self_, ret_val);
@@ -411,18 +590,34 @@ static void Prg_A_MemWrite(void *self)
 {
     CProgramming *self_ = (CProgramming *)self;
     Ucs_Return_t  ret_val;
+    uint8_t       len;
 
     self_->current_function = UCS_PRG_FKT_MEM_WRITE;
 
+    if (self_->data_remaining > MAX_MEM_DATA_LEN)
+    {
+        len = MAX_MEM_DATA_LEN;
+        self_->data_remaining = (uint8_t)(self_->data_remaining - MAX_MEM_DATA_LEN);
+    }
+    else
+    {
+        len = (uint8_t)self_->data_remaining; /* parasoft-suppress  MISRA2004-10_1_d "programming logic takes care that data_remaining is <= 18." */
+        self_->data_remaining = 0U;
+    }
+
+
     ret_val = Exc_MemoryWrite_Sr(self_->exc,
-                                 self_->admin_node_address,
+                                 self_->target_address,
                                  self_->session_handle,
                                  self_->command_list[self_->command_index].mem_id,
                                  self_->command_list[self_->command_index].address,
-                                 self_->command_list[self_->command_index].unit_length,
+                                 self_->command_list[self_->command_index].unit_size,
+                                 len,
                                  self_->command_list[self_->command_index].data,
                                  &self_->prg_memwrite);
     Prg_Check_RetVal(self_, ret_val);
+    self_->command_list[self_->command_index].data += len;
+    self_->command_list[self_->command_index].address += len;
 }
 
 static void Prg_A_MemClose(void *self)
@@ -432,34 +627,26 @@ static void Prg_A_MemClose(void *self)
 
     self_->current_function = UCS_PRG_FKT_MEM_CLOSE;
     ret_val = Exc_MemSessionClose_Sr(self_->exc,
-                                     self_->admin_node_address,
+                                     self_->target_address,
                                      self_->session_handle,
                                      &self_->prg_memclose);
     Prg_Check_RetVal(self_, ret_val);
 }
 
-static void Prg_A_InitDevice(void *self)
+static void Prg_A_ReportSuccess(void *self)
 {
     CProgramming *self_ = (CProgramming *)self;
-    Ucs_Return_t  ret_val;
 
-    self_->current_function = UCS_PRG_FKT_INIT;
-    ret_val = Exc_DeviceInit_Start(self_->exc,
-                                   self_->admin_node_address,
-                                   NULL);
-    Prg_Check_RetVal(self_, ret_val);
-
-    if (ret_val == UCS_RET_SUCCESS)
+    if (self_->report_fptr != NULL)
     {
-        if (self_->report_fptr != NULL)
-        {
-            self_->report_fptr(UCS_PRG_RES_SUCCESS,
-                               UCS_PRG_FKT_DUMMY,
-                               0U,
-                               NULL,
-                               self_->base->ucs_user_ptr);
-        }
+        self_->report_fptr(UCS_PRG_RES_SUCCESS,
+                           UCS_PRG_FKT_DUMMY,
+                           0U,
+                           NULL,
+                           self_->base->ucs_user_ptr);
     }
+    self_->exc->service_locked = false;
+    self_->report_fptr         = NULL;
 }
 
 static void Prg_A_NetOff(void *self)
@@ -474,6 +661,8 @@ static void Prg_A_NetOff(void *self)
                            NULL,
                            self_->base->ucs_user_ptr);
     }
+    self_->exc->service_locked = false;
+    self_->report_fptr         = NULL;
 }
 
 static void Prg_A_Timeout(void *self)
@@ -488,6 +677,8 @@ static void Prg_A_Timeout(void *self)
                            NULL,
                            self_->base->ucs_user_ptr);
     }
+    self_->exc->service_locked = false;
+    self_->report_fptr         = NULL;
 }
 
 static void Prg_A_Error(void *self)
@@ -509,6 +700,8 @@ static void Prg_A_Error(void *self)
                            data_ptr,
                            self_->base->ucs_user_ptr);
     }
+    self_->exc->service_locked = false;
+    self_->report_fptr         = NULL;
 }
 
 
@@ -518,13 +711,7 @@ static void Prg_A_Error_Init(void *self)
     uint8_t *data_ptr   = NULL;
     Ucs_Return_t  ret_val;
 
-    ret_val = Exc_DeviceInit_Start(self_->exc,
-                                     self_->admin_node_address,
-                                     NULL);
-    Prg_Check_RetVal(self_, ret_val);
-
-    if (   (self_->error.code == UCS_PRG_RES_FKT_ASYNCH)
-        && (self_->error.ret_len != 0U))
+    if (self_->error.ret_len != 0U)
     {
         data_ptr = &(self_->error.parm[0]);
     }
@@ -537,7 +724,16 @@ static void Prg_A_Error_Init(void *self)
                            data_ptr,
                            self_->base->ucs_user_ptr);
     }
+
+    self_->current_function = UCS_PRG_FKT_INIT;
+    ret_val = Exc_Init_Start(self_->exc,
+                             self_->target_address,
+                             NULL);     /* ignore errors ion EXC:Init command. */
+    Prg_Check_RetVal(self_, ret_val);
+    self_->exc->service_locked = false;
+    self_->report_fptr         = NULL;
 }
+
 
 static void Prg_A_Error_Close_Init(void *self)
 {
@@ -545,14 +741,7 @@ static void Prg_A_Error_Close_Init(void *self)
     uint8_t *data_ptr   = NULL;
     Ucs_Return_t  ret_val;
 
-    ret_val = Exc_DeviceInit_Start(self_->exc,
-                                     self_->admin_node_address,
-                                     NULL);
-    Prg_Check_RetVal(self_, ret_val);
-
-
-    if (   (self_->error.code == UCS_PRG_RES_FKT_ASYNCH)
-        && (self_->error.ret_len != 0U))
+    if (self_->error.ret_len != 0U)
     {
         data_ptr = &(self_->error.parm[0]);
     }
@@ -565,6 +754,25 @@ static void Prg_A_Error_Close_Init(void *self)
                            data_ptr,
                            self_->base->ucs_user_ptr);
     }
+
+    self_->current_function = UCS_PRG_FKT_MEM_CLOSE;
+    ret_val = Exc_MemSessionClose_Sr(self_->exc,
+                                     self_->target_address,
+                                     self_->session_handle,
+                                     &self_->prg_memclose2);
+    Prg_Check_RetVal(self_, ret_val);
+}
+
+
+static void Prg_A_Init(void *self)
+{
+    CProgramming *self_ = (CProgramming *)self;
+    Ucs_Return_t  ret_val;
+
+    ret_val = Exc_Init_Start(self_->exc,
+                             self_->target_address,
+                             NULL);     /* ignore errors ion EXC:Init command. */
+    Prg_Check_RetVal(self_, ret_val);
 }
 
 
@@ -572,7 +780,7 @@ static void Prg_A_Error_Close_Init(void *self)
 /*  Callback functions                                                                            */
 /**************************************************************************************************/
 
-/*! \brief  Function is called on reception of the Welcome.Result messsage
+/*! \brief  Function is called on reception of the Welcome.Result message
  *  \param  self        Reference to Programming service object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -592,22 +800,31 @@ static void Prg_WelcomeResultCb(void *self, void *result_ptr)
         {
             Fsm_SetEvent(&self_->fsm, PRG_E_WELCOME_SUCCESS);
             TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_WelcomeResultCb PRG_E_WELCOME_SUCCESS", 0U));
+
+            if (self_->admin_node_address == PRG_ADMIN_BASE_ADDR)
+            {
+                self_->target_address = UCS_ADDR_LOCAL_INIC;
+            }
+            else
+            {
+                self_->target_address = self_->admin_node_address;
+            }
         }
         else
         {
-            /* store error paramters */
+            /* store error parameters */
             self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
             self_->error.function = UCS_PRG_FKT_WELCOME_NOSUCCESS;
             self_->error.ret_len  = 0U;
 
             Fsm_SetEvent(&self_->fsm, PRG_E_WELCOME_NOSUCCESS);
-            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_WelcomeResultCb PRG_E_WELCOME_NOSUCCESS", 0U)); 
+            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_WelcomeResultCb PRG_E_WELCOME_NOSUCCESS", 0U));
         }
     }
     else
     {
         uint8_t i;
-        /* store error paramters */
+        /* store error parameters */
         self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
         self_->error.function = UCS_PRG_FKT_WELCOME;
         self_->error.ret_len  = result_ptr_->result.info_size;
@@ -630,7 +847,7 @@ static void Prg_WelcomeResultCb(void *self, void *result_ptr)
 
 
 
-/*! \brief  Function is called on reception of the MemorySessionOpen.Result messsage
+/*! \brief  Function is called on reception of the MemorySessionOpen.Result message
  *  \param  self        Reference to Programming service object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -644,26 +861,19 @@ static void Prg_MemOpenResultCb(void *self, void *result_ptr)
     if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         self_->session_handle = *(uint16_t *)(result_ptr_->data_info);
-        self_->command_index = 0U;
 
-        if (   (self_->command_list[self_->command_index].data_length == 0U)
-            || (self_->command_list[self_->command_index].data        == NULL))
-        {
-            Fsm_SetEvent(&self_->fsm, PRG_E_MEM_WRITE_FINISH);
-            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemOpenResultCb No Tasks", 0U));
-        }
-        else
-        {
-            Fsm_SetEvent(&self_->fsm, PRG_E_MEM_WRITE_CMD);
-            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemOpenResultCb successful", 0U));
-        }
+        /* initialize payload parameters */
+        self_->data_remaining = self_->command_list[self_->command_index].data_length;
+
+        Fsm_SetEvent(&self_->fsm, PRG_E_MEM_WRITE_CMD);
+        TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemOpenResultCb successful", 0U));
     }
     else
     {
         uint8_t i;
         uint32_t fs_error;
 
-        /* store error paramters */
+        /* store error parameters */
         self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
         self_->error.function = UCS_PRG_FKT_MEM_OPEN;
         self_->error.ret_len  = result_ptr_->result.info_size;
@@ -681,7 +891,7 @@ static void Prg_MemOpenResultCb(void *self, void *result_ptr)
                 break;
 
             case PRG_SESSION_ACTIVE:
-                self_->session_handle = (uint16_t)(((uint16_t)(self_->error.parm[3])) << 8U) + self_->error.parm[4]; /* get correct session handle */
+                self_->session_handle = (uint16_t)((uint16_t)((uint16_t)self_->error.parm[3] << 8U) + (uint16_t)self_->error.parm[4]); /* get correct session handle */
                 Fsm_SetEvent(&self_->fsm, PRG_E_ERROR_CLOSE_INIT);
                 break;
 
@@ -697,7 +907,7 @@ static void Prg_MemOpenResultCb(void *self, void *result_ptr)
 }
 
 
-/*! \brief  Function is called on reception of the MemoryWrite.Result messsage
+/*! \brief  Function is called on reception of the MemoryWrite.Result message
  *  \param  self        Reference to Programming service object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -710,9 +920,7 @@ static void Prg_MemWriteResultCb(void *self, void *result_ptr)
 
     if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
-        self_->command_index++;
-        if (   (self_->command_list[self_->command_index].data_length == 0U)
-            || (self_->command_list[self_->command_index].data        == NULL))
+        if (self_->data_remaining == 0U)
         {
             Fsm_SetEvent(&self_->fsm, PRG_E_MEM_WRITE_FINISH);
             TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemWriteResultCb PRG_E_MEM_WRITE_FINISH", 0U));
@@ -728,7 +936,7 @@ static void Prg_MemWriteResultCb(void *self, void *result_ptr)
         uint8_t i;
         uint32_t fs_error;
 
-        /* store error paramters */
+        /* store error parameters */
         self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
         self_->error.function = UCS_PRG_FKT_MEM_WRITE;
         self_->error.ret_len  = result_ptr_->result.info_size;
@@ -765,6 +973,10 @@ static void Prg_MemWriteResultCb(void *self, void *result_ptr)
                 Fsm_SetEvent(&self_->fsm, PRG_E_ERROR_CLOSE_INIT);
                 break;
 
+            case PRG_SUM_OUT_OF_RANGE:
+                Fsm_SetEvent(&self_->fsm, PRG_E_ERROR_CLOSE_INIT);
+                break;
+
             default:
                 Fsm_SetEvent(&self_->fsm, PRG_E_ERROR);
                 break;
@@ -776,7 +988,7 @@ static void Prg_MemWriteResultCb(void *self, void *result_ptr)
 }
 
 
-/*! \brief  Function is called on reception of the MemorySessionClose.Result messsage
+/*! \brief  Function is called on reception of the MemorySessionClose.Result message
  *  \param  self        Reference to Programming service object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -793,13 +1005,26 @@ static void Prg_MemCloseResultCb(void *self, void *result_ptr)
 
         if (session_result == 0U)
         {
-            Fsm_SetEvent(&self_->fsm, PRG_E_MEM_CLOSE_SUCCESS);
-            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb PRG_E_MEM_CLOSE_SUCCESS", 0U));
+            self_->command_index++;
+            if (   (self_->command_list[self_->command_index].data_length == 0U)
+                || (self_->command_list[self_->command_index].data        == NULL))
+            {
+                Fsm_SetEvent(&self_->fsm, PRG_E_MEM_CLOSE_LAST);
+                TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb PRG_E_MEM_CLOSE_LAST", 0U));
+            }
+            else
+            {
+                Fsm_SetEvent(&self_->fsm, PRG_E_MEM_REOPEN);
+                TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb PRG_E_MEM_REOPEN", 0U));
+            }
         }
-        else
+        else    /* CRC error found */
         {
+            self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
+            self_->error.function = UCS_PRG_FKT_MEM_CLOSE_CRC_ERR;
+            self_->error.ret_len  = 0U;
             Fsm_SetEvent(&self_->fsm, PRG_E_ERROR_INIT);
-            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb ErrResult PRG_E_ERROR_INIT", 0U));
+            TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb CRC error PRG_E_ERROR_INIT", 0U));
         }
     }
     else
@@ -807,7 +1032,7 @@ static void Prg_MemCloseResultCb(void *self, void *result_ptr)
         uint8_t i;
         uint32_t fs_error;
 
-        /* store error paramters */
+        /* store error parameters */
         self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
         self_->error.function = UCS_PRG_FKT_MEM_CLOSE;
         self_->error.ret_len  = result_ptr_->result.info_size;
@@ -834,12 +1059,49 @@ static void Prg_MemCloseResultCb(void *self, void *result_ptr)
 }
 
 
+/*! \brief  Function is called on reception of the MemorySessionClose.Result message in case of error shutdown
+ *  \param  self        Reference to Programming service object
+ *  \param  result_ptr  Pointer to the result of the Welcome message
+ */
+static void Prg_MemClose2ResultCb(void *self, void *result_ptr)
+{
+    CProgramming *self_          = (CProgramming *)self;
+    Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *)result_ptr;
+
+    Tm_ClearTimer(&self_->base->tm, &self_->timer);
+
+    if (result_ptr_->result.code == UCS_RES_SUCCESS)
+    {
+        Fsm_SetEvent(&self_->fsm, PRG_E_MEM_CLOSE_LAST);
+    }
+    else
+    {
+        uint8_t i;
+
+        /* store error parameters */
+        self_->error.code     = UCS_PRG_RES_FKT_ASYNCH;
+        self_->error.function = UCS_PRG_FKT_MEM_CLOSE;
+        self_->error.ret_len  = result_ptr_->result.info_size;
+        for (i=0U; i< result_ptr_->result.info_size; ++i)
+        {
+            self_->error.parm[i] = result_ptr_->result.info_ptr[i];
+        }
+
+        Fsm_SetEvent(&self_->fsm, PRG_E_ERROR_INIT);
+
+        TR_INFO((self_->base->ucs_user_ptr, "[PRG]", "Prg_MemCloseResultCb Error  0x%x", 1U, result_ptr_->result.code));
+    }
+
+    Srv_SetEvent(&self_->service, PRG_EVENT_SERVICE);
+}
+
+
 
 
 /*!  Function is called on severe internal errors
  *
- * \param *self         Reference to Programming object
- * \param *result_ptr   Reference to data
+ * \param self          Reference to Programming object
+ * \param result_ptr    Reference to data
  */
 static void Prg_OnTerminateEventCb(void *self, void *result_ptr)
 {
@@ -852,23 +1114,25 @@ static void Prg_OnTerminateEventCb(void *self, void *result_ptr)
         Tm_ClearTimer(&self_->base->tm, &self_->timer);
         if (self_->report_fptr != NULL)
         {
-            self_->report_fptr(UCS_PRG_RES_ERROR, 
-                               self_->current_function, 
-                               0U, 
-                               NULL, 
+            self_->report_fptr(UCS_PRG_RES_ERROR,
+                               self_->current_function,
+                               0U,
+                               NULL,
                                self_->base->ucs_user_ptr);
         }
 
         /* reset FSM */
-        self_->fsm.current_state = PRG_S_IDLE;
+        self_->fsm.current_state   = PRG_S_IDLE;
+        self_->exc->service_locked = false;
+        self_->report_fptr         = NULL;
     }
 }
 
 
 /*! \brief Callback function for the INIC.NetworkStatus status and error messages
  *
- * \param *self         Reference to Node Discovery object
- * \param *result_ptr   Pointer to the result of the INIC.NetworkStatus message
+ * \param self          Reference to Programming object
+ * \param result_ptr    Pointer to the result of the INIC.NetworkStatus message
  */
 static void Prg_NetworkStatusCb(void *self, void *result_ptr)
 {
@@ -898,7 +1162,7 @@ static void Prg_NetworkStatusCb(void *self, void *result_ptr)
 
 
 /*! \brief Timer callback used for supervising INIC command timeouts.
- *  \param self    Reference to System Diagnosis object
+ *  \param self    Reference to Programming object
  */
 static void Prg_TimerCb(void *self)
 {
@@ -931,7 +1195,7 @@ static void Prg_Check_RetVal(CProgramming *self, Ucs_Return_t  ret_val)
     {
         TR_ASSERT(self->base->ucs_user_ptr, "[PRG]", ret_val == UCS_RET_SUCCESS);
 
-        /* store error paramter */
+        /* store error parameter */
         self->error.code     = UCS_PRG_RES_FKT_SYNCH;
         self->error.function = self->current_function;
         self->error.ret_len  = (uint8_t)ret_val;
@@ -952,6 +1216,109 @@ static uint32_t Prg_CalcError(uint8_t val[])
 }
 
 
+
+
+
+#define SONOMA_IS_VERSION    (0x40U)
+static void Prg_Build_Array4Sonoma(Ucs_IdentString_t *ident_string, uint8_t data[])
+{
+    uint16_t crc16;
+
+    data[ 0] = SONOMA_IS_VERSION;
+    data[ 1] = MISC_HB(ident_string->node_address);
+    data[ 2] = MISC_LB(ident_string->node_address);
+    data[ 3] = Prg_Pack_2_6(MISC_HB(ident_string->group_address), MISC_LB(ident_string->group_address));
+    data[ 4] = Prg_Pack_2_6(MISC_LB(ident_string->group_address), MISC_HB(ident_string->mac_15_0));
+    data[ 5] = Prg_Pack_2_6(MISC_HB(ident_string->mac_15_0),      MISC_LB(ident_string->mac_15_0));
+    data[ 6] = Prg_Pack_2_6(MISC_LB(ident_string->mac_15_0),      MISC_HB(ident_string->mac_31_16));
+    data[ 7] = Prg_Pack_2_6(MISC_HB(ident_string->mac_31_16),     MISC_LB(ident_string->mac_31_16));
+    data[ 8] = Prg_Pack_2_6(MISC_LB(ident_string->mac_31_16),     MISC_HB(ident_string->mac_47_32));
+    data[ 9] = Prg_Pack_2_6(MISC_HB(ident_string->mac_47_32),     MISC_LB(ident_string->mac_47_32));
+    data[10] = Prg_Pack_2_6(MISC_LB(ident_string->mac_47_32),     0xFFU);
+    data[11] = 0xFFU;
+
+    crc16 = Prg_calcCCITT16(&data[0], 12U, 0U);
+
+    data[12] = MISC_LB(crc16);          /* Cougar needs Little Endian here. */
+    data[13] = MISC_HB(crc16);
+}
+
+
+#define VANTAGE_IS_VERSION    (0x41U)
+static void Prg_Build_Array4Vantage(Ucs_IdentString_t *ident_string, uint8_t data[])
+{
+    uint16_t crc16;
+
+    data[ 0] = VANTAGE_IS_VERSION;
+    data[ 1] = 0xFFU;
+    data[ 2] = MISC_HB(ident_string->node_address);
+    data[ 3] = MISC_LB(ident_string->node_address);
+    data[ 4] = (MISC_HB(ident_string->group_address)) | 0xFCU;
+    data[ 5] = MISC_LB(ident_string->group_address);
+    data[ 6] = MISC_HB(ident_string->mac_15_0);
+    data[ 7] = MISC_LB(ident_string->mac_15_0);
+    data[ 8] = MISC_HB(ident_string->mac_31_16);
+    data[ 9] = MISC_LB(ident_string->mac_31_16);
+    data[10] = MISC_HB(ident_string->mac_47_32);
+    data[11] = MISC_LB(ident_string->mac_47_32);
+
+    crc16 = Prg_calcCCITT16(&data[0], 12U, 0U);
+
+    data[12] = MISC_LB(crc16);          /* Cougar needs Little Endian here. */
+    data[13] = MISC_HB(crc16);
+}
+
+
+/*----------------------------------------------------------------------------------------------------------------------------------------*/
+/*! \brief Calculates the CCITT-16 CRC of a block of RAM memory.
+*
+* Calculates the CCITT-16 CRC of a block of RAM memory.
+*
+* \param data     - 16bit memory address where the first byte is located
+* \param length     - Number of bytes to process
+* \param start_value - Start value for the CRC-Sum register
+*
+* \return The calculated checksum.
+*/
+static uint16_t Prg_calcCCITT16( uint8_t data[], uint16_t length, uint16_t start_value )
+{
+/*    uint8_t *puData = data;*/
+    uint8_t i = 0U;
+
+   /* Loop until all bytes are processed */
+   while ( i < length )
+   {
+/*      start_value = Prg_calcCCITT16Step( start_value, *puData );*/
+      start_value = Prg_calcCCITT16Step( start_value, data[i] );
+/*      length--;
+      puData++;
+*/
+      i++;
+   }
+
+   return( start_value );
+}
+
+
+/*----------------------------------------------------------------------------------------------------------------------------------------*/
+static uint16_t Prg_calcCCITT16Step( uint16_t crc, uint8_t value )
+{
+   uint8_t crc_hi = MISC_HB(crc);
+   uint8_t crc_lo = MISC_LB(crc);
+
+   value = (value ^ crc_lo) & 0xFFU;
+   value = (value ^ ((uint8_t)(value << 4) & 0xF0U)) & 0xFFU;
+   crc_lo = (crc_hi ^ ((uint8_t)(value << 3) & 0xFCU) ^ ((value >> 4) & 0xFU)) & 0xFFU;
+   crc_hi = (value ^ ((value >> 5) & 0x7U)) & 0xFFU;
+
+   return (uint16_t)(((uint16_t)((uint16_t)crc_hi << 8) & (uint16_t)0xFF00U) | (uint16_t)((uint16_t)crc_lo & (uint16_t)0xFFU));
+}
+
+
+static uint8_t Prg_Pack_2_6(uint8_t a, uint8_t b)
+{
+    return (uint8_t)(((uint8_t)((uint8_t)(a<<6) & (uint8_t)0xC0U) | ((b>>2) & (uint8_t)0x3FU)));
+}
 
 
 

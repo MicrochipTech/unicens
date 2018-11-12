@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -65,6 +65,8 @@ void Base_Ctor(CBase *self, Base_InitData_t *init_ptr)
     Eh_Ctor(&self->eh, init_ptr->ucs_user_ptr);
     /* Create the API locking manager instance */
     Alm_Ctor(&self->alm, &self->tm, &self->eh, init_ptr->ucs_user_ptr);
+    /* Create local address handling */
+    Addr_Ctor(&self->addr, init_ptr->ucs_user_ptr);
 }
 
 /*!

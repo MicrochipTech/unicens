@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -96,7 +96,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_y_n_c__a_n_d__a_s_y_n_c__r_
 <h1>Synchronous Results</h1>
 <p>If a UNICENS API function detects an error the error is returned synchronously. For this purpose enumeration <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a> is used. If no error has occurred <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc">UCS_RET_SUCCESS</a> is returned.</p>
 <p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> ret = <a class="code" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459" title="Starts up the MOST Network.">Ucs_Network_Startup</a>(ucs_inst_ptr, 52U, 0xFFFFU, my_result_fptr);</div>
+<div class="fragment"><div class="line"><a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> ret = <a class="code" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459" title="Starts up the Network.">Ucs_Network_Startup</a>(ucs_inst_ptr, 52U, 0xFFFFU, my_result_fptr);</div>
 </div><!-- fragment --><h1>Asynchronous Results</h1>
 <p>The communication between the EHC and the INIC is an asynchronous process. If the EHC calls an INIC function the returned result is received asynchronously. Thus, most of the UNICENS API functions provide callback function pointers to receive INIC results/errors.</p>
 <h2>INIC Errors</h2>
@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_y_n_c__a_n_d__a_s_y_n_c__r_
 <tr>
 <td><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540cae19d5a51de78bbf903a108a4e36a0fdf">UCS_RES_SUCCESS</a> </td><td style="text-align:center;">- </td><td>Operation succeed, no error occurred  </td></tr>
 <tr>
-<td rowspan="7"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca4f4226f6e507caf5a9e044759c6409cf">UCS_RES_ERR_MOST_STANDARD</a> </td><td style="text-align:center;">0x01 </td><td>FBlock ID not available  </td></tr>
+<td rowspan="7"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca17bbaf91f053c5d436cd80c7fbb5ef4b">UCS_RES_ERR_STANDARD</a> </td><td style="text-align:center;">0x01 </td><td>FBlock ID not available  </td></tr>
 <tr>
 <td style="text-align:center;">0x02 </td><td>Instance ID not available  </td></tr>
 <tr>
@@ -143,7 +143,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_y_n_c__a_n_d__a_s_y_n_c__r_
 <tr>
 <td><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca3099d31f6d533972cf96c86dca0b0cc7">UCS_RES_ERR_TIMEOUT</a> </td><td style="text-align:center;">- </td><td>Timeout during operation  </td></tr>
 <tr>
-<td><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca4e2229e49fe1197dd9df919719fcd38a">UCS_RES_ERR_TRANSMISSION</a> </td><td style="text-align:center;">- </td><td>Transmission error occurred on the MOST network  </td></tr>
+<td><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gac844b77cf41aef663782bc0b43d3540c.html#ggac844b77cf41aef663782bc0b43d3540ca4e2229e49fe1197dd9df919719fcd38a">UCS_RES_ERR_TRANSMISSION</a> </td><td style="text-align:center;">- </td><td>Transmission error occurred on the network  </td></tr>
 </table>
 <h3>Detailed Error Information</h3>
 <p>If one of the errors above occurs, the raw INIC error data is stored in a byte stream referenced by pointer <code>info_ptr</code>. Parameter <code>size</code> represents the size of the INIC error data in bytes.</p>
@@ -170,12 +170,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_y_n_c__a_n_d__a_s_y_n_c__r_
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

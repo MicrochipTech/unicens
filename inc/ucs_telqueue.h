@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -63,8 +63,8 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Class CTelQueue                                                                                */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Class CTelQueue 
- *  \details Internal class to queue MOST telegrams
+/*! \brief   Class CTelQueue
+ *  \details Internal class to queue control messages
  */
 typedef struct CTelQueue_
 {
@@ -78,9 +78,9 @@ typedef struct CTelQueue_
 /* Methods                                                                                        */
 /*------------------------------------------------------------------------------------------------*/
 extern void Telq_Ctor(CTelQueue *self, void *ucs_user_ptr);
-extern Msg_MostTel_t* Telq_Dequeue(CTelQueue *self);
-extern Msg_MostTel_t* Telq_Peek(CTelQueue *self);
-extern void Telq_Enqueue(CTelQueue *self, Msg_MostTel_t *tel_ptr);
+extern Ucs_Message_t* Telq_Dequeue(CTelQueue *self);
+extern Ucs_Message_t* Telq_Peek(CTelQueue *self);
+extern void Telq_Enqueue(CTelQueue *self, Ucs_Message_t *tel_ptr);
 extern uint8_t Telq_GetSize(CTelQueue *self);
 
 #ifdef __cplusplus

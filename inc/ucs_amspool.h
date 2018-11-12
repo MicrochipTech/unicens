@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -47,6 +47,8 @@
 #include "ucs_obs.h"
 #include "ucs_amsallocator.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -59,16 +61,16 @@ extern "C"
 typedef struct CAmsMsgPool_
 {
     Ams_MemAllocator_t *allocator_ptr;              /*!< \brief  Interface to memory allocator */
-    Ucs_AmsRx_Msg_t    *rx_rsvd_msg_ptr;            /*!< \brief  Pre-allocated Rx message or NULL if no 
+    Ucs_AmsRx_Msg_t    *rx_rsvd_msg_ptr;            /*!< \brief  Pre-allocated Rx message or NULL if no
                                                      *           reserved message is available */
     Ucs_AmsRx_Msg_t    *rx_rsvd_msg_ref;            /*!< \brief  Stores the reference of the reserved message
-                                                     *           to identify it and restore the 
+                                                     *           to identify it and restore the
                                                      *           \c rx_rsvd_msg_ptr. */
     CSubject            tx_freed_subject;           /*!< \brief  Allows to observe freed Tx message event */
     CSubject            rx_freed_subject;           /*!< \brief  Allows to observe freed Rx message event */
     bool                tx_notify_freed;            /*!< \brief  Is \c true when to notify the next Tx freed object */
     bool                rx_notify_freed;            /*!< \brief  Is \c true when to notify the next Rx freed object */
-    bool                terminated;                 /*!< \brief  Is \c true if a cleanup was done. Helps to release the 
+    bool                terminated;                 /*!< \brief  Is \c true if a cleanup was done. Helps to release the
                                                      *           pre-allocated message after the first cleanup attempt. */
     void               *ucs_user_ptr;               /*!< \brief User reference that needs to be passed in every callback function */
 
@@ -94,7 +96,9 @@ extern void Amsp_FreeRxPayload(CAmsMsgPool *self, Ucs_AmsRx_Msg_t* msg_ptr);
 }               /* extern "C" */
 #endif
 
-#endif          /* UCS_AMSPOOL_H */
+#endif          /* ifndef AMS_FOOTPRINT_NOAMS */
+
+#endif          /* ifndef UCS_AMSPOOL_H */
 
 /*!
  * @}

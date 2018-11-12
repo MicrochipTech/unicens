@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -136,7 +136,7 @@ extern void Pmch_Uninitialize(CPmChannel *self)
 
 /*! \brief      Wrapper for LLD transmit
  *  \details    This function which shall be used by all internal classes. No class shall
- *              invoke the LLD transmit function directly. Thus, it might be possible 
+ *              invoke the LLD transmit function directly. Thus, it might be possible
  *              in future to handle transmission failures and retries.
  *  \param      self    The instance
  *  \param      msg_ptr Reference to the public LLD message structure
@@ -156,7 +156,7 @@ void Pmch_Transmit(CPmChannel *self, Ucs_Lld_TxMsg_t *msg_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /* The exposed low-level driver interface                                                         */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Allocates an Rx message object 
+/*! \brief  Allocates an Rx message object
  *  \param  self        The instance
  *  \param  buffer_size Size of the memory chunk in bytes which is needed to
  *                      copy the Rx message.
@@ -210,7 +210,7 @@ static void Pmch_RxUnused(void *self, Ucs_Lld_RxMsg_t *msg_ptr)
     Pmch_ReturnRxToPool(self_, pb_handle);
 }
 
-/*! \brief  Pass an Rx message to UNICENS 
+/*! \brief  Pass an Rx message to UNICENS
  *  \param  self        The instance
  *  \param  msg_ptr     Reference to the Rx message object containing the received
  *                      message.
@@ -230,7 +230,7 @@ static void Pmch_RxReceive(void *self, Ucs_Lld_RxMsg_t *msg_ptr)
             {
                 CMessage *handle = ((Lld_IntRxMsg_t*)(void*)msg_ptr)->msg_ptr;
                                                                             /* forward message to the respective FIFO/channel */
-                self_->receivers[fifo_no].rx_fptr(self_->receivers[fifo_no].inst_ptr, handle); 
+                self_->receivers[fifo_no].rx_fptr(self_->receivers[fifo_no].inst_ptr, handle);
                 found = true;
             }
             else
@@ -248,7 +248,7 @@ static void Pmch_RxReceive(void *self, Ucs_Lld_RxMsg_t *msg_ptr)
         TR_ERROR((self_->init_data.ucs_user_ptr, "[PMCH]", "Pmch_RxReceive(): message data is not valid", 0U));
     }
 
-    if (found == false) 
+    if (found == false)
     {
         Pmch_RxUnused(self_, msg_ptr);                                      /* Just return message to pool until PMC is implemented */
     }
@@ -286,7 +286,7 @@ static void Pmch_TxRelease(void *self, Ucs_Lld_TxMsg_t *msg_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Returns an unused Rx message object back to the pool
  *  \param  self    The instance
- *  \param  msg_ptr The unused Rx message object 
+ *  \param  msg_ptr The unused Rx message object
  */
 void Pmch_ReturnRxToPool(void *self, CMessage *msg_ptr)
 {
@@ -294,7 +294,7 @@ void Pmch_ReturnRxToPool(void *self, CMessage *msg_ptr)
 
     Pool_ReturnMsg(msg_ptr);
 
-    if (self_->rx_trigger_available == true)
+    if (self_->rx_trigger_available != false)
     {
         self_->rx_trigger_available = false;
 

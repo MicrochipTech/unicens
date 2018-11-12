@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -55,7 +55,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Callback signature used by foreach-function for the resources list
+/*! \brief Callback signature used by for each-function for the resources list
  *  \param rc_ptr    Reference to a resource object in the list
  *  \param ud_ptr1   Reference to the user data 1
  *  \param ud_ptr2   Reference to the user data 2
@@ -74,8 +74,8 @@ typedef bool (*Xrmp_ForeachFunc_t)(void *rc_ptr, void *ud_ptr1, void *ud_ptr2, v
 typedef bool (*Xrmp_CheckJobListFunc_t)(void * xrm_inst, void * job_ptr);
 
 /*! \brief  Function signature used for the results and reports of the Extended Resource Manager.
- *  \param  node_address        The node address from which the results come 
- *  \param  connection_label    Returned MOST network connection label
+ *  \param  node_address        The node address from which the results come
+ *  \param  connection_label    Returned network connection label
  *  \param  result              Result of the job
  *  \param  user_arg            Reference to the user argument
  *  \ingroup G_UCS_IRM
@@ -92,9 +92,9 @@ typedef struct Xrm_Job_
     UCS_XRM_CONST Ucs_Xrm_ResObject_t **resource_object_list_ptr;
     /*! \brief Report callback of the job */
     Ucs_Xrm_ReportCb_t report_fptr;
-    /*! \brief User defined MOST connection label */
-    uint16_t most_network_connection_label;
-    /*! \brief MOST connection label, returned during MOST socket creation */
+    /*! \brief User defined Network Connection label */
+    uint16_t network_connection_label;
+    /*! \brief Network Connection label, returned during network socket creation */
     uint16_t connection_label;
     /*!< \brief Node required for jobs pool */
     CDlNode node;
@@ -104,7 +104,7 @@ typedef struct Xrm_Job_
     bool valid;
     /*! \brief Notification flag */
     bool notify;
-    /*!< \brief user argument */
+    /*!< \brief User argument */
     void * user_arg;
 
 } Xrm_Job_t;
@@ -130,8 +130,7 @@ typedef struct CXrmPool_
     Xrm_ResourceHandleListItem_t resource_handle_list[XRM_NUM_RESOURCE_HANDLES];
     /*!< \brief Reference to the resource identification table */
     Ucs_Xrm_ResIdentity_t * res_id_ptr;
-    /*! \brief Size of the resources Id table.
-     */
+    /*! \brief Size of the resources Id table */
     uint16_t res_id_size;
 
 } CXrmPool;
@@ -142,9 +141,10 @@ typedef struct CXrmPool_
 extern void Xrmp_Ctor(CXrmPool * self);
 extern bool Xrmp_StoreResourceHandle(CXrmPool * self_ptr, uint16_t resource_handle, Xrm_Job_t * job_ptr, UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_ptr);
 extern uint16_t Xrmp_GetResourceHandle(CXrmPool * self, Xrm_Job_t * job_ptr, UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_ptr, Xrmp_CheckJobListFunc_t func_ptr, void * usr_ptr);
-extern uint8_t Xrmp_GetResourceHandleIdx(CXrmPool *self, Xrm_Job_t *job_ptr, UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr);
+extern uint16_t Xrmp_GetResourceHandleIdx(CXrmPool *self, Xrm_Job_t *job_ptr, UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr);
 extern Xrm_Job_t * Xrmp_GetJob(CXrmPool * self, UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_list[]);
 extern void Xrmp_Foreach(CXrmPool *self, Xrmp_ForeachFunc_t func_ptr, void *user_data_ptr1, void *user_data_ptr2, void *user_data_ptr3);
+extern uint16_t Xrmp_GetResourceHandleForAtd(CXrmPool * self, uint16_t conn_lab , UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

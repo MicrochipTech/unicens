@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -159,7 +159,7 @@ void Fifo_Ctor(CPmFifo *self, const Fifo_InitData_t *init_ptr, const Fifo_Config
     /* FIFO synchronization command */
     self->sync_cnt = 0xFFU;
     self->sync_params[0] = config_ptr->rx_credits;
-    self->sync_params[1] = config_ptr->rx_busy_allowed; 
+    self->sync_params[1] = config_ptr->rx_busy_allowed;
     self->sync_params[2] = config_ptr->rx_ack_timeout;
     self->sync_params[3] = config_ptr->tx_wd_timeout;
     Pmcmd_Ctor(&self->tx.sync_cmd, self->config.fifo_id, PMP_MSG_TYPE_CMD);
@@ -167,7 +167,7 @@ void Fifo_Ctor(CPmFifo *self, const Fifo_InitData_t *init_ptr, const Fifo_Config
 
     /* default PM header for Tx */
     self->tx.pm_header.pml = 6U;
-    self->tx.pm_header.pmhl  = self->tx.encoder_ptr->pm_hdr_sz - 3U;
+    self->tx.pm_header.pmhl  = (uint8_t)(self->tx.encoder_ptr->pm_hdr_sz - 3U);
     Pmh_SetFph(&self->tx.pm_header, self->config.fifo_id, PMP_MSG_TYPE_DATA);
     self->tx.pm_header.sid = 0U;
     self->tx.pm_header.ext_type = (uint8_t)self->tx.encoder_ptr->content_type;
@@ -185,11 +185,11 @@ void Fifo_Ctor(CPmFifo *self, const Fifo_InitData_t *init_ptr, const Fifo_Config
 static void Fifo_InitCounters(CPmFifo *self, uint8_t tx_sid_complete, uint8_t tx_credits)
 {
     self->rx.busy_num = 0U;
-    self->rx.expected_sid = tx_sid_complete + 1U;
+    self->rx.expected_sid = (uint8_t)(tx_sid_complete + 1U);
     self->rx.ack_last_ok_sid = tx_sid_complete;
 
     self->tx.credits = tx_credits;
-    self->tx.sid_next_to_use = tx_sid_complete +1U;
+    self->tx.sid_next_to_use = (uint8_t)(tx_sid_complete + 1U);
     self->tx.sid_last_completed = tx_sid_complete;
 
     self->tx.failure_status = 0U;
@@ -225,7 +225,7 @@ void Fifo_RemoveStateObserver(CPmFifo *self, CObserver *obs_ptr)
  */
 void Fifo_Stop(CPmFifo *self, Fifo_SyncState_t new_state, bool allow_notification)
 {
-    bool notify = false; 
+    bool notify = false;
 
     TR_INFO((self->init.base_ptr->ucs_user_ptr, "[FIFO]", "Fifo_Stop(): FIFO: %u, state: %u, new_state: %u", 3U, self->config.fifo_id, self->sync_state, new_state));
 
@@ -302,19 +302,19 @@ static void Fifo_Service(void *self)
 
     Srv_GetEvent(&self_->service, &event_mask);
 
-    if(FIFO_SE_RX_SERVICE == (event_mask & FIFO_SE_RX_SERVICE))     /* Is event pending? */
+    if (FIFO_SE_RX_SERVICE == (event_mask & FIFO_SE_RX_SERVICE))     /* Is event pending? */
     {
         Srv_ClearEvent(&self_->service, FIFO_SE_RX_SERVICE);
         Fifo_RxService(self_);
     }
 
-    if((event_mask & FIFO_SE_TX_APPLY_STATUS) == FIFO_SE_TX_APPLY_STATUS)
+    if ((event_mask & FIFO_SE_TX_APPLY_STATUS) == FIFO_SE_TX_APPLY_STATUS)
     {
         Srv_ClearEvent(&self_->service, FIFO_SE_TX_APPLY_STATUS);
         Fifo_TxApplyCurrentStatus(self_);
     }
 
-    if(FIFO_SE_TX_SERVICE == (event_mask & FIFO_SE_TX_SERVICE))     /* Is event pending? */
+    if (FIFO_SE_TX_SERVICE == (event_mask & FIFO_SE_TX_SERVICE))     /* Is event pending? */
     {
         Srv_ClearEvent(&self_->service, FIFO_SE_TX_SERVICE);
         Fifo_TxService(self_);
@@ -364,8 +364,8 @@ static void Fifo_TxEnqueueBypassMsg(CPmFifo *self, CDlList *q_ptr, CMessage *msg
     Msg_SetTxBypass(msg_ptr, true);                                         /* mark new message as bypass message */
 
     if (node_ptr == NULL)                                                   /* no message or only bypass messages found */
-    {                               
-        Dl_InsertTail(&self->tx.waiting_queue, Msg_GetNode(msg_ptr));       /* enqueue message to tail */   
+    {
+        Dl_InsertTail(&self->tx.waiting_queue, Msg_GetNode(msg_ptr));       /* enqueue message to tail */
     }
     else                                                                    /* first "non-bypass" message is found */
     {                                                                       /* insert the bypass message before the first regular message found */
@@ -383,7 +383,7 @@ static bool Fifo_FindFirstRegularMsg(void *d_ptr, void *ud_ptr)
     bool ret = true;
     MISC_UNUSED(ud_ptr);
 
-    if (Msg_IsTxBypass((CMessage*)d_ptr))
+    if (Msg_IsTxBypass((CMessage*)d_ptr) != false)
     {
         ret = false;
     }
@@ -411,16 +411,16 @@ static void Fifo_TxProcessStatus(CPmFifo *self)
         if (Pmcmd_Reserve(&self->rx.status) != false)
         {
             Pmcmd_SetTrigger(&self->rx.status, false);
-            self->rx.ack_last_ok_sid = (self->rx.expected_sid - self->rx.busy_num) - 1U;
+            self->rx.ack_last_ok_sid = (uint8_t)((uint8_t)(self->rx.expected_sid - self->rx.busy_num) - 1U);
             self->rx.wait_processing = false;
 
             if (self->rx.busy_num == 0U)                /* currently no processing of data messages active */
             {                                           /* notify the latest with SUCCESS */
-                Pmcmd_UpdateContent(&self->rx.status, self->rx.expected_sid - 1U, PMP_STATUS_TYPE_FLOW, PMP_STATUS_CODE_SUCCESS);
+                Pmcmd_UpdateContent(&self->rx.status, (uint8_t)(self->rx.expected_sid - 1U), PMP_STATUS_TYPE_FLOW, PMP_STATUS_CODE_SUCCESS);
             }
             else                                        /* message processing is active */
             {                                           /* notify code busy according to remaining credits */
-                Pmcmd_UpdateContent(&self->rx.status, self->rx.expected_sid - self->rx.busy_num, PMP_STATUS_TYPE_FLOW, PMP_STATUS_CODE_BUSY);
+                Pmcmd_UpdateContent(&self->rx.status, (uint8_t)(self->rx.expected_sid - self->rx.busy_num), PMP_STATUS_TYPE_FLOW, PMP_STATUS_CODE_BUSY);
             }
 
             Pmch_Transmit(self->init.channel_ptr, Pmcmd_GetLldTxObject(&self->rx.status));
@@ -434,7 +434,7 @@ static void Fifo_TxProcessStatus(CPmFifo *self)
 static void Fifo_TxProcessData(CPmFifo *self)
 {
     /* process all queued messages as long as credits are available,
-     * process all queued messages if FIFO is not synced 
+     * process all queued messages if FIFO is not synced
      */
     while ((self->tx.cancel_all_running == false) && (self->tx.credits > 0U))
     {
@@ -471,7 +471,7 @@ static void Fifo_TxProcessData(CPmFifo *self)
 
             {
                 uint8_t tel_length = Msg_GetMostTel(msg_ptr)->tel.tel_len;
-                self->tx.pm_header.pml = (Msg_GetHeaderSize(msg_ptr) + tel_length) - 2U;
+                self->tx.pm_header.pml = (uint8_t)((uint8_t)(Msg_GetHeaderSize(msg_ptr) + tel_length) - 2U);
             }
 
             self->tx.pm_header.sid = self->tx.sid_next_to_use;        /* assign SeqID */
@@ -527,9 +527,9 @@ static void Fifo_TxProcessCommand(CPmFifo *self)
 
 /*! \brief      Releases a LLD Tx message object
  *  \param      self        The instance
- *  \param      handle_ptr  The unused LLD Tx message object 
- *  \details    If Fifo_TxApplyStatus() is waiting for a message object 
- *              being released 
+ *  \param      handle_ptr  The unused LLD Tx message object
+ *  \details    If Fifo_TxApplyStatus() is waiting for a message object
+ *              being released
  */
 void Fifo_TxOnRelease(void *self, Ucs_Lld_TxMsg_t *handle_ptr)
 {
@@ -553,7 +553,7 @@ void Fifo_TxOnRelease(void *self, Ucs_Lld_TxMsg_t *handle_ptr)
 }
 
 /*! \brief   Triggers a command CANCEL_ALL and stops further Tx processing
- *  \details CANCEL_ALL shall be called only, if the front-most pending message 
+ *  \details CANCEL_ALL shall be called only, if the front-most pending message
  *           has followers (is segmented, i.e. \c cancel_id > 0). Use command CANCEL
  *           if the front-most message has no followers (\c cancel_id == NULL).
  *  \param   self           The instance
@@ -566,7 +566,7 @@ static void Fifo_TxExecuteCancelAll(CPmFifo *self, uint8_t failure_sid, uint8_t 
 
     if (Pmcmd_Reserve(&self->tx.cancel_cmd) != false)                   /* prepare cancel command */
     {
-        Pmcmd_UpdateContent(&self->tx.cancel_cmd, self->tx.current_sid, 
+        Pmcmd_UpdateContent(&self->tx.cancel_cmd, self->tx.current_sid,
                             PMP_CMD_TYPE_MSG_ACTION, PMP_CMD_CODE_ACTION_CANCEL_ALL);
         Pmch_Transmit(self->init.channel_ptr, Pmcmd_GetLldTxObject(&self->tx.cancel_cmd));
     }
@@ -588,8 +588,8 @@ static void Fifo_TxExecuteCancelAll(CPmFifo *self, uint8_t failure_sid, uint8_t 
  for mid-level retries, the canceled messages
  *           are moved from the processing_q to the waiting_q again. The MLR timer is
  *           started. As soon as the timer elapses, Tx processing is continued again.
- *           If the front-most message has a follower id, all pending messages are 
- *           moved to the waiting queue and all messages with the same follower id 
+ *           If the front-most message has a follower id, all pending messages are
+ *           moved to the waiting queue and all messages with the same follower id
  *           are notified as failed.
  */
 static void Fifo_TxFinishedCancelAll(CPmFifo *self)
@@ -620,7 +620,7 @@ static void Fifo_TxExecuteCancel(CPmFifo *self, uint8_t failure_sid, uint8_t fai
 
     if (Pmcmd_Reserve(&self->tx.cancel_cmd) != false)
     {
-        Pmcmd_UpdateContent(&self->tx.cancel_cmd, self->tx.current_sid, 
+        Pmcmd_UpdateContent(&self->tx.cancel_cmd, self->tx.current_sid,
                             PMP_CMD_TYPE_MSG_ACTION, PMP_CMD_CODE_ACTION_CANCEL);
         Pmch_Transmit(self->init.channel_ptr, Pmcmd_GetLldTxObject(&self->tx.cancel_cmd));
     }
@@ -659,11 +659,11 @@ static bool Fifo_TxHasAccessPending(CPmFifo *self)
 }
 
 /*! \brief   Moves all pending messages to the waiting_q
- *  \details All messages from pending_q will be moved to the waiting_g and 
+ *  \details All messages from pending_q will be moved to the waiting_g and
  *           all consumed credits are restored. The message objects are restored
  *           to the queue in the same order as they have been forwarded to the LLD.
  *           This method is typically called to restore the waiting_q in the correct
- *           order before notifying a 
+ *           order before notifying a
  *  \param   self           The instance
  */
 static void Fifo_TxRestorePending(CPmFifo *self)
@@ -714,7 +714,7 @@ static uint8_t Fifo_TxPendingGetFollowerId(CPmFifo *self)
 /*! \brief  Aborts the transmission of all messages in the waiting_q with a given follower id
  *  \param  self          The instance
  *  \param  follower_id   The follower id a message needs to have to be canceled
- *  \param  status        The transmission status that shall be notified 
+ *  \param  status        The transmission status that shall be notified
  */
 static void Fifo_TxCancelFollowers(CPmFifo *self, uint8_t follower_id, Ucs_MsgTxStatus_t status)
 {
@@ -795,7 +795,7 @@ static bool Fifo_TxIsIncomingSidValid(CPmFifo *self, uint8_t sid)
  *  \param  self    The instance
  *  \param  sid     The sequence ID until the status shall be notified
  *  \param  status  The status which is notified
- *  \return Returns \c true if all desired messages had been notified, 
+ *  \return Returns \c true if all desired messages had been notified,
  *          otherwise \c false.
  */
 static bool Fifo_TxNotifyStatus(CPmFifo *self, uint8_t sid, Ucs_MsgTxStatus_t status)
@@ -813,7 +813,7 @@ static bool Fifo_TxNotifyStatus(CPmFifo *self, uint8_t sid, Ucs_MsgTxStatus_t st
         {
             CMessage *tx_ptr = (CMessage*)node_ptr->data_ptr;
 
-            if (!Msg_IsTxActive(tx_ptr))
+            if (Msg_IsTxActive(tx_ptr) == false)
             {
                 TR_ASSERT(self->init.base_ptr->ucs_user_ptr, "[FIFO]", (tx_ptr != NULL));
                 TR_INFO((self->init.base_ptr->ucs_user_ptr, "[FIFO]", "Fifo_TxNotifyStatus(): FIFO: %u, FuncId: 0x%X, notified status: %u", 3U, self->config.fifo_id, tx_ptr->pb_msg.id.function_id, status));
@@ -856,7 +856,7 @@ static bool Fifo_TxNotifyStatus(CPmFifo *self, uint8_t sid, Ucs_MsgTxStatus_t st
 static void Fifo_TxUpdateCurrentStatus(CPmFifo *self, uint8_t sid, uint8_t type, uint8_t code)
 {
     TR_ASSERT(self->init.base_ptr->ucs_user_ptr, "[FIFO]", (type == (uint8_t)PMP_STATUS_TYPE_FAILURE) || (type == (uint8_t)PMP_STATUS_TYPE_FLOW));
-    if (Fifo_TxIsIncomingSidValid(self, sid))               /* is new or updating status */
+    if (Fifo_TxIsIncomingSidValid(self, sid) != false)      /* is new or updating status */
     {
         self->tx.current_sid = sid;                         /* update current status */
         self->tx.current_type = (Pmp_StatusType_t)type;
@@ -878,7 +878,7 @@ static void Fifo_TxApplyCurrentStatus(CPmFifo *self)
     {
         if (Fifo_TxGetValidAcknowledges(self, self->tx.current_sid) > 1U)               /* ?>=1? "single cancel" is valid and implicit */
         {
-            if (Fifo_TxNotifyStatus(self, self->tx.failure_sid, (Ucs_MsgTxStatus_t)self->tx.failure_status))
+            if (Fifo_TxNotifyStatus(self, self->tx.failure_sid, (Ucs_MsgTxStatus_t)self->tx.failure_status) != false)
             {
                 self->tx.failure_status = 0U;                                           /* implicit canceled stops retries */
                 self->tx.failure_sid = 0U;
@@ -890,7 +890,7 @@ static void Fifo_TxApplyCurrentStatus(CPmFifo *self)
     {
         if (self->tx.cancel_all_running == false)
         {
-            if (Fifo_TxNotifyStatus(self, self->tx.current_sid - 1U, UCS_MSG_STAT_OK) != false)
+            if (Fifo_TxNotifyStatus(self, (uint8_t)(self->tx.current_sid - 1U), UCS_MSG_STAT_OK) != false)
             {
                 /* important: failed message now is front-most message in the tx.pending_q, */
                 /*            any implicit acknowledge was done before */
@@ -931,15 +931,15 @@ static void Fifo_TxApplyCurrentStatus(CPmFifo *self)
                     }
                 }
             }
-            else if (Fifo_TxNotifyStatus(self, self->tx.current_sid, (Ucs_MsgTxStatus_t)self->tx.failure_status))
+            else if (Fifo_TxNotifyStatus(self, self->tx.current_sid, (Ucs_MsgTxStatus_t)self->tx.failure_status) != false)
             {
                 self->tx.failure_status = 0U;
                 self->tx.failure_sid = 0U;
             }
         }
-        else 
+        else
         {
-            if (Fifo_TxNotifyStatus(self, self->tx.current_sid - 1U, UCS_MSG_STAT_OK)) /* just implicitly acknowledge preceding message */
+            if (Fifo_TxNotifyStatus(self, (uint8_t)(self->tx.current_sid - 1U), UCS_MSG_STAT_OK) != false) /* just implicitly acknowledge preceding message */
             {
                 if ((uint8_t)PMP_STATUS_CODE_NACK == self->tx.current_code)
                 {
@@ -954,7 +954,7 @@ static void Fifo_TxApplyCurrentStatus(CPmFifo *self)
 /*------------------------------------------------------------------------------------------------*/
 /* Rx Implementation                                                                              */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Receives a message on the respective FIFO 
+/*! \brief  Receives a message on the respective FIFO
  *  \param  self    The instance
  *  \param  msg_ptr Reference to the Rx message
  */
@@ -1029,14 +1029,14 @@ static void Fifo_RxCheckStatusTrigger(CPmFifo *self)
 {
     /* calculate the number of credits the INIC has consumed */
     /* if less messages are processing, the freed can be acknowledged */
-    uint8_t consumed_inic_credits = (self->rx.expected_sid - self->rx.ack_last_ok_sid) - 1U;
-    uint8_t possible_acks = consumed_inic_credits - self->rx.busy_num;
+    uint8_t consumed_inic_credits = (uint8_t)((uint8_t)(self->rx.expected_sid - self->rx.ack_last_ok_sid) - 1U);
+    uint8_t possible_acks = (uint8_t)(consumed_inic_credits - self->rx.busy_num);
 
     if ((consumed_inic_credits >= self->rx.ack_threshold) && (possible_acks > 0U))
     {
         if (Pmcmd_IsTriggered(&self->rx.status) == false)
         {
-            Pmcmd_SetTrigger(&self->rx.status, true);       /* INIC might run out of credits */ 
+            Pmcmd_SetTrigger(&self->rx.status, true);       /* INIC might run out of credits */
             Srv_SetEvent(&self->service, FIFO_SE_TX_SERVICE);
         }
     }
@@ -1064,9 +1064,9 @@ static void Fifo_RxReleaseCredit(CPmFifo *self)
 
 /*! \brief   Releases a FIFO data message which was received and forwarded by the FIFO
  *  \details The function returns the message to the channel's Rx message pool and
- *           has to update the number of credits (processing handles). 
+ *           has to update the number of credits (processing handles).
  *           A FIFO data message is initially allocated from the channel's Rx message pool.
- *           When processing the handle the determined FIFO need to calculate the amount of 
+ *           When processing the handle the determined FIFO need to calculate the amount of
  *           credits. When freeing the message the handle needs to be returned to the channel's
  *           Rx pool again and the FIFO needs to refresh the status and credits calculation.
  *           Therefore the message has to be freed to the respective FIFO again.
@@ -1099,7 +1099,7 @@ static bool Fifo_RxProcessData(CPmFifo *self, CMessage *msg_ptr)
     }
     else if (sid == self->rx.expected_sid)                       /* check if SID is ok */
     {
-        uint8_t pm_header_sz = Pmp_GetPmhl(header_ptr) + 3U;
+        uint8_t pm_header_sz = (uint8_t)(Pmp_GetPmhl(header_ptr) + 3U);
         TR_ASSERT(self->init.base_ptr->ucs_user_ptr, "[FIFO]", (pm_header_sz == self->rx.encoder_ptr->pm_hdr_sz));
 
         self->rx.expected_sid++;                            /* update SID */
@@ -1109,10 +1109,10 @@ static bool Fifo_RxProcessData(CPmFifo *self, CMessage *msg_ptr)
         self->rx.encoder_ptr->decode_fptr(Msg_GetMostTel(msg_ptr), &(header_ptr[pm_header_sz]));
         /* parasoft unsuppress item MISRA2004-17_4 reason "necessary offset usage" */
 
-        Msg_ReserveHeader(msg_ptr, content_header_sz + pm_header_sz);
-        Msg_PullHeader(msg_ptr, content_header_sz + pm_header_sz);
+        Msg_ReserveHeader(msg_ptr, (uint8_t)(content_header_sz + pm_header_sz));
+        Msg_PullHeader(msg_ptr, (uint8_t)(content_header_sz + pm_header_sz));
 
-        if (Msg_VerifyContent(msg_ptr))
+        if (Msg_VerifyContent(msg_ptr) != false)
         {
             if (self->rx.on_complete_fptr != NULL)
             {
@@ -1253,7 +1253,7 @@ static void Fifo_RxProcessSyncStatus(CPmFifo *self, uint8_t sid, uint8_t type, u
     {
         tx_credits = Pmp_GetData(header_ptr, 0U) & (uint8_t)PMP_CREDITS_MASK;
 
-        if ((tx_credits >= PMP_CREDITS_MIN) && 
+        if ((tx_credits >= PMP_CREDITS_MIN) &&
             (Pmp_GetData(header_ptr, 1U) == self->sync_params[1]) &&
             (Pmp_GetData(header_ptr, 2U) == self->sync_params[2]) &&
             (Pmp_GetData(header_ptr, 3U) == self->sync_params[3]) &&
@@ -1315,7 +1315,7 @@ Fifo_SyncState_t Fifo_GetState(CPmFifo *self)
 /* Watchdog                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
 
-/*! \brief  Starts the watchdog handling 
+/*! \brief  Starts the watchdog handling
  *  \param  self    The instance
  */
 static void Fifo_TxStartWatchdog(CPmFifo *self)
@@ -1326,15 +1326,15 @@ static void Fifo_TxStartWatchdog(CPmFifo *self)
 
     if (self->wd.timer_value != 0U)
     {
-        Tm_SetTimer(&self->init.base_ptr->tm, &self->wd.timer, &Fifo_TxOnWatchdogTimer, 
-                    self, 
-                    self->wd.timer_value, 
+        Tm_SetTimer(&self->init.base_ptr->tm, &self->wd.timer, &Fifo_TxOnWatchdogTimer,
+                    self,
+                    self->wd.timer_value,
                     self->wd.timer_value
                     );
     }
 }
 
-/*! \brief   Callback function which is invoked if the watchdog timer expires 
+/*! \brief   Callback function which is invoked if the watchdog timer expires
  *  \param   self    The instance
  */
 static void Fifo_TxOnWatchdogTimer(void *self)
@@ -1348,7 +1348,7 @@ static void Fifo_TxOnWatchdogTimer(void *self)
         if (Pmcmd_Reserve(&self_->wd.wd_cmd) != false)
         {
             self_->wd.request_started = true;       /* indicate that a status is expected */
-            Pmcmd_UpdateContent(&self_->wd.wd_cmd, self_->tx.sid_next_to_use - 1U, PMP_CMD_TYPE_REQ_STATUS, PMP_CMD_CODE_REQ_STATUS);
+            Pmcmd_UpdateContent(&self_->wd.wd_cmd, (uint8_t)(self_->tx.sid_next_to_use - 1U), PMP_CMD_TYPE_REQ_STATUS, PMP_CMD_CODE_REQ_STATUS);
             Pmch_Transmit(self_->init.channel_ptr, Pmcmd_GetLldTxObject(&self_->wd.wd_cmd));
         }
         else

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -59,6 +59,14 @@ extern "C"
 #endif
 
 /*------------------------------------------------------------------------------------------------*/
+/* Macro Definition                                                                               */
+/*------------------------------------------------------------------------------------------------*/
+/*! \def I2C_MAX_CFGDATA_SZ
+ *  \brief      Defines the maximum size of the config_data vector in I2c_Script_t structure.
+ */
+#define I2C_MAX_CFGDATA_SZ              ((uint8_t)45)
+
+/*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Function signature used for I2C results in case error.
@@ -98,17 +106,19 @@ typedef struct I2c_UserData_
 
 } I2c_UserData_t;
 
-/*! \brief  Script structure of the I2C module */
+/*! \brief  Script structure of the I2C module. */
 typedef struct I2c_Script_
 {
-    uint8_t cfg_data[40];
-    /*! \brief script used for transmitting commands */
+    /*! \brief Stores the I2C data that will be transmitted via Script */
+    uint8_t cfg_data[I2C_MAX_CFGDATA_SZ];
+    /*! \brief Script used for transmitting commands */
     Ucs_Ns_Script_t script;
-    /*! \brief config messages used for transmitting commands */
+    /*! \brief Represents the script message as configuration message for transmitting I2C commands */
     Ucs_Ns_ConfigMsg_t cfg_msg;
+
 } I2c_Script_t;
 
-/*! \brief  Class structure of the I2C module */
+/*! \brief  Class structure of the I2C module. */
 typedef struct CI2c_
 {
     /*! \brief Reference to an INIC instance */
@@ -121,7 +131,7 @@ typedef struct CI2c_
     I2c_UserData_t curr_user_data;
     /*!< \brief Indicates the address of target device */
     uint16_t device_address;
-    /*! \brief Observer used for I2C to check the GPIO TriggerEvents  */
+    /*! \brief Observer used for I2C to check the GPIO TriggerEvents */
     CObserver triggerevent_observer;
     /*!< \brief Current script to be looked for */
     I2c_Script_t curr_script;
@@ -135,7 +145,7 @@ typedef struct CI2c_
 /*------------------------------------------------------------------------------------------------*/
 extern void I2c_Ctor(CI2c * self, I2c_InitData_t * init_ptr);
 extern Ucs_Return_t I2c_CreatePort(CI2c * self, uint8_t index, Ucs_I2c_Speed_t speed, uint8_t i2c_int_mask, Ucs_I2c_CreatePortResCb_t res_fptr);
-extern Ucs_Return_t I2c_WritePort(CI2c * self, uint16_t port_handle, Ucs_I2c_TrMode_t mode, uint8_t block_count, uint8_t slave_address, uint16_t timeout, 
+extern Ucs_Return_t I2c_WritePort(CI2c * self, uint16_t port_handle, Ucs_I2c_TrMode_t mode, uint8_t block_count, uint8_t slave_address, uint16_t timeout,
                                   uint8_t data_len, uint8_t data_ptr[], Ucs_I2c_WritePortResCb_t res_fptr);
 extern Ucs_Return_t I2c_ReadPort(CI2c * self, uint16_t port_handle, uint8_t slave_address, uint8_t data_len, uint16_t timeout, Ucs_I2c_ReadPortResCb_t res_fptr);
 

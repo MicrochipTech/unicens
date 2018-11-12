@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -104,7 +104,7 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___s_c_r_i_p_t_i_n_g.
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___config_msg__t.html">Ucs_Ns_ConfigMsg_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structure of a ConfigMsg used in Node-Script.  <a href="struct_ucs___ns___config_msg__t.html#details">More...</a><br/></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages which contains the command to execute as well as for the expected result which returns from the corresponding node.  <a href="struct_ucs___ns___config_msg__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___ns___script__t.html">Ucs_Ns_Script_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Structure of a node-script used to configure a remote node.  <a href="struct_ucs___ns___script__t.html#details">More...</a><br/></td></tr>
@@ -112,26 +112,48 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
-<tr class="memitem:gab0f1bc424462b8bbe0b2155d504025a5"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gab0f1bc424462b8bbe0b2155d504025a5.html#gab0f1bc424462b8bbe0b2155d504025a5">Ucs_Ns_ResultCb_t</a> )(<a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a> *node_ptr, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60">Ucs_Ns_ResultCode_t</a> result, void *ucs_user_ptr)</td></tr>
-<tr class="memdesc:gab0f1bc424462b8bbe0b2155d504025a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the results of the Scripting Manager.  <a href="#gab0f1bc424462b8bbe0b2155d504025a5"></a><br/></td></tr>
-<tr class="separator:gab0f1bc424462b8bbe0b2155d504025a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga18f7bc31e736cfedc4998ba4c74e14dc"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga18f7bc31e736cfedc4998ba4c74e14dc.html#ga18f7bc31e736cfedc4998ba4c74e14dc">Ucs_Ns_SynchronizeNodeCb_t</a> )(uint16_t node_address, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#gacb147466c11c1f0be23c0c61bd3c493b">Ucs_Ns_SyncResult_t</a> result, void *user_ptr)</td></tr>
+<tr class="memdesc:ga18f7bc31e736cfedc4998ba4c74e14dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga8ba4ce1e1d69ead54e8a3e1c052575c5.html#ga8ba4ce1e1d69ead54e8a3e1c052575c5" title="Synchronizes a node which is required to use RoutingManagement, Scripting and GPIO/I2C functionality...">Ucs_Ns_SynchronizeNode()</a>.  <a href="#ga18f7bc31e736cfedc4998ba4c74e14dc"></a><br/></td></tr>
+<tr class="separator:ga18f7bc31e736cfedc4998ba4c74e14dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa0c2347a83519e47decea0f5288ec5d1"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a> )(uint16_t node_address, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60">Ucs_Ns_ResultCode_t</a> result, <a class="el" href="struct_ucs___ns___error_info__t.html">Ucs_Ns_ErrorInfo_t</a> error_info, void *ucs_user_ptr)</td></tr>
+<tr class="memdesc:gaa0c2347a83519e47decea0f5288ec5d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the results of the Scripting Manager.  <a href="#gaa0c2347a83519e47decea0f5288ec5d1"></a><br/></td></tr>
+<tr class="separator:gaa0c2347a83519e47decea0f5288ec5d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:gabd3ecc8ab539f3b9de3fc8045c083b60"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60">Ucs_Ns_ResultCode_t</a> { <br/>
 &#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60af22bd910a1d7e2271b5b3cddf5892962">UCS_NS_RES_SUCCESS</a> = 0x00U, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60ad0ba0f8f6ba494e7685980d490e48b72">UCS_NS_RES_ERROR</a> = 0x01U
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a2107cae82d792f256b6f4ef0ef7595">UCS_NS_RES_ERR_TIMEOUT</a> = 0x01U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a92d1550b0929e3fa794fcab5365b74c2">UCS_NS_RES_ERR_PAYLOAD</a> = 0x02U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a7dafe44f618d5f0338daf7ff2f0635">UCS_NS_RES_ERR_OPTYPE</a> = 0x03U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a20dd9e655d43d67b6246417fae632901">UCS_NS_RES_ERR_TX</a> = 0x04U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a180e4486fac96e8530d9f3060ebbc838">UCS_NS_RES_ERR_SYNC</a> = 0x05U
 <br/>
  }</td></tr>
 <tr class="memdesc:gabd3ecc8ab539f3b9de3fc8045c083b60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result codes of the Node Script Management.  <a href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60">More...</a><br/></td></tr>
 <tr class="separator:gabd3ecc8ab539f3b9de3fc8045c083b60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb147466c11c1f0be23c0c61bd3c493b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#gacb147466c11c1f0be23c0c61bd3c493b">Ucs_Ns_SyncResult_t</a> { <br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#ggacb147466c11c1f0be23c0c61bd3c493baf12b4380625931c1540b0b63b986b92c">UCS_NS_SYNC_SUCCESS</a> = 0x00U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#ggacb147466c11c1f0be23c0c61bd3c493baf7a7628676344ac3b363f96a6e26b653">UCS_NS_SYNC_ERROR</a> = 0x01U
+<br/>
+ }</td></tr>
+<tr class="memdesc:gacb147466c11c1f0be23c0c61bd3c493b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result codes of node synchronization.  <a href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#gacb147466c11c1f0be23c0c61bd3c493b">More...</a><br/></td></tr>
+<tr class="separator:gacb147466c11c1f0be23c0c61bd3c493b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga2f2737e4d507b9c15e165918db3f1456"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456">Ucs_Ns_Run</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a> *node_ptr, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gab0f1bc424462b8bbe0b2155d504025a5.html#gab0f1bc424462b8bbe0b2155d504025a5">Ucs_Ns_ResultCb_t</a> result_fptr)</td></tr>
-<tr class="memdesc:ga2f2737e4d507b9c15e165918db3f1456"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runs the script(s) contained in the given node.  <a href="#ga2f2737e4d507b9c15e165918db3f1456"></a><br/></td></tr>
-<tr class="separator:ga2f2737e4d507b9c15e165918db3f1456"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8ba4ce1e1d69ead54e8a3e1c052575c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga8ba4ce1e1d69ead54e8a3e1c052575c5.html#ga8ba4ce1e1d69ead54e8a3e1c052575c5">Ucs_Ns_SynchronizeNode</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint16_t node_address, uint16_t node_pos_addr, <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a> *node_ptr, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga18f7bc31e736cfedc4998ba4c74e14dc.html#ga18f7bc31e736cfedc4998ba4c74e14dc">Ucs_Ns_SynchronizeNodeCb_t</a> result_fptr)</td></tr>
+<tr class="memdesc:ga8ba4ce1e1d69ead54e8a3e1c052575c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronizes a node which is required to use RoutingManagement, Scripting and GPIO/I2C functionality.  <a href="#ga8ba4ce1e1d69ead54e8a3e1c052575c5"></a><br/></td></tr>
+<tr class="separator:ga8ba4ce1e1d69ead54e8a3e1c052575c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga50eef4fd71e3e818d27db40a85458305"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305">Ucs_Ns_Run</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint16_t node_address, <a class="el" href="group___g___u_c_s___m_i_s_c_ga0f98f94a438e5b2e7a28c49025b99954.html#ga0f98f94a438e5b2e7a28c49025b99954">UCS_NS_CONST</a> <a class="el" href="struct_ucs___ns___script__t.html">Ucs_Ns_Script_t</a> *script_list_ptr, uint8_t script_list_size, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a> result_fptr)</td></tr>
+<tr class="memdesc:ga50eef4fd71e3e818d27db40a85458305"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runs a given script list on the given node.  <a href="#ga50eef4fd71e3e818d27db40a85458305"></a><br/></td></tr>
+<tr class="separator:ga50eef4fd71e3e818d27db40a85458305"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Provides service function to allow execution of custom scripts in remote Nodes. </p>
@@ -140,12 +162,12 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:26 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

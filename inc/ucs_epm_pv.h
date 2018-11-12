@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -30,7 +30,7 @@
 
 /*!
  * \file
- * \brief Public header file of the Extended Resource Manager.
+ * \brief Public header file of the EndPoint Manager.
  * \cond UCS_INTERNAL_DOC
  * \addtogroup G_EPM
  * @{
@@ -56,7 +56,7 @@ extern "C"
 /*! \brief This enumerator specifies the state of EndPoint objects. */
 typedef enum Ucs_Rm_EndPointState_
 {
-    UCS_RM_EP_IDLE               = 0x00U,     /*!< \brief Specifies the "Idle" state of the endpoint. This means that the endpoint has not been handled yet  */
+    UCS_RM_EP_IDLE               = 0x00U,     /*!< \brief Specifies the "Idle" state of the endpoint. This means that the endpoint has not been handled yet. */
     UCS_RM_EP_XRMPROCESSING      = 0x01U,     /*!< \brief Specifies that the EndPoint is under "XRM process". */
     UCS_RM_EP_BUILT              = 0x02U      /*!< \brief Specifies that the EndPoint is "Built". */
 

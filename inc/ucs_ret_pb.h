@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -30,7 +30,7 @@
 
 /*!
  * \file
- * \brief This header file contains standard return values used by UNICENS functions 
+ * \brief This header file contains standard return values used by UNICENS functions
  *        and methods.
  * \addtogroup G_UCS_INIT_AND_SRV_TYPES
  * @{
@@ -51,18 +51,18 @@ extern "C"
 typedef enum Ucs_Return_
 {
     UCS_RET_SUCCESS             = 0x00,     /*!< \brief Operation successfully completed */
-    UCS_RET_ERR_PARAM           = 0x01,     /*!< \brief At least one parameter exceeds its 
+    UCS_RET_ERR_PARAM           = 0x01,     /*!< \brief At least one parameter exceeds its
                                                         admissible range */
     UCS_RET_ERR_BUFFER_OVERFLOW = 0x02,     /*!< \brief Buffer overflow or service busy */
     UCS_RET_ERR_NOT_AVAILABLE   = 0x03,     /*!< \brief Functionality not available */
-    UCS_RET_ERR_NOT_SUPPORTED   = 0x04,     /*!< \brief This function is not supported by this 
-                                                        derivative of INIC / physical layer / MOST 
+    UCS_RET_ERR_NOT_SUPPORTED   = 0x04,     /*!< \brief This function is not supported by this
+                                                        derivative of INIC / physical layer / Network
                                                         speed */
-    UCS_RET_ERR_INVALID_SHADOW  = 0x05,     /*!< \brief The requested information is not yet 
+    UCS_RET_ERR_INVALID_SHADOW  = 0x05,     /*!< \brief The requested information is not yet
                                                         available */
-    UCS_RET_ERR_ALREADY_SET     = 0x06,     /*!< \brief The value to be set is already set. The 
-                                                        application can therefore be aware that no 
-                                                        message will be send to INIC and no 
+    UCS_RET_ERR_ALREADY_SET     = 0x06,     /*!< \brief The value to be set is already set. The
+                                                        application can therefore be aware that no
+                                                        message will be send to INIC and no
                                                         callback will be called */
     UCS_RET_ERR_API_LOCKED      = 0x07,     /*!< \brief INIC performs already requested function. */
     UCS_RET_ERR_NOT_INITIALIZED = 0x08      /*!< \brief UNICENS is not initialized */
@@ -73,7 +73,7 @@ typedef enum Ucs_Return_
 typedef enum Ucs_Result_
 {
     UCS_RES_SUCCESS           = 0x00,       /*!< \brief Operation successfully completed */
-    UCS_RES_ERR_MOST_STANDARD = 0x01,       /*!< \brief MOST standard error occurred */
+    UCS_RES_ERR_STANDARD      = 0x01,       /*!< \brief Standard error occurred */
     UCS_RES_ERR_BUSY          = 0x02,       /*!< \brief Function currently busy */
     UCS_RES_ERR_PROCESSING    = 0x03,       /*!< \brief Processing error occurred */
     UCS_RES_ERR_CONFIGURATION = 0x04,       /*!< \brief Configuration error occurred */
@@ -90,13 +90,13 @@ typedef enum Ucs_InitResult_
     UCS_INIT_RES_ERR_BUF_OVERFLOW = 0x01U,      /*!< \brief No message buffer available */
     UCS_INIT_RES_ERR_INIC_SYNC    = 0x02U,      /*!< \brief INIC synchronization failed */
     UCS_INIT_RES_ERR_INIC_VERSION = 0x03U,      /*!< \brief INIC device version check failed */
-    UCS_INIT_RES_ERR_INIC_SYSTEM  = 0x04U,      /*!< \brief Device attach failed due to an INIC 
+    UCS_INIT_RES_ERR_INIC_SYSTEM  = 0x04U,      /*!< \brief Device attach failed due to an INIC
                                                  *          system error
                                                  */
-    UCS_INIT_RES_ERR_DEV_ATT_CFG  = 0x05U,      /*!< \brief INIC device attach failed due to an 
+    UCS_INIT_RES_ERR_DEV_ATT_CFG  = 0x05U,      /*!< \brief INIC device attach failed due to an
                                                  *          configuration error
                                                  */
-    UCS_INIT_RES_ERR_DEV_ATT_PROC = 0x06U,      /*!< \brief Device attach failed due to a 
+    UCS_INIT_RES_ERR_DEV_ATT_PROC = 0x06U,      /*!< \brief Device attach failed due to a
                                                  *          processing error
                                                  */
     UCS_INIT_RES_ERR_NET_CFG      = 0x07U,      /*!< \brief Network Configuration request failed */
@@ -108,7 +108,7 @@ typedef enum Ucs_InitResult_
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Standard result structure which provides fields for detailed status and 
+/*! \brief  Standard result structure which provides fields for detailed status and
  *          error information
  */
 typedef struct Ucs_StdResult_
@@ -123,13 +123,20 @@ typedef struct Ucs_StdResult_
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Function signature used for UNICENS standard result callbacks
- *  \param  result      Result of the callback
+ *  \param  result      The result value of the callback
  *  \param  user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
 typedef void (*Ucs_StdResultCb_t)(Ucs_StdResult_t result, void *user_ptr);
 
+/*! \brief  Function signature used for UNICENS result callbacks executed for a specific node
+ *  \param  node_address    The address of the node the command was executed for
+ *  \param  result          The result value of the callback
+ *  \param  user_ptr        User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ */
+typedef void (*Ucs_StdNodeResultCb_t)(uint16_t node_address, Ucs_StdResult_t result, void *user_ptr);
+
 /*! \brief  Function signature used for UNICENS standard result callbacks
- *  \param  result      Result of the callback
+ *  \param  result      The result value of the callback
  *  \param  user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
 typedef void (*Ucs_InitResultCb_t)(Ucs_InitResult_t result, void *user_ptr);

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -55,7 +55,7 @@ static bool Eh_EncodeEvent(uint32_t event_code, Ucs_Error_t *public_error_code_p
  *  \param self            Instance pointer
  *  \param ucs_user_ptr     User reference that needs to be passed in every callback function
  */
-void Eh_Ctor(CEventHandler *self, void * ucs_user_ptr)
+void Eh_Ctor(CEventHandler *self, void *ucs_user_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     /* Save UNICENS instance ID */
@@ -91,14 +91,14 @@ void Eh_ReportEvent(CEventHandler *self, uint32_t event_code)
 {
     Ucs_Error_t public_error_code;
     /* Check if event code exists */
-    if((event_code & EH_M_ALL_EVENTS) != 0U)
+    if ((event_code & EH_M_ALL_EVENTS) != 0U)
     {
         /* Encode internal event code */
         bool result = Eh_EncodeEvent(event_code, &public_error_code);
         /* Notify all registered observers */
         Msub_Notify(&self->internal_event_subject, &event_code, event_code);
         /* Report error to application? */
-        if(result != false)
+        if (result != false)
         {
             Ssub_Notify(&self->public_error_subject, &public_error_code, false);
         }

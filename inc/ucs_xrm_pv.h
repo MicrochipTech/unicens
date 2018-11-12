@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -62,11 +62,11 @@ typedef enum Xrm_PreJobDestrResult_
     XRM_PRE_JOB_DEST_DONE           = 0x02U,    /*!< \brief Only shared resources affected. Invoke
                                                  *          result callback immediately.
                                                  */
-    XRM_PRE_JOB_DEST_BUSY           = 0x03U     /*!< \brief Preparation of JobDestruction is 
-                                                 *          currently not possible. Other resources 
+    XRM_PRE_JOB_DEST_BUSY           = 0x03U     /*!< \brief Preparation of JobDestruction is
+                                                 *          currently not possible. Other resources
                                                  *          are currently being destroyed.
                                                  */
-} Xrm_PreJobDestrResult_t; 
+} Xrm_PreJobDestrResult_t;
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
@@ -122,11 +122,11 @@ extern void Xrm_RmtDevSyncLostCb(void *self, void *result_ptr);
 extern Xrm_PreJobDestrResult_t Xrm_PrepareJobDestruction(CExtendedResourceManager *self);
 extern Xrm_PreJobDestrResult_t Xrm_UnsafePrepareJobDestruction(CExtendedResourceManager *self);
 extern void Xrm_ResumeJobDestruction(CExtendedResourceManager *self);
-extern uint8_t Xrm_CountResourceObjects(CExtendedResourceManager *self, Xrm_Job_t *job_ptr);
+extern uint16_t Xrm_CountResourceObjects(CExtendedResourceManager *self, Xrm_Job_t *job_ptr);
 extern Xrm_Job_t * Xrm_GetJob(CExtendedResourceManager *self,
                               UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_list[]);
 extern void * Xrm_GetNextDevInUnnotifiedState(CExtendedResourceManager *self);
-extern uint8_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
+extern uint16_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
                                           Xrm_Job_t *job_ptr,
                                           UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr);
 extern bool Xrm_SearchNextResourceObject(CExtendedResourceManager *self);
@@ -157,10 +157,10 @@ extern uint8_t Xrm_CountResourceHandleEntries(CExtendedResourceManager *self,
 extern void Xrm_ReleaseResourceHandle(CExtendedResourceManager *self,
                                       Xrm_Job_t *job_ptr,
                                       UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_ptr);
-extern uint8_t Xrm_ReleaseResourceHandles(CExtendedResourceManager *self,
+extern uint16_t Xrm_ReleaseResourceHandles(CExtendedResourceManager *self,
                                        Xrm_Job_t *job_ptr,
                                        uint16_t resource_handle_list[],
-                                       uint8_t resource_handle_list_size,
+                                       uint16_t resource_handle_list_size,
                                        uint16_t failed_resource_handle);
 extern void Xrm_ReleaseResrcHandles(CExtendedResourceManager *self);
 extern void Xrm_HandleError(CExtendedResourceManager *self);
@@ -170,9 +170,13 @@ extern void Xrm_MarkRemoteDevicesAsUnsync(CExtendedResourceManager *self);
 extern void Xrm_ReportJobDestructionResult(CExtendedResourceManager *self);
 extern void Xrm_FinishJob(CExtendedResourceManager *self);
 extern void Xrm_NotifyInvalidJobs(CExtendedResourceManager *self);
+extern uint16_t Xrm_GetResourceHandleForAtd(CExtendedResourceManager *self,
+                                            uint16_t conn_lab,
+                                            Ucs_Rm_EndPoint_t *end_point_ptr,
+                                            Ucs_Xrm_ResourceType_t resource_type);
 
 /* INIC Resource Management API */
-extern void Xrm_CreateMostSocket(CExtendedResourceManager *self);
+extern void Xrm_CreateNetworkSocket(CExtendedResourceManager *self);
 extern void Xrm_CreateMlbPort(CExtendedResourceManager *self);
 extern void Xrm_CreateMlbSocket(CExtendedResourceManager *self);
 extern void Xrm_CreateUsbPort(CExtendedResourceManager *self);
@@ -195,8 +199,6 @@ extern void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr);
 extern void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr);
 extern void Xrm_StdResultCb(void *self, void *result_ptr);
 extern void Xrm_Stream_PortConfigResult(void *self, void *result_ptr);
-extern void Xrm_Most_PortEnableResult(void *self, void *result_ptr);
-extern void Xrm_Most_PortEnFullStrResult(void *self, void *result_ptr);
 extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_Event_t next_set_event);
 extern void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result);
 extern Ucs_Return_t Xrm_SetStreamPortConfiguration (CExtendedResourceManager *self);

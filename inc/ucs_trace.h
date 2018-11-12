@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -59,16 +59,16 @@ extern "C"
 
 /*! \def     UCS_TR_INFO
  *  \brief   Trace macro to capture trace info events
- *  \details This macro is used to enable the capturing of trace info events. The macro must be 
+ *  \details This macro is used to enable the capturing of trace info events. The macro must be
  *           mapped onto a user-defined function. To disable the trace info events, the macro must
- *           not be defined. The mapped user-defined function must adhere to the following function 
+ *           not be defined. The mapped user-defined function must adhere to the following function
  *           signature.
- * 
- *           void (*Ucs_TraceCb_t)(void * ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);
+ *
+ *           void (*Ucs_TraceCb_t)(void *ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);
  *           - <b>ucs_user_ptr</b><br>Reference to the User argument
  *           - <b>module_str</b><br>The name of the software module that has posted the trace
  *           - <b>entry_str</b><br>The trace entry as formatted string
- *           - <b>vargs_cnt</b><br>Number of trace arguments which will be passed within the variable 
+ *           - <b>vargs_cnt</b><br>Number of trace arguments which will be passed within the variable
  *                                 argument list
  *           - <b>[...]</b><br>Variable argument list to pass trace arguments
  *
@@ -79,7 +79,7 @@ extern "C"
  *
  *           <b>Example:</b>
  *           \code
- *           extern void App_UcsTraceInfo(void * ucs_user_ptr,
+ *           extern void App_UcsTraceInfo(void *ucs_user_ptr,
  *                                        const char module_str[],
  *                                        const char entry_str[],
  *                                        uint16_t vargs_cnt,
@@ -93,27 +93,27 @@ extern "C"
 
 /*! \def     UCS_TR_ERROR
  *  \brief   Trace macro to capture trace error events
- *  \details This macro is used to enable the capturing of trace error events. The macro must be 
+ *  \details This macro is used to enable the capturing of trace error events. The macro must be
  *           mapped onto a user-defined function. To disable the trace error events, the macro must
- *           not be defined. The mapped user-defined function must adhere to the following function 
+ *           not be defined. The mapped user-defined function must adhere to the following function
  *           signature.
- * 
- *           void (*Ucs_TraceCb_t)(void * ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);
+ *
+ *           void (*Ucs_TraceCb_t)(void *ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);
  *           - <b>ucs_user_ptr</b><br>Reference to the User argument
  *           - <b>module_str</b><br>The name of the software module that has posted the trace
  *           - <b>entry_str</b><br>The trace entry as formatted string
- *           - <b>vargs_cnt</b><br>Number of trace arguments which will be passed within the variable 
+ *           - <b>vargs_cnt</b><br>Number of trace arguments which will be passed within the variable
  *                                 argument list
  *           - <b>[...]</b><br>Variable argument list to pass trace arguments
  *
  *  \note    The captured error events can be used for logging and as a first step for debugging
  *           unexpected behavior. However, the application must not derive any action when an error
- *           is indicated by the trace interface. An application must handle rely on result callback 
+ *           is indicated by the trace interface. An application must handle rely on result callback
  *           functions and handle "general.error_fptr()".
  *
  *           <b>Example:</b>
  *           \code
- *           extern void App_UcsTraceError(void * ucs_user_ptr,
+ *           extern void App_UcsTraceError(void *ucs_user_ptr,
  *                                         const char module_str[],
  *                                         const char entry_str[],
  *                                         uint16_t vargs_cnt,
@@ -130,7 +130,7 @@ extern "C"
  *  \details    The UCS Trace Interface is intended for debugging and logging purpose.
  *              There are 2 different trace options:
  *              - The definition of trace macros to print out internal states, messages
- *                and errors. This option provides two trace classes: \c info and \c error. Each trace 
+ *                and errors. This option provides two trace classes: \c info and \c error. Each trace
  *                class can be activated by defining the respective macro UCS_TR_INFO
  *                UCS_TR_ERROR in the configuration header file \c ucs_cfg.h.
  *                While the \c info class is intended only for debugging purpose during
@@ -150,14 +150,14 @@ extern "C"
 /*! \def     TR_INFO
  *  \brief   Trace macro to capture trace info events
  *  \details The macro is referenced to a public trace macro which must be defined in ucs_cfg.h. The
- *           public macros refers to a trace function which must be implemented by the application. 
- *           The given arguments can be stored or immediately converted into a trace output by 
+ *           public macros refers to a trace function which must be implemented by the application.
+ *           The given arguments can be stored or immediately converted into a trace output by
  *           invoking the function Ucs_Tr_DecodeTrace().
  *  \param   args    Container of arguments. The following arguments are of the container.
  *                   - ucs_user_ptr Reference to the User argument
  *                   - unit         Id of the UNICENS unit that has posted the trace
  *                   - entry        Id of the trace entry
- *                   - vargs_cnt    Number of trace arguments which will be passed within the variable 
+ *                   - vargs_cnt    Number of trace arguments which will be passed within the variable
  *                                  argument list
  *                   - [...]        Variable argument list to pass trace arguments
  */
@@ -165,14 +165,14 @@ extern "C"
 /*! \def     TR_ERROR
  *  \brief   Trace macro to capture trace error events
  *  \details The macro is referenced to a public trace macro which must be defined in ucs_cfg.h. The
- *           public macros refers to a trace function which must be implemented by the application. 
- *           The given arguments can be stored or immediately converted into a trace output by 
+ *           public macros refers to a trace function which must be implemented by the application.
+ *           The given arguments can be stored or immediately converted into a trace output by
  *           invoking the function Ucs_Tr_DecodeTrace().
  *  \param   args    Container of arguments. The following arguments are of the container.
  *                   - ucs_user_ptr Reference to the User argument
  *                   - unit         Id of the UNICENS unit that has posted the trace
  *                   - entry        Id of the trace entry
- *                   - vargs_cnt    Number of trace arguments which will be passed within the variable 
+ *                   - vargs_cnt    Number of trace arguments which will be passed within the variable
  *                                  argument list
  *                   - [...]        Variable argument list to pass trace arguments
  */
@@ -213,7 +213,7 @@ extern "C"
             {                                                                                       \
                 uint8_t i;                                                                          \
                 TR_ERROR(((ucs_user_ptr), (unit), TR_UCS_INIC_RESULT_ID_1, 0U));                     \
-                for(i=0U; i<info_size; i++)                                                         \
+                for (i=0U; i<info_size; i++)                                                         \
                 {                                                                                   \
                     TR_ERROR(((ucs_user_ptr), (unit), TR_UCS_INIC_RESULT_ID_2, 2U, i, info_ptr[i]))  \
                 }                                                                                   \

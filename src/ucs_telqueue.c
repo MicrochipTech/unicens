@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -65,33 +65,33 @@ void Telq_Ctor(CTelQueue *self, void *ucs_user_ptr)
  *  \return Reference to the telegram if a telegram object is available.
  *          Otherwise \c NULL.
  */
-Msg_MostTel_t* Telq_Dequeue(CTelQueue *self)
+Ucs_Message_t* Telq_Dequeue(CTelQueue *self)
 {
-    Msg_MostTel_t *tel_ptr = NULL;
+    Ucs_Message_t *tel_ptr = NULL;
     CDlNode *node_ptr = Dl_PopHead(&self->list);
 
     if (node_ptr != NULL)
     {
-        tel_ptr = (Msg_MostTel_t*)Dln_GetData(node_ptr);
+        tel_ptr = (Ucs_Message_t*)Dln_GetData(node_ptr);
     }
 
     return tel_ptr;
 }
 
-/*! \brief  Retrieves a reference to the head object 
+/*! \brief  Retrieves a reference to the head object
  *          without removing it from the telegram queue
  *  \param  self    The instance
  *  \return Reference to the telegram if a telegram object is available.
  *          Otherwise \c NULL.
  */
-Msg_MostTel_t* Telq_Peek(CTelQueue *self)
+Ucs_Message_t* Telq_Peek(CTelQueue *self)
 {
-    Msg_MostTel_t *tel_ptr = NULL;
+    Ucs_Message_t *tel_ptr = NULL;
     CDlNode *node_ptr = Dl_PeekHead(&self->list);
 
     if (node_ptr != NULL)
     {
-        tel_ptr = (Msg_MostTel_t*)Dln_GetData(node_ptr);
+        tel_ptr = (Ucs_Message_t*)Dln_GetData(node_ptr);
     }
 
     return tel_ptr;
@@ -99,14 +99,14 @@ Msg_MostTel_t* Telq_Peek(CTelQueue *self)
 
 /*! \brief  Adds a telegram to the tail of the queue
  *  \param  self    The instance
- *  \param  tel_ptr Reference to the telegram 
+ *  \param  tel_ptr Reference to the telegram
  */
-void Telq_Enqueue(CTelQueue *self, Msg_MostTel_t *tel_ptr)
+void Telq_Enqueue(CTelQueue *self, Ucs_Message_t *tel_ptr)
 {
     Dl_InsertTail(&self->list, Msg_GetNode((CMessage*)(void*)tel_ptr));
 }
 
-/*! \brief  Retrieves the current number of objects in the telegram queue 
+/*! \brief  Retrieves the current number of objects in the telegram queue
  *  \param  self    The instance
  *  \return The current number of available telegram objects in the pool
  */

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -47,7 +47,7 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-static void Trcv_OnTxStatusInternal(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status);
+static void Trcv_OnTxStatusInternal(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
@@ -56,16 +56,19 @@ static void Trcv_OnTxStatusInternal(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgT
  *  \param  self         The instance
  *  \param  fifo_ptr     Reference to the dedicated port message FIFO
  *  \param  def_src_addr Source address that is preset in Tx message object
+ *  \param  def_llrbc    Default LLRBC value for allocated messages
  *  \param  ucs_user_ptr User reference that needs to be passed in every callback function
  *  \param  trace_id     ID specifies FIFO in traces if multiple transceivers are running
  */
-void Trcv_Ctor(CTransceiver *self, CPmFifo *fifo_ptr, uint16_t def_src_addr, void *ucs_user_ptr, uint8_t trace_id)
+void Trcv_Ctor(CTransceiver *self, CPmFifo *fifo_ptr, uint16_t def_src_addr, uint8_t def_llrbc,
+               void *ucs_user_ptr, uint8_t trace_id)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     self->fifo_ptr = fifo_ptr;
     self->tx_def_src = def_src_addr;
     self->ucs_user_ptr = ucs_user_ptr;
     self->own_id = trace_id;
+    self->def_llrbc = def_llrbc;
     Pool_Ctor(&self->tx_msg_pool, self->tx_msgs, TRCV_SIZE_TX_POOL, ucs_user_ptr);
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (fifo_ptr != NULL));
 }
@@ -98,29 +101,31 @@ void Trcv_RxAssignFilter(CTransceiver *self, Trcv_RxFilterCb_t callback_fptr, vo
  *  \param  self    The instance
  *  \param  tel_ptr Reference to the received message
  */
-void Trcv_RxReleaseMsg(CTransceiver *self, Msg_MostTel_t *tel_ptr)
+void Trcv_RxReleaseMsg(CTransceiver *self, Ucs_Message_t *tel_ptr)
 {
     CMessage *msg_ptr = (CMessage*)(void*)tel_ptr;
-    bool check_ok = !Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr));   /* message object shall not be part of a list */
-                                                                    /* because it was provided in an earlier step */
-    TR_ASSERT(self->ucs_user_ptr, "[TRCV]", check_ok);
-    if (check_ok)
+
+    if (Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr)) == false)
+    {                                                                   /* message object shall not be part of a list */
+        Fifo_RxReleaseMsg(self->fifo_ptr, msg_ptr);                     /* because it was provided in an earlier step */
+    }
+    else
     {
-        Fifo_RxReleaseMsg(self->fifo_ptr, msg_ptr);
+        TR_FAILED_ASSERT(self->ucs_user_ptr, "[TRCV]");
     }
 }
 
 /*! \brief  Retrieves a message object from the pool
  *  \param  self    The instance
  *  \param  size    Size of the message in bytes. Valid range: 0..45.
- *  \return Reference to the Msg_MostTel_t structure if a message is available.
+ *  \return Reference to the Ucs_Message_t structure if a message is available.
  *          Otherwise \c NULL.
  */
-extern Msg_MostTel_t* Trcv_TxAllocateMsg(CTransceiver *self, uint8_t size)
+extern Ucs_Message_t* Trcv_TxAllocateMsg(CTransceiver *self, uint8_t size)
 {
     const uint8_t TRCV_CTRL_MAX_SIZE = 45U;         /* replace by PMS constant in future */
     CMessage        *handle = NULL;
-    Msg_MostTel_t   *tel_ptr = NULL;
+    Ucs_Message_t   *tel_ptr = NULL;
 
     if (size <= TRCV_CTRL_MAX_SIZE)
     {
@@ -135,6 +140,7 @@ extern Msg_MostTel_t* Trcv_TxAllocateMsg(CTransceiver *self, uint8_t size)
             tel_ptr->tel.tel_len = size;
             tel_ptr->tel.tel_cnt = 0U;
             tel_ptr->source_addr = self->tx_def_src;
+            tel_ptr->opts.llrbc = self->def_llrbc;
         }
     }
 
@@ -142,29 +148,31 @@ extern Msg_MostTel_t* Trcv_TxAllocateMsg(CTransceiver *self, uint8_t size)
 }
 
 /*! \brief  Returns a message object to the transceiver pool a message was allocated from
- *  \param  tel_ptr Reference to the message object which needs to be returned. 
+ *  \param  tel_ptr Reference to the message object which needs to be returned.
  */
-void Trcv_TxReleaseMsg(Msg_MostTel_t *tel_ptr)
+void Trcv_TxReleaseMsg(Ucs_Message_t *tel_ptr)
 {
     CMessage* msg_ptr = (CMessage*)(void*)tel_ptr;                  /* avoid MISRA-C warning by converting to "void*" */
-    bool check_ok = !Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr));   /* message object shall not be part of a list */
-    TR_ASSERT(0U, "[TRCV]", check_ok);                              /* because it was provided in an earlier step */
 
-    if (check_ok)
-    {
+    if (Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr)) == false)       /* message object shall not be part of a list */
+    {                                                               /* because it was provided in an earlier step */
         Pool_ReturnMsg(msg_ptr);
+    }
+    else
+    {
+        TR_FAILED_ASSERT(0U, "[TRCV]");
     }
 }
 
 /*! \brief  Prepares a message object for re-transmission
  *  \param  tel_ptr Reference to the Tx message object which needs
- *                  to be reused. 
+ *                  to be reused.
  */
-void Trcv_TxReuseMsg(Msg_MostTel_t *tel_ptr)
+void Trcv_TxReuseMsg(Ucs_Message_t *tel_ptr)
 {
-    CMessage* msg_ptr = (CMessage*)(void*)tel_ptr; 
-    TR_ASSERT(0U, "[TRCV]", (!Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr)))); /* message object shall not be part of a list */
-                                                                             /* because it was provided in an earlier step */
+    CMessage* msg_ptr = (CMessage*)(void*)tel_ptr;
+    TR_ASSERT(0U, "[TRCV]", (Dln_IsNodePartOfAList(Msg_GetNode(msg_ptr)) == false)); /* message object shall not be part of a list */
+                                                                                     /* because it was provided in an earlier step */
     Msg_Cleanup(msg_ptr);        /* reset headers and fields */
     Msg_ReserveHeader(msg_ptr, PMP_PM_MAX_SIZE_HEADER + ENC_MAX_SIZE_CONTENT);
 }
@@ -174,9 +182,9 @@ void Trcv_TxReuseMsg(Msg_MostTel_t *tel_ptr)
  *  \param   self    The instance
  *  \param   tel_ptr Reference to the message object
  */
-void Trcv_TxSendMsg(CTransceiver *self, Msg_MostTel_t *tel_ptr)
+void Trcv_TxSendMsg(CTransceiver *self, Ucs_Message_t *tel_ptr)
 {
-    CMessage *msg_ptr; 
+    CMessage *msg_ptr;
 
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (tel_ptr != NULL));
     msg_ptr = (CMessage*)(void*)tel_ptr;
@@ -186,22 +194,22 @@ void Trcv_TxSendMsg(CTransceiver *self, Msg_MostTel_t *tel_ptr)
     Fifo_Tx(self->fifo_ptr, msg_ptr, false);
 }
 
-/*! \brief  Transmits a given message object to the INIC with a dedicated result callback 
+/*! \brief  Transmits a given message object to the INIC with a dedicated result callback
  *  \param  self          The instance
  *  \param  tel_ptr       Reference to the message object
  *  \param  callback_fptr Callback function which is invoked after message transmission has finished.
  *                        Must be \c NULL to avoid that a callback function is invoked. In this case
- *                        the message object is freed internally. Hence, the message object must 
+ *                        the message object is freed internally. Hence, the message object must
  *                        not provide external payload.
- *  \param  inst_ptr      Reference to the instance which is invoked with callback_fptr. Has to be \c 
+ *  \param  inst_ptr      Reference to the instance which is invoked with callback_fptr. Has to be \c
  *                        NULL if callback_fptr is \c NULL.
- *  \note   The provided callback function is responsible to free the message object by calling 
+ *  \note   The provided callback function is responsible to free the message object by calling
  *          Trcv_TxReleaseMsg() or to reuse the message object by calling Trcv_TxReuseMsg() before
  *          passing it to one of the transmit functions again.
  */
-void Trcv_TxSendMsgExt(CTransceiver *self, Msg_MostTel_t *tel_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr)
+void Trcv_TxSendMsgExt(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr)
 {
-    CMessage *msg_ptr; 
+    CMessage *msg_ptr;
 
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (tel_ptr != NULL));
     msg_ptr = (CMessage*)(void*)tel_ptr;
@@ -223,14 +231,14 @@ void Trcv_TxSendMsgExt(CTransceiver *self, Msg_MostTel_t *tel_ptr, Msg_TxStatusC
  *  \param  tel_ptr       Reference to the message object
  *  \param  callback_fptr Callback function which is invoked after message transmission has finished.
  *                        Must be \c NULL to avoid that a callback function is invoked. In this case
- *                        the message object is freed internally. Hence, the message object must 
+ *                        the message object is freed internally. Hence, the message object must
  *                        not provide external payload.
  *  \param  inst_ptr      Reference to the instance which is invoked
- *  \note   The provided callback function is responsible to free the message object by calling 
+ *  \note   The provided callback function is responsible to free the message object by calling
  *          Trcv_TxReleaseMsg() or to reuse the message object by calling Trcv_TxReuseMsg() before
  *          passing it to one of the transmit functions again.
  */
-void Trcv_TxSendMsgBypass(CTransceiver *self, Msg_MostTel_t *tel_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr)
+void Trcv_TxSendMsgBypass(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr)
 {
     CMessage *msg_ptr;
 
@@ -248,20 +256,20 @@ void Trcv_TxSendMsgBypass(CTransceiver *self, Msg_MostTel_t *tel_ptr, Msg_TxStat
     Fifo_Tx(self->fifo_ptr, msg_ptr, true);
 }
 
-/*! \brief  Callback function which is invoked instead of an external callback 
- *          as soon as channel transmission was finished in PMS. 
+/*! \brief  Callback function which is invoked instead of an external callback
+ *          as soon as channel transmission was finished in PMS.
  *  \param  self    The instance
  *  \param  tel_ptr Reference to the message object
  *  \param  status  Transmission status
  */
-static void Trcv_OnTxStatusInternal(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status)
+static void Trcv_OnTxStatusInternal(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status)
 {
     Trcv_TxReleaseMsg(tel_ptr);
     MISC_UNUSED(self);
     MISC_UNUSED(status);
 }
 
-/*! \brief  Internal callback function which is intended to be 
+/*! \brief  Internal callback function which is intended to be
  *          invoked by the port message channel on completed reception.
  *  \param  self    The instance
  *  \param  tel_ptr Reference to the message object

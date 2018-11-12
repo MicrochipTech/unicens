@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -108,20 +108,28 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
-<tr class="memitem:gad54678ad2a4671ec224422a8647b20f6"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___m_g_r_gad54678ad2a4671ec224422a8647b20f6.html#gad54678ad2a4671ec224422a8647b20f6">Ucs_MgrReportCb_t</a> )(<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#gab85aa9ce377050505124af5e9549e445">Ucs_MgrReport_t</a> code, uint16_t node_address, <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a> *node_ptr, void *user_ptr)</td></tr>
-<tr class="memdesc:gad54678ad2a4671ec224422a8647b20f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional callback function that reports events on ignored, welcomed and lost nodes.  <a href="#gad54678ad2a4671ec224422a8647b20f6"></a><br/></td></tr>
-<tr class="separator:gad54678ad2a4671ec224422a8647b20f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga185e277bb05f92c58e7e005128805c6f"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___m_g_r_ga185e277bb05f92c58e7e005128805c6f.html#ga185e277bb05f92c58e7e005128805c6f">Ucs_MgrReportCb_t</a> )(<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#gab85aa9ce377050505124af5e9549e445">Ucs_MgrReport_t</a> code, <a class="el" href="struct_ucs___signature__t.html">Ucs_Signature_t</a> *signature_ptr, <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t</a> *node_ptr, void *user_ptr)</td></tr>
+<tr class="memdesc:ga185e277bb05f92c58e7e005128805c6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional callback function that reports events on found and configured nodes.  <a href="#ga185e277bb05f92c58e7e005128805c6f"></a><br/></td></tr>
+<tr class="separator:ga185e277bb05f92c58e7e005128805c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:gab85aa9ce377050505124af5e9549e445"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#gab85aa9ce377050505124af5e9549e445">Ucs_MgrReport_t</a> { <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a6fcfe54d64bd8cf6b24361bf326f6c49">UCS_MGR_REP_IGNORED_UNKNOWN</a> = 0, 
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a8c94fd8dfa39ea4a65b30a9ebfb5a38b">UCS_MGR_REP_NOT_AVAILABLE</a> = 0, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445afe4f1822be465b7a8891dccf0af36945">UCS_MGR_REP_IGNORED_DUPLICATE</a> = 1, 
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a6fcfe54d64bd8cf6b24361bf326f6c49">UCS_MGR_REP_IGNORED_UNKNOWN</a> = 1, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445ac7d7f8d978224660f4c6b94f2651d19e">UCS_MGR_REP_AVAILABLE</a> = 2, 
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445afe4f1822be465b7a8891dccf0af36945">UCS_MGR_REP_IGNORED_DUPLICATE</a> = 2, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a8c94fd8dfa39ea4a65b30a9ebfb5a38b">UCS_MGR_REP_NOT_AVAILABLE</a> = 3
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a6741e96bfa9a2938e579005da31fc2f2">UCS_MGR_REP_WELCOMED</a> = 3, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a29c43b0166bf133487a1974e58446fd0">UCS_MGR_REP_SCRIPT_FAILURE</a> = 4, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a3e7c555348e09c9552de9e03cb7e4d43">UCS_MGR_REP_IRRECOVERABLE</a> = 5, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445ae4c09559ccf1f0cc07be49b22039a16d">UCS_MGR_REP_SCRIPT_SUCCESS</a> = 6, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445ac7d7f8d978224660f4c6b94f2651d19e">UCS_MGR_REP_AVAILABLE</a> = 7
 <br/>
  }</td></tr>
 <tr class="memdesc:gab85aa9ce377050505124af5e9549e445"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manager report codes.  <a href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#gab85aa9ce377050505124af5e9549e445">More...</a><br/></td></tr>
@@ -134,12 +142,12 @@ Enumerations</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

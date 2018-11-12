@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -61,7 +61,7 @@ extern "C"
 
 /*! \brief   Structure of a Port Message Event Handler */
 typedef struct CPmEventHandler_
-{ 
+{
     CBase          *base_ptr;                   /*!< \brief Reference to base object */
     CPmFifos       *fifos_ptr;                  /*!< \brief Reference to FIFOs handler */
     CObserver       observer;                   /*!< \brief Observer of PMS events */

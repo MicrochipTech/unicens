@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -44,14 +44,14 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Definitions                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-/* Defines the number of jobs executed by the Extended Resource Manager. Valid range: 1..254. 
+/* Defines the number of jobs executed by the Extended Resource Manager. Valid range: 1..65534.
  * Default value: 1.
  */
 /* #define UCS_XRM_NUM_JOBS             1 */
 
-/* Defines the number of required resources. This value depends on the created resource objects 
- * associated with the jobs that are executed by the Extended Resource Manager. 
- * Valid range: 1..254.  Default value: 8.
+/* Defines the number of required resources. This value depends on the created resource objects
+ * associated with the jobs that are executed by the Extended Resource Manager.
+ * Valid range: 1..65534.  Default value: 8.
  */
 /* #define UCS_XRM_NUM_RESOURCES        8 */
 

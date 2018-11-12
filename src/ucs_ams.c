@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -47,6 +47,8 @@
 #include "ucs_pmp.h"
 #include "ucs_encoder.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 /*------------------------------------------------------------------------------------------------*/
 /* Internal constants                                                                             */
 /*------------------------------------------------------------------------------------------------*/
@@ -65,13 +67,13 @@ static void Ams_Service(void *self);
 static void Ams_OnEhEvent(void *self, void *error_code_ptr);
 
 static void Ams_TxService(CAms *self);
-static void Ams_TxOnStatus(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status);
+static void Ams_TxOnStatus(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
 static uint8_t Ams_TxGetNextFollowerId(CAms *self);
 
-static void Ams_RxOnTelComplete(CAms *self, Msg_MostTel_t *tel_ptr);
-static void Ams_RxReleaseTel(CAms *self, Msg_MostTel_t *tel_ptr);
+static void Ams_RxOnTelComplete(CAms *self, Ucs_Message_t *tel_ptr);
+static void Ams_RxReleaseTel(CAms *self, Ucs_Message_t *tel_ptr);
 static void Ams_RxProcessWaitingQ(CAms *self);
-static void Ams_RxOnSegError(void *self, Msg_MostTel_t *tel_ptr, Segm_Error_t error);
+static void Ams_RxOnSegError(void *self, Ucs_Message_t *tel_ptr, Segm_Error_t error);
 static void Ams_RxOnFreedMsg(void *self, void *data_ptr);
 static void Ams_RxFlush(CAms *self);
 
@@ -84,7 +86,7 @@ static void Ams_RxFlush(CAms *self);
  *  \param mcm_trcv_ptr      Reference to the MCM transceiver
  *  \param rcm_trcv_ptr      Reference to the RCM transceiver
  *  \param pool_ptr          Reference to the pool for application message handles
- *  \param rx_def_payload_sz Default memory size that is allocated when receiving segmented messages 
+ *  \param rx_def_payload_sz Default memory size that is allocated when receiving segmented messages
  *                           without size prefix
  */
 void Ams_Ctor(CAms *self, CBase *base_ptr, CTransceiver *mcm_trcv_ptr, CTransceiver *rcm_trcv_ptr,
@@ -119,7 +121,7 @@ void Ams_Ctor(CAms *self, CBase *base_ptr, CTransceiver *mcm_trcv_ptr, CTranscei
     if (self->trcv_rcm_ptr != NULL)
     {
         Trcv_RxAssignReceiver(self->trcv_rcm_ptr, &Ams_RxOnRcmTelComplete, self);
-    }    
+    }
 
     Mobs_Ctor(&self->unsync_result_observer, self, EH_M_TERMINATION_EVENTS, &Ams_OnEhEvent);     /* register error observer */
     Eh_AddObsrvInternalEvent(&self->base_ptr->eh, &self->unsync_result_observer);
@@ -134,7 +136,7 @@ void Ams_TxSetDefaultRetries(CAms* self, uint8_t llrbc)
     self->tx.default_llrbc = llrbc;
 }
 
-/*! \brief  Assigns a function of another class to receive application messages 
+/*! \brief  Assigns a function of another class to receive application messages
  *  \param  self            The instance
  *  \param  cb_fptr         Callback function
  *  \param  inst_ptr        The instance of the receiver class
@@ -167,7 +169,7 @@ void Ams_TxAssignTrcvSelector(CAms *self, Ams_TxIsRcmMsgCb_t cb_fptr)
     self->tx.is_rcm_fptr = cb_fptr;
 }
 
-/*! \brief  Performs a cleanup of the Tx message queue and notifies 
+/*! \brief  Performs a cleanup of the Tx message queue and notifies
  *          the transmission error UCS_AMSTX_RES_NOT_AVAILABLE.
  *  \param  self    The instance
  */
@@ -203,7 +205,7 @@ static void Ams_OnEhEvent(void *self, void *error_code_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /* Service                                                                                        */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief The AMS service function 
+/*! \brief The AMS service function
  *  \param self The instance
  */
 static void Ams_Service(void *self)
@@ -225,7 +227,7 @@ static void Ams_Service(void *self)
     }
 }
 
-/*! \brief Allocates and transmits MCMs for the dedicated Application Messages 
+/*! \brief Allocates and transmits MCMs for the dedicated Application Messages
  *  \param self The instance
  */
 static void Ams_TxService(CAms *self)
@@ -234,7 +236,7 @@ static void Ams_TxService(CAms *self)
                                                                     /* run as long as messages are available in Tx queue */
     for (node1_ptr = Dl_PeekHead(&self->tx.queue); node1_ptr != NULL; node1_ptr = Dl_PeekHead(&self->tx.queue))
     {
-        Msg_MostTel_t *tel_ptr = NULL;
+        Ucs_Message_t *tel_ptr = NULL;
         CTransceiver *trcv_ptr = self->trcv_mcm_ptr;
         Ucs_AmsTx_Msg_t *tx_ptr = (Ucs_AmsTx_Msg_t*)Dln_GetData(node1_ptr);
 
@@ -283,7 +285,7 @@ static void Ams_TxService(CAms *self)
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   Retrieves a message Tx handle
  *  \details The payload provided is limited the supported size of the memory management.
- *           The application may also attach own payload to a message object. Therefore, 
+ *           The application may also attach own payload to a message object. Therefore,
  *           Ams_TxGetMsg() shall be called with size "0".
  *  \param   self   The instance
  *  \param   size   Payload size in bytes or "0" to use application provided payload.
@@ -317,30 +319,30 @@ void Ams_TxFreeUnusedMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /* AMS Transmission                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief      Transmits a MOST Application Message 
+/*! \brief      Transmits an Application Message
  *  \details    After the transmission completed the function will call one callback function. Therefore
  *              the caller is able to assign one of two different callback function. The difference between
- *              the callback function is that tx_complete_sia_fptr does no provide a self pointer whether 
+ *              the callback function is that tx_complete_sia_fptr does no provide a self pointer whether
  *              tx_complete_fptr and tx_complete_inst_ptr allow to invoke a class method.
  *  \param  self                    The instance
  *  \param  msg_ptr                 Reference to the related message object
- *  \param  tx_complete_sia_fptr    Single instance API callback function which is invoked as soon as 
+ *  \param  tx_complete_sia_fptr    Single instance API callback function which is invoked as soon as
  *                                  the transmission was finished.
- *  \param  tx_complete_fptr        Multi instance callback function which is invoked as soon as 
+ *  \param  tx_complete_fptr        Multi instance callback function which is invoked as soon as
  *                                  the transmission was finished.
- *  \param  tx_complete_inst_ptr    Instance pointer which is referred when tx_complete_fptr is invoked. 
+ *  \param  tx_complete_inst_ptr    Instance pointer which is referred when tx_complete_fptr is invoked.
  *  \return Possible return values are
  *          - \c UCS_RET_SUCCESS if the transmission was started successfully
  *          - \c UCS_RET_ERR_PARAM if the transmission was refused due to an invalid parameter
  */
-Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxCompleteSiaCb_t tx_complete_sia_fptr, 
+Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxCompleteSiaCb_t tx_complete_sia_fptr,
                            Amsg_TxCompleteCb_t tx_complete_fptr, void* tx_complete_inst_ptr)
 {
     Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
 
     TR_INFO((self->base_ptr->ucs_user_ptr, "[AMS]", "Called Ams_TxSendMsg(0x%p)", 1U, msg_ptr));
 
-    if (Ams_TxIsValidMessage(msg_ptr))                      /* prevent application messages to loc. INIC */
+    if (Ams_TxIsValidMessage(msg_ptr) != false)             /* prevent application messages to loc. INIC */
     {                                                       /* do not set both callback pointers */
         TR_ASSERT(self->base_ptr->ucs_user_ptr, "[AMS]", (((tx_complete_sia_fptr != NULL) && (tx_complete_fptr != NULL)) == false))
         Amsg_TxSetCompleteCallback(msg_ptr, tx_complete_sia_fptr, tx_complete_fptr, tx_complete_inst_ptr);
@@ -353,7 +355,7 @@ Ucs_Return_t Ams_TxSendMsg(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr, Amsg_TxComplete
     return ret_val;
 }
 
-/*! \brief          Transmits a MOST Application Message without attributes check
+/*! \brief          Transmits an Application Message without attributes check
  *  \details        This method shall be only be used by AMD and AMS internally
  *  \param  self    The instance
  *  \param  msg_ptr Reference to the related message object
@@ -372,19 +374,19 @@ void Ams_TxSendMsgDirect(CAms *self, Ucs_AmsTx_Msg_t *msg_ptr)
 }
 
 /*! \brief  Callback function which is invoked as soon as MCM transmission
- *          was finished in PMS. 
+ *          was finished in PMS.
  *  \param  self    The instance
  *  \param  tel_ptr Reference to the telegram
  *  \param  status  Transmission status
  */
-static void Ams_TxOnStatus(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status)
-{ 
+static void Ams_TxOnStatus(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status)
+{
     CAms *self_ = (CAms*)self;
     Ucs_AmsTx_Msg_t* msg_ptr = (Ucs_AmsTx_Msg_t*)tel_ptr->info_ptr;
 
     TR_INFO((self_->base_ptr->ucs_user_ptr, "[AMS]", "Ams_TxOnStatus(tel_ptr=0x%p, %d)", 2U, tel_ptr, status));
 
-    if (msg_ptr != NULL)                                                                                      /* MOST Telegram has AMS parent? */
+    if (msg_ptr != NULL)                                                                                      /* Telegram has AMS parent? */
     {
         Amsg_TxUpdateResult(msg_ptr, status);
 
@@ -425,7 +427,7 @@ bool Ams_TxIsValidMessage(Ucs_AmsTx_Msg_t *msg_ptr)
         if (msg_ptr->destination_address > AMS_ADDR_RSVD_RANGE)    /* is not reserved address? */
         {
             if (((msg_ptr->destination_address & 0xFF00U) !=  0x0300U)/* is single-cast? */
-               || (msg_ptr->data_size <= SEGM_MAX_SIZE_TEL))          /* or not segmented */ 
+               || (msg_ptr->data_size <= SEGM_MAX_SIZE_TEL))          /* or not segmented */
             {
                 if (!((msg_ptr->data_size > 0U) && (msg_ptr->data_ptr == NULL)))
                 {
@@ -438,7 +440,7 @@ bool Ams_TxIsValidMessage(Ucs_AmsTx_Msg_t *msg_ptr)
     return ret;
 }
 
-/*! \brief   Retrieves the next follower id to use for segmented transfer 
+/*! \brief   Retrieves the next follower id to use for segmented transfer
  *  \param   self   The instance
  *  \return  The follower id
  */
@@ -456,7 +458,7 @@ static uint8_t Ams_TxGetNextFollowerId(CAms *self)
     return ret;
 }
 
-/*! \brief   Retrieves the number of messages that are queued for transmission 
+/*! \brief   Retrieves the number of messages that are queued for transmission
  *  \param   self   The instance
  *  \return  The number of messages in the Tx queue
  */
@@ -474,7 +476,7 @@ uint16_t Ams_TxGetMsgCnt(CAms *self)
  *  \param   self    The instance
  *  \param   tel_ptr Reference to the Rx telegram object
  */
-void Ams_RxOnMcmTelComplete(void *self, Msg_MostTel_t *tel_ptr)
+void Ams_RxOnMcmTelComplete(void *self, Ucs_Message_t *tel_ptr)
 {
     CAms *self_ = (CAms*)self;
     TR_ASSERT(self_->base_ptr->ucs_user_ptr, "[AMS]", (tel_ptr->info_ptr == NULL));
@@ -488,7 +490,7 @@ void Ams_RxOnMcmTelComplete(void *self, Msg_MostTel_t *tel_ptr)
  *  \param   self    The instance
  *  \param   tel_ptr Reference to the Rx telegram object
  */
-void Ams_RxOnRcmTelComplete(void *self, Msg_MostTel_t *tel_ptr)
+void Ams_RxOnRcmTelComplete(void *self, Ucs_Message_t *tel_ptr)
 {
     CAms *self_ = (CAms*)self;
     TR_ASSERT(self_->base_ptr->ucs_user_ptr, "[AMS]", (tel_ptr->info_ptr == NULL));
@@ -501,7 +503,7 @@ void Ams_RxOnRcmTelComplete(void *self, Msg_MostTel_t *tel_ptr)
  *  \param   self    The instance
  *  \param   tel_ptr Reference to the Rx telegram object
  */
-static void Ams_RxReleaseTel(CAms *self, Msg_MostTel_t *tel_ptr)
+static void Ams_RxReleaseTel(CAms *self, Ucs_Message_t *tel_ptr)
 {
     TR_ASSERT(self->base_ptr->ucs_user_ptr, "[AMS]", ((tel_ptr != NULL) && (tel_ptr->info_ptr != NULL)));
     TR_ASSERT(self->base_ptr->ucs_user_ptr, "[AMS]", ((tel_ptr->info_ptr == self->trcv_mcm_ptr)||(tel_ptr->info_ptr == self->trcv_rcm_ptr)));
@@ -519,7 +521,7 @@ static void Ams_RxReleaseTel(CAms *self, Msg_MostTel_t *tel_ptr)
  *  \param  self    The instance
  *  \param  tel_ptr Reference to the Rx telegram object
  */
-static void Ams_RxOnTelComplete(CAms *self, Msg_MostTel_t *tel_ptr)
+static void Ams_RxOnTelComplete(CAms *self, Ucs_Message_t *tel_ptr)
 {
     Ucs_AmsRx_Msg_t *msg_ptr = NULL;
 
@@ -566,7 +568,7 @@ static void Ams_RxOnTelComplete(CAms *self, Msg_MostTel_t *tel_ptr)
  */
 static void Ams_RxProcessWaitingQ(CAms *self)
 {
-    Msg_MostTel_t *tel_ptr;
+    Ucs_Message_t *tel_ptr;
     Ucs_AmsRx_Msg_t *msg_ptr = NULL;
 
     for (tel_ptr = Telq_Peek(&self->rx.waiting_queue); tel_ptr != NULL; tel_ptr = Telq_Peek(&self->rx.waiting_queue))
@@ -593,16 +595,16 @@ static void Ams_RxProcessWaitingQ(CAms *self)
     }
 }
 
-/*! \brief  Callback function which is invoked by segmentation process to notify a segmentation error 
+/*! \brief  Callback function which is invoked by segmentation process to notify a segmentation error
  *  \param  self    The instance
  *  \param  tel_ptr The related Rx telegram which caused the segmentation error
  *  \param  error   The segmentation error number
  */
-static void Ams_RxOnSegError(void *self, Msg_MostTel_t *tel_ptr, Segm_Error_t error)
+static void Ams_RxOnSegError(void *self, Ucs_Message_t *tel_ptr, Segm_Error_t error)
 {
     const uint8_t ERR_SZ = 2U;
-    CAms *self_ = (CAms*)self; 
-    Msg_MostTel_t* error_tel_ptr = NULL;
+    CAms *self_ = (CAms*)self;
+    Ucs_Message_t* error_tel_ptr = NULL;
 
     TR_ERROR((self_->base_ptr->ucs_user_ptr, "[AMS]", "Ams_RxOnComplete(0x%p, %d)", 2U, tel_ptr, error));
 
@@ -636,11 +638,11 @@ static void Ams_RxOnFreedMsg(void *self, void *data_ptr)
 }
 
 /*! \brief   Removes and frees a message from the Rx queue
- *  \details The application must not access the passed 
+ *  \details The application must not access the passed
  *           message any more.
  *  \param   self       The instance
  *  \param   msg_ptr    Reference to the message, or \c NULL for the front-most
- *                      message in the Rx queue. 
+ *                      message in the Rx queue.
  */
 void Ams_RxFreeMsg(CAms *self, Ucs_AmsRx_Msg_t *msg_ptr)
 {
@@ -659,13 +661,15 @@ void Ams_RxFreeMsg(CAms *self, Ucs_AmsRx_Msg_t *msg_ptr)
  */
 static void Ams_RxFlush(CAms *self)
 {
-    Msg_MostTel_t *tel_ptr;
+    Ucs_Message_t *tel_ptr;
 
     for (tel_ptr = Telq_Dequeue(&self->rx.waiting_queue); tel_ptr != NULL; tel_ptr = Telq_Dequeue(&self->rx.waiting_queue))
     {
         Ams_RxReleaseTel(self, tel_ptr);
     }
 }
+
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

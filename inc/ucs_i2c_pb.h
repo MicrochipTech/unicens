@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -54,7 +54,7 @@ extern "C"
 typedef enum Ucs_I2c_ResultCode_
 {
     UCS_I2C_RES_SUCCESS             = 0x00U,   /*!< \brief I2C command succeeded */
-    UCS_I2C_RES_ERR_CMD             = 0x01U,   /*!< \brief I2C command failed due to an INIC function-specific error or a transmission error on the MOST network.
+    UCS_I2C_RES_ERR_CMD             = 0x01U,   /*!< \brief I2C command failed due to an INIC function-specific error or a transmission error on the network.
                                                 *  \details The \em result_type section in Ucs_I2c_ResultDetails_t will provide you with more detailed information concerning the error type.
                                                 */
     UCS_I2C_RES_ERR_SYNC            = 0x02U    /*!< \brief Remote synchronization of target device failed.
@@ -66,7 +66,7 @@ typedef enum Ucs_I2c_ResultCode_
 typedef enum Ucs_I2c_ResultType_
 {
     UCS_I2C_RESULT_TYPE_TGT        = 0x00U,     /*!< \brief Specifies the target results, typically INIC function-specific error from target device. */
-    UCS_I2C_RESULT_TYPE_TX         = 0x01U      /*!< \brief Specifies the transmission error information that occurred on the MOST network. */
+    UCS_I2C_RESULT_TYPE_TX         = 0x01U      /*!< \brief Specifies the transmission error information that occurred on the network. */
 
 } Ucs_I2c_ResultType_t;
 
@@ -79,7 +79,7 @@ typedef struct Ucs_I2c_ResultDetails_
     /*! \brief Specifies the type of the current asynchronous result.
      *  \details The following briefly describes the different types of results available:
      *              - \b UCS_I2C_RESULT_TYPE_TGT: target results, typically INIC function-specific error found on target device. \n Refer to \em inic_result to get the detailed information.
-     *              - \b UCS_I2C_RESULT_TYPE_TX:  transmission results, typically transmission error on the MOST network. \n Refer to \em tx_result to get the transmission information.
+     *              - \b UCS_I2C_RESULT_TYPE_TX:  transmission results, typically transmission error on the network. \n Refer to \em tx_result to get the transmission information.
      */
     Ucs_I2c_ResultType_t result_type;
     /*! \brief Holds the status of the transmission. */
@@ -102,36 +102,36 @@ typedef struct Ucs_I2c_Result_
 /*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Callback function type to retrieve the result of the I2c_CreatePort function
- *  \param  node_address     The node address of the device from where the results come
- *  \param  i2c_port_handle  The port resource handle.
+/*! \brief  Callback function type to retrieve the result of the I2c_CreatePort function.
+ *  \param  node_address     The node address of the device from where the results come from
+ *  \param  i2c_port_handle  The port resource handle
  *  \param  result           The operation result
  *  \param  user_ptr         User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
 typedef void (*Ucs_I2c_CreatePortResCb_t)(uint16_t node_address, uint16_t i2c_port_handle, Ucs_I2c_Result_t result, void *user_ptr);
 
-/*! \brief  Callback function type to retrieve the result of the Gpio_ConfigPinMode function
- *  \param  node_address        The node address of the device from where the results come
- *  \param  i2c_port_handle     The port resource handle.
- *  \param  i2c_slave_address   The 7-bit I2C Port slave address of the peripheral to be read.
- *  \param  data_len            The number of bytes wrote to the I2C address.
+/*! \brief  Callback function type to retrieve the result of the Gpio_ConfigPinMode function.
+ *  \param  node_address        The node address of the device from where the results come from
+ *  \param  i2c_port_handle     The port resource handle
+ *  \param  i2c_slave_address   The 7-bit I2C Port slave address of the peripheral to be read
+ *  \param  data_len            The number of bytes wrote to the I2C address
  *  \param  result              The operation result
  *  \param  user_ptr            User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
 typedef void (*Ucs_I2c_WritePortResCb_t)(uint16_t node_address, uint16_t i2c_port_handle, uint8_t i2c_slave_address, uint8_t data_len, Ucs_I2c_Result_t result, void *user_ptr);
 
-/*! \brief  Callback function type to retrieve the result of the Gpio_ConfigPinMode function
+/*! \brief  Callback function type to retrieve the result of the Gpio_ConfigPinMode function.
  *  \param  node_address        The node address of the device from where the results come
- *  \param  i2c_port_handle     The port resource handle.
- *  \param  i2c_slave_address   The 7-bit I2C Port slave address of the peripheral from which the data have been read.
+ *  \param  i2c_port_handle     The port resource handle
+ *  \param  i2c_slave_address   The 7-bit I2C Port slave address of the peripheral from which the data have been read
  *  \param  data_len            The number of bytes read from the address.
- *  \param  data_ptr            The reference to the data list.
+ *  \param  data_ptr            The reference to the data list
  *  \param  result              The operation result
  *  \param  user_ptr            User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
 typedef void (*Ucs_I2c_ReadPortResCb_t)(uint16_t node_address, uint16_t i2c_port_handle, uint8_t i2c_slave_address, uint8_t data_len, uint8_t data_ptr[], Ucs_I2c_Result_t result, void *user_ptr);
 
-/*! \brief  Callback function type to report the I2C interrupt event
+/*! \brief  Callback function type to report the I2C interrupt event.
  *  \param  node_address     The node address of the device from where the interrupt comes
  *  \param  user_ptr         User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */

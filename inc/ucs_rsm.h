@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -69,7 +69,7 @@ typedef enum Rsm_StateTransition_
     RSM_ST_NTF_REQ,      /*!< \brief Transition to "Notification Request" state */
     RSM_ST_NTF_CLEAR,    /*!< \brief Transition to "Notification Clear" state */
     RSM_ST_NTF_ALL,      /*!< \brief Transition to "All Notification" state */
-    RSM_ST_NTF_GPIO,     /*!< \brief Transition to "Gpio Notification" state */ 
+    RSM_ST_NTF_GPIO,     /*!< \brief Transition to "GPIO Notification" state */
     RSM_ST_SYNC_SUCC,    /*!< \brief Transition to "Sync Success" state */
     RSM_ST_SYNC_ERR      /*!< \brief Transition to "Sync Error" state */
 
@@ -116,7 +116,7 @@ typedef struct Rsm_EventParam_
     CObserver txavailability_observer;
     /*! \brief Observer used to monitor MNS initialization result */
     CMaskedObserver ucsinit_observer;
-    /*! \brief Observe MOST Network status in Net module */
+    /*! \brief Observe Network status in Net module */
     CMaskedObserver nwstatus_observer;
     /*! \brief Own subject to notify the SyncLost event */
     CSubject subject;

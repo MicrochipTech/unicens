@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___t_r_a_c_e.html',''
 
 <p>Trace macro to capture trace error events. </p>
 <p>This macro is used to enable the capturing of trace error events. The macro must be mapped onto a user-defined function. To disable the trace error events, the macro must not be defined. The mapped user-defined function must adhere to the following function signature.</p>
-<p>void (*Ucs_TraceCb_t)(void * ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);</p>
+<p>void (*Ucs_TraceCb_t)(void *ucs_user_ptr, const char module_str[], const char entry_str[], uint16_t vargs_cnt, ...);</p>
 <ul>
 <li><b>ucs_user_ptr</b><br/>
 Reference to the User argument</li>
@@ -115,7 +115,7 @@ Variable argument list to pass trace arguments</li>
 </ul>
 <dl class="section note"><dt>Note</dt><dd>The captured error events can be used for logging and as a first step for debugging unexpected behavior. However, the application must not derive any action when an error is indicated by the trace interface. An application must handle rely on result callback functions and handle "general.error_fptr()".</dd></dl>
 <p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><span class="keyword">extern</span> <span class="keywordtype">void</span> App_UcsTraceError(<span class="keywordtype">void</span> * ucs_user_ptr,</div>
+<div class="fragment"><div class="line"><span class="keyword">extern</span> <span class="keywordtype">void</span> App_UcsTraceError(<span class="keywordtype">void</span> *ucs_user_ptr,</div>
 <div class="line">                              <span class="keyword">const</span> <span class="keywordtype">char</span> module_str[],</div>
 <div class="line">                              <span class="keyword">const</span> <span class="keywordtype">char</span> entry_str[],</div>
 <div class="line">                              uint16_t vargs_cnt,</div>
@@ -131,12 +131,12 @@ Variable argument list to pass trace arguments</li>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="group___g___u_c_s___t_r_a_c_e.html">Tracing/Debugging</a></li>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

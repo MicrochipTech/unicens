@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -45,6 +45,8 @@
 #include "ucs_misc.h"
 #include "ucs_trace.h"
 
+#ifndef AMS_FOOTPRINT_NOAMS
+
 #define SELF_RX                     ((Amsg_IntMsgRx_t*)(void*)(self))
 #define SELF_TX                     ((Amsg_IntMsgTx_t*)(void*)(self))
 
@@ -60,12 +62,12 @@ static void Amsg_TxRestoreDestinationAddr(Ucs_AmsTx_Msg_t *self);
 /* Tx Message                                                                                      */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief      Initializes aggregated objects
- *  \details    Needs to be called once before first usage. Call Amsg_TxHandleSetup() before 
- *              repeated usage. 
+ *  \details    Needs to be called once before first usage. Call Amsg_TxHandleSetup() before
+ *              repeated usage.
  *  \param      self          Reference to an internal Application Message Tx handle
  *  \param      info_ptr      Memory information required to free the object
  *  \param      free_fptr     Callback function which is invoked when the object is freed
- *  \param      free_inst_ptr The instance which is passed to free_fptr 
+ *  \param      free_inst_ptr The instance which is passed to free_fptr
  */
 void Amsg_TxCtor(Ucs_AmsTx_Msg_t *self, void *info_ptr, Amsg_TxFreedCb_t free_fptr, void *free_inst_ptr)
 {
@@ -77,9 +79,9 @@ void Amsg_TxCtor(Ucs_AmsTx_Msg_t *self, void *info_ptr, Amsg_TxFreedCb_t free_fp
     SELF_TX->memory_sz         = NULL;
     SELF_TX->memory_info_ptr   = NULL;
 
-    SELF_TX->complete_fptr     = NULL; 
+    SELF_TX->complete_fptr     = NULL;
     SELF_TX->complete_inst_ptr = NULL;
-    SELF_TX->complete_sia_fptr = NULL; 
+    SELF_TX->complete_sia_fptr = NULL;
 
     SELF_TX->backup_dest_address = AMSG_TX_BACKUP_ADDR_NONE;*/
 
@@ -128,13 +130,13 @@ void Amsg_TxReuse(Ucs_AmsTx_Msg_t *self)
 
 /*! \brief   Assigns a Tx complete callback function
  *  \details It is not possible to assign the single and multiple instance callback
- *           at the same time. This function shall be called before message transmission. 
+ *           at the same time. This function shall be called before message transmission.
  *  \param   self     The instance
  *  \param   compl_sia_fptr  Reference to the single instance callback function
  *  \param   compl_fptr      Reference to a multiple instance callback function
  *  \param   compl_inst_ptr  Instance which is invoked by compl_fptr()
  */
-void Amsg_TxSetCompleteCallback(Ucs_AmsTx_Msg_t *self, Amsg_TxCompleteSiaCb_t compl_sia_fptr, 
+void Amsg_TxSetCompleteCallback(Ucs_AmsTx_Msg_t *self, Amsg_TxCompleteSiaCb_t compl_sia_fptr,
                                 Amsg_TxCompleteCb_t compl_fptr, void* compl_inst_ptr)
 {
     SELF_TX->complete_sia_fptr = compl_sia_fptr;
@@ -150,7 +152,7 @@ void Amsg_TxSetCompleteCallback(Ucs_AmsTx_Msg_t *self, Amsg_TxCompleteSiaCb_t co
  */
 void Amsg_TxNotifyComplete(Ucs_AmsTx_Msg_t *self, Ucs_AmsTx_Result_t result, Ucs_AmsTx_Info_t info)
 {
-    Amsg_TxRestoreDestinationAddr(self); 
+    Amsg_TxRestoreDestinationAddr(self);
 
     if (SELF_TX->complete_sia_fptr != NULL)                      /* invoke single instance API callback */
     {
@@ -184,7 +186,7 @@ void Amsg_TxFreeUnused(Ucs_AmsTx_Msg_t *self)
  *  \param    self    Reference to the related message object
  *  \param    result  The latest MCM transmission result
  *  \details  Since the transmission result of an application message may
- *            consist of multiple telegram transmission results, it is 
+ *            consist of multiple telegram transmission results, it is
  *            important to store the final transmission error. An error cannot
  *            be overwritten by a success.
  */
@@ -209,10 +211,10 @@ Ucs_AmsTx_Result_t Amsg_TxGetResultCode(Ucs_AmsTx_Msg_t *self)
         case UCS_MSG_STAT_OK:
             res = UCS_AMSTX_RES_SUCCESS;                            /* success is the expected result */
             break;
-        case UCS_MSG_STAT_ERROR_BF: 
-        case UCS_MSG_STAT_ERROR_CRC: 
-        case UCS_MSG_STAT_ERROR_ID: 
-        case UCS_MSG_STAT_ERROR_ACK: 
+        case UCS_MSG_STAT_ERROR_BF:
+        case UCS_MSG_STAT_ERROR_CRC:
+        case UCS_MSG_STAT_ERROR_ID:
+        case UCS_MSG_STAT_ERROR_ACK:
         case UCS_MSG_STAT_ERROR_TIMEOUT:
             res = UCS_AMSTX_RES_ERR_RETRIES_EXP;                    /* transmission failed, retries are possible */
             break;
@@ -295,7 +297,7 @@ void Amsg_TxSetFollowerId(Ucs_AmsTx_Msg_t *self, uint8_t id)
     SELF_TX->follower_id = id;
 }
 
-/*! \brief   Replaces the current destination address by a new one. 
+/*! \brief   Replaces the current destination address by a new one.
  *  \details The current destination address can be restore by Amsg_TxRestoreDestinationAddr().
  *  \param   self               The instance
  *  \param   new_destination    The new destination address
@@ -313,7 +315,7 @@ static void Amsg_TxRestoreDestinationAddr(Ucs_AmsTx_Msg_t *self)
 {
     if (SELF_TX->backup_dest_address != AMSG_TX_BACKUP_ADDR_NONE)
     {
-        self->destination_address = SELF_TX->backup_dest_address;/* restore public destination address */ 
+        self->destination_address = SELF_TX->backup_dest_address;/* restore public destination address */
     }
 }
 
@@ -364,8 +366,8 @@ Ucs_AmsTx_Msg_t* Amsg_TxDequeue(CDlList* list_ptr)
 /* Rx Message                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief      Initializes aggregated objects
- *  \details    Needs to be called once before first usage. Call Amsg_RxHandleSetup() before 
- *              repeated usage. 
+ *  \details    Needs to be called once before first usage. Call Amsg_RxHandleSetup() before
+ *              repeated usage.
  *  \param      self     Reference to an internal Application Message Rx handle
  *  \param      info_ptr Memory information required to free the object
  */
@@ -410,13 +412,13 @@ void Amsg_RxHandleSetup(Ucs_AmsRx_Msg_t *self)
 }
 
 /*! \brief  Evaluates if an Application Message has the same functional address
- *          as a MOST telegram
+ *          as a telegram
  *  \param  self    Reference to an internal Application Message Rx handle
- *  \param  tel_ptr Reference to a MOST message object
+ *  \param  tel_ptr Reference to a telegram object
  *  \return Returns \c true if both message objects have the same functional address,
  *          otherwise \c false.
  */
-bool Amsg_RxHandleIsIdentical(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t *tel_ptr)
+bool Amsg_RxHandleIsIdentical(Ucs_AmsRx_Msg_t *self, Ucs_Message_t *tel_ptr)
 {
     bool result = false;
     uint16_t msg_id = Msg_GetAltMsgId((CMessage*)(void*)tel_ptr);
@@ -430,12 +432,12 @@ bool Amsg_RxHandleIsIdentical(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t *tel_ptr)
     return result;
 }
 
-/*! \brief  Copies the Rx message signature from a MOST message object to an 
+/*! \brief  Copies the Rx message signature from a telegram object to an
  *          internal Application message object
  *  \param  self    Reference to an internal Application Message Rx handle
- *  \param  src_ptr Reference to a MOST message object
+ *  \param  src_ptr Reference to a telegram object
  */
-void Amsg_RxCopySignatureFromTel(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr)
+void Amsg_RxCopySignatureFromTel(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* src_ptr)
 {
     self->source_address   = src_ptr->source_addr;
     self->receive_type     = Amsg_RxGetReceiveType(src_ptr->destination_addr);
@@ -443,11 +445,11 @@ void Amsg_RxCopySignatureFromTel(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr)
 }
 
 /*! \brief  Copies the Rx message signature from an internal Application
- *          message object to a MOST message object
+ *          message object to a telegram object
  *  \param  self     Reference to an internal Application Message Rx handle
- *  \param  target_ptr  Reference to a MOST message object
+ *  \param  target_ptr  Reference to a telegram object
  */
-void Amsg_RxCopySignatureToTel(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* target_ptr)
+void Amsg_RxCopySignatureToTel(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* target_ptr)
 {
     target_ptr->source_addr        = self->source_address;
     target_ptr->destination_addr   = UCS_ADDR_DEBUG;
@@ -476,14 +478,14 @@ static Ucs_AmsRx_ReceiveType_t Amsg_RxGetReceiveType(uint16_t destination_addres
     return ret;
 }
 
-/*! \brief  Appends payload of an Rx MOST message object to internal Application
+/*! \brief  Appends payload of an Rx telegram object to internal Application
  *          message object
  *  \param  self    Reference to an internal Application Message Rx handle
- *  \param  src_ptr Reference to a MOST message object
- *  \return Returns \c true if the payload was appended successfully, 
+ *  \param  src_ptr Reference to a telegram object
+ *  \return Returns \c true if the payload was appended successfully,
  *          otherwise \c false.
  */
-bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr)
+bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Ucs_Message_t* src_ptr)
 {
     uint8_t cnt;
     bool ret = false;
@@ -496,7 +498,7 @@ bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr)
              SELF_RX->pb_msg.data_ptr[curr_size + (uint16_t)cnt] = src_ptr->tel.tel_data_ptr[cnt];
         }
 
-         SELF_RX->pb_msg.data_size = curr_size + src_ptr->tel.tel_len;    /* update message size */
+         SELF_RX->pb_msg.data_size = (uint16_t)(curr_size + src_ptr->tel.tel_len);/* update message size */
          SELF_RX->exp_tel_cnt++;
         ret = true;
     }
@@ -504,10 +506,10 @@ bool Amsg_RxAppendPayload(Ucs_AmsRx_Msg_t *self, Msg_MostTel_t* src_ptr)
     return ret;
 }
 
-/*! \brief   Copies data to allocated payload buffer 
+/*! \brief   Copies data to allocated payload buffer
  *  \param   self       The instance
  *  \param   data       Reference to external payload data
- *  \param   data_sz    Size of external payload data 
+ *  \param   data_sz    Size of external payload data
  */
 void Amsg_RxCopyToPayload(Ucs_AmsRx_Msg_t *self, uint8_t data[], uint8_t data_sz)
 {
@@ -555,7 +557,7 @@ void Amsg_RxEnqueue(Ucs_AmsRx_Msg_t* self, CDlList* list_ptr)
  */
 void Amsg_RxSetGcMarker(Ucs_AmsRx_Msg_t* self, bool value)
 {
-    SELF_RX->gc_marker = value; 
+    SELF_RX->gc_marker = value;
 }
 
 /*! \brief  Retrieves the value of the garbage collector flag
@@ -609,6 +611,8 @@ Ucs_AmsRx_Msg_t* Amsg_RxDequeue(CDlList* list_ptr)
 
     return msg_ptr;
 }
+
+#endif /* ifndef AMS_FOOTPRINT_NOAMS */
 
 /*!
  * @}

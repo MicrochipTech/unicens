@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -57,7 +57,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 #define MSG_ADDR_INVALID    0U  /*!< \brief   The (source) address the INIC uses to declare an invalid source address.
                                  *   \details Invalid source addresses can be:
-                                 *            - invalid messages from MOST: source_address = [0x0000..0x000F] 
+                                 *            - invalid messages from network: source_address = [0x0000..0x000F]
                                  *            - invalid messages from EHC: source_address != [0x0002, 0x0003]
                                  *            .
                                  */
@@ -66,6 +66,8 @@ extern "C"
 #define MSG_ADDR_EHC_APP    3U  /*!< \brief The address of the EHC application interface (MCM FIFO) */
 
 #define MSG_LLRBC_DEFAULT   10U /*!< \brief The default LowLevelRetry BlockCount */
+#define MSG_LLRBC_ICM       0U  /*!< \brief The default LLRBC for ICM (not supported by transmission to local INIC) */
+#define MSG_LLRBC_RCM       1U  /*!< \brief The default LLRBC for RCM (minimal count for remote FBlock INIC and ENC) */
 #define MSG_LLRBC_MAX       100U/*!< \brief The maximum LowLevelRetry BlockCount */
 
 #define MSG_DEF_FBLOCK_ID   0xCCU           /*! \brief Predefined FBlockID required to surround "new 16bit message id". */
@@ -77,16 +79,16 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* necessary forward declaration */
 struct CMessage_;
-/*! \brief Common message class which provides MOST style message addressing */
+/*! \brief Common message class which provides classic style message addressing */
 typedef struct CMessage_ CMessage;
 
 /*! \brief  Assignable function which is invoked as soon as transmission
- *          of the message object is finished. 
+ *          of the message object is finished.
  *  \param  self    The instance
  *  \param  msg_ptr Reference to the message object
  *  \param  status  Transmission status
  */
-typedef void (*Msg_TxStatusCb_t)(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxStatus_t status);
+typedef void (*Msg_TxStatusCb_t)(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Macros                                                                                         */
@@ -102,13 +104,13 @@ typedef void (*Msg_TxStatusCb_t)(void *self, Msg_MostTel_t *tel_ptr, Ucs_MsgTxSt
 /*------------------------------------------------------------------------------------------------*/
 /* Class CMessage                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Class CMessage 
+/*! \brief   Class CMessage
  *  \details Common internal message class which embeds the public message attributes
  */
 struct CMessage_
 {
-    Msg_MostTel_t       pb_msg;                 /*!< \brief  Public part which defines the MOST telegram 
-                                                 *           structure. This attribute must be the first 
+    Ucs_Message_t       pb_msg;                 /*!< \brief  Public part which defines the public control message
+                                                 *           structure. This attribute must be the first
                                                  *           element inside the message structure.
                                                  */
     uint8_t rsvd_buffer[MSG_SIZE_RSVD_BUFFER];  /*!< \brief  Reserved memory space */
@@ -149,7 +151,7 @@ extern void             Msg_NotifyTxStatus(CMessage *self, Ucs_MsgTxStatus_t sta
 /*------------------------------------------------------------------------------------------------*/
 /* Properties                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-extern Msg_MostTel_t*   Msg_GetMostTel(CMessage *self);
+extern Ucs_Message_t*   Msg_GetMostTel(CMessage *self);
 
 extern uint8_t*         Msg_GetHeader(CMessage *self);
 extern uint8_t          Msg_GetHeaderSize(CMessage *self);

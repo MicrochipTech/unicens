@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -70,7 +70,7 @@ typedef struct CApiLockingManager_
     CTimer garbage_collector;           /*!< \brief Timer for garbage collection */
     CDlList api_list;                   /*!< \brief List of registered APIs */
     void *ucs_user_ptr;         /*!< \brief User reference that needs to be passed in every callback function */
-    CMaskedObserver internal_error_obs; /*!< \brief Error observer to handle internal errors and 
+    CMaskedObserver internal_error_obs; /*!< \brief Error observer to handle internal errors and
                                                     events */
 
 } CApiLockingManager;

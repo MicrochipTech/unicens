@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -45,15 +45,7 @@
 #include "ucs_cmd.h"
 #include "ucs_misc.h"
 
-/*------------------------------------------------------------------------------------------------*/
-/* Internal prototypes                                                                            */
-/*------------------------------------------------------------------------------------------------*/
-
-
-static Ucs_Cmd_Return_t Cmd_SearchMsgId(Ucs_Cmd_MsgId_t msg_id_tab[], uint16_t *index_ptr, 
-                                               uint16_t message_id);
-
-
+#ifndef CMD_FOOTPRINT_NOAMS 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
@@ -69,121 +61,74 @@ void Cmd_Ctor(CCmd *self, CBase *base_ptr)
 /*! \brief  Add a MessageId Table to the Command Interpreter.
  *  \param  self            Instance pointer
  *  \param  msg_id_tab_ptr    Reference to a MessageId Table
+ *  \param   length           Number of table entries.
  *  \return  Possible return values are shown in the table below.
- *  Value                           | Description 
- *  ------------------------------- | ------------------------------------
- *  UCS_CMD_RET_SUCCESS             | MessageId Table was successfully added
- *  UCS_CMD_RET_ERR_ALREADY_ENTERED | MessageId Table already added 
+ *  Value                       | Description
+ *  --------------------------- | ---------------------------------------
+ *  UCS_RET_SUCCESS             | MessageId Table was successfully added
+ *  UCS_RET_ERR_BUFFER_OVERFLOW | MessageId Table already added
  */
-Ucs_Cmd_Return_t Cmd_AddMsgIdTable(CCmd *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr)
+Ucs_Return_t Cmd_AddMsgIdTable(CCmd *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr, uint16_t length)
 {
-    Ucs_Cmd_Return_t ret_val = UCS_CMD_RET_SUCCESS;
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
 
     if (self->msg_id_tab_ptr != NULL)
     {
-        ret_val = UCS_CMD_RET_ERR_ALREADY_ENTERED;
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
     }
     else
     {
         self->msg_id_tab_ptr = msg_id_tab_ptr;
+        self->msg_id_tab_len = length;
     }
 
     return ret_val;
 }
 
 /*! \brief   Remove an MessageId Table from the Command Interpreter.
+ *
  *  \param   self  Instance pointer of Cmd
- *  \return  Possible return values are shown in the table below.
- *  Value                        | Description 
- *  ---------------------------- | ------------------------------------
- * UCS_CMD_RET_SUCCESS           | MessageId Table was successfully removed
+ *  \return  Result f the operation.
  */
-Ucs_Cmd_Return_t Cmd_RemoveMsgIdTable(CCmd *self)
+Ucs_Return_t Cmd_RemoveMsgIdTable(CCmd *self)
 {
-    Ucs_Cmd_Return_t ret_val = UCS_CMD_RET_SUCCESS;
-
     self->msg_id_tab_ptr = NULL;
 
-    return ret_val;
+    return UCS_RET_SUCCESS;
 }
 
 
-/*! \brief  Decode an MCM message 
+/*! \brief  Decode an MCM message
  *  \param  self            Instance pointer
  *  \param  msg_rx_ptr      Pointer to the message to decode
- *  \return  Possible return values are shown in the table below.
- *  Value                            | Description 
- *  -------------------------------- | ------------------------------------
- *  UCS_CMD_RET_SUCCESS              | decoding was successful
- *  UCS_CMD_RET_ERR_MSGID_NOTAVAIL   | MessageId not found 
- *  UCS_CMD_RET_ERR_TX_BUSY          | no Tx Buffer available
- *  UCS_CMD_RET_ERR_APPL             | error happened in handler function
- *  UCS_CMD_RET_ERR_NULL_PTR         | No MessageId Table available
+ *  \return  pointer to the handler function or NULL
  */
-Ucs_Cmd_Return_t Cmd_DecodeMsg(CCmd *self, Ucs_AmsRx_Msg_t *msg_rx_ptr)
+Ucs_Cmd_Handler_Function_t Cmd_DecodeMsg(CCmd *self, Ucs_AmsRx_Msg_t *msg_rx_ptr)
 {
-    Ucs_Cmd_Return_t result = UCS_CMD_RET_SUCCESS;
-    uint16_t         index;
+    Ucs_Cmd_Handler_Function_t  fkt_ptr = NULL;
+    uint16_t                    i       = 0U;
 
-    result = Cmd_SearchMsgId(self->msg_id_tab_ptr, &index, msg_rx_ptr->msg_id);
-
-    if (result == UCS_CMD_RET_SUCCESS)
+    if ((self->msg_id_tab_ptr != NULL) || (self->msg_id_tab_len != 0U))
     {
-        /* call handler function */
-        result = (Ucs_Cmd_Return_t)(self->msg_id_tab_ptr[index].handler_function_ptr(msg_rx_ptr, self->ucs_user_ptr));
-    }
-
-    return result;
-}
-
-
-/*! \brief  Search in a MessageId Table for matching MessageId
- *  \details Function expects that the MessageId Table ends with a termination entry 
- *           (handler_function_ptr == NULL). If this entry is not present, the search may end in an 
- *           endless loop. 
- *  \param   msg_id_tab         MessageId Table
- *  \param   index_ptr          pointer to the matching element
- *  \param   message_id         MessageId
- *  \return  Possible return values are shown in the table below.
- *  Value                           | Description 
- *  ------------------------------- | ------------------------------------
- *  UCS_CMD_RET_SUCCESS             | decoding was successful
- *  UCS_CMD_RET_ERR_MSGID_NOTAVAIL  | MessageId not found
- *  UCS_CMD_RET_ERR_NULL_PTR        | No MessageId Table available
- */
-static Ucs_Cmd_Return_t Cmd_SearchMsgId(Ucs_Cmd_MsgId_t msg_id_tab[], uint16_t *index_ptr, 
-                                        uint16_t message_id)
-{
-    Ucs_Cmd_Return_t ret_val = UCS_CMD_RET_SUCCESS;
-    uint16_t i = 0U;
-
-    if (msg_id_tab == NULL)
-    {
-        ret_val = UCS_CMD_RET_ERR_NULL_PTR;
-    }
-    else
-    {
-        while (msg_id_tab[i].handler_function_ptr != NULL)        /* last entry */
+        while (i < self->msg_id_tab_len)                    /* last entry */
         {
-            if (msg_id_tab[i].msg_id != message_id)
+            if (self->msg_id_tab_ptr[i].msg_id != msg_rx_ptr->msg_id)
             {
                 ++i;                                        /* goto next list element */
             }
             else
             {
-                *index_ptr   = i;
+                fkt_ptr = self->msg_id_tab_ptr[i].handler_function_ptr;
                 break;
             }
         }
-
-        if (msg_id_tab[i].handler_function_ptr == NULL)               /* no match found */
-        {
-            ret_val = UCS_CMD_RET_ERR_MSGID_NOTAVAIL;
-        }
     }
-    return ret_val;
+
+    return fkt_ptr;
 }
+
+#endif /* ifndef CMD_FOOTPRINT_NOAMS */ 
 
 /*!
  * @}

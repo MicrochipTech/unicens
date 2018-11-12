@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.1.0-3564</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -93,50 +93,44 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h1>Introduction</h1>
-<p>The idea behind the Node Scripting is to allow execution of custom scripts in remote Nodes. That is, user can specify scripts based on FBlock command syntax and run these on remote nodes by the use of Node Scripting module. <br/>
- The module is designed and intended for the use of <b>I2C</b> and <b>GPIO</b> commands only. This means that using the Scripting module for any other FBlock INIC commands (MOST, MediaLB, USB, Streaming or Connection for example) is expressly <b>prohibited</b>.</p>
-<p>A script is a structure data (see below) composed of:</p>
+<p>The idea behind the Node Scripting is to allow execution of custom scripts in remote nodes. That means, the user can specify scripts based on FBlock command syntax and run these on remote nodes by the use of the Node Scripting module (NS).</p>
+<dl class="section attention"><dt>Attention</dt><dd>The Node Scripting module is designed and intended for the use of <b>I2C</b> and <b>GPIO</b> commands only. Therefore using the scripting module for any other FBlock INIC commands (for example Network, MediaLB, USB, Streaming, Connections, etc.) is expressly <b>prohibited</b>.<br/>
+<br/>
+</dd></dl>
+<h1>Definition of a Node Script</h1>
+<p>A node script is a data structure (see code snippet), composed of:</p>
 <ul>
+<li>The amount time [in milliseconds] to pause before sending the Tx command.</li>
 <li>The command based on INIC FBlock-Syntax to be transmitted</li>
 <li>The expected result also based on INIC FBlock-Syntax.</li>
-<li>The amount time [in milliseconds] to pause before sending the Tx command.</li>
 </ul>
-<div class="fragment"><div class="line"><span class="comment">/*! \brief Structure of a node-script */</span></div>
+<div class="fragment"><div class="line"><span class="comment">/* Structure of a node script */</span></div>
 <div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>Ucs_Ns_Script_</div>
-<div class="line">{<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief Specifies the pause which shall be set before sending</span></div>
-<div class="line"><span class="comment">               the Tx configuration message. </span></div>
-<div class="line"><span class="comment">     */</span></div>
-<div class="line">    uint16_t pause;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief Send command to be transmitted. */</span></div>
-<div class="line">    <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a> * send_cmd;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief Expected result. */</span></div>
-<div class="line">    <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a> * exp_result;</div>
+<div class="line">{</div>
+<div class="line">    uint16_t pause;                  <span class="comment">/* Pause before sending the Tx message. */</span></div>
+<div class="line">    <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> * send_cmd;   <span class="comment">/* Send command to be transmitted. */</span></div>
+<div class="line">    <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> * exp_result; <span class="comment">/* Expected result. */</span></div>
 <div class="line"></div>
 <div class="line">} <a class="code" href="struct_ucs___ns___script__t.html" title="Structure of a node-script used to configure a remote node.">Ucs_Ns_Script_t</a>;</div>
-</div><!-- fragment --><p>A <a class="el" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a> message is based on INIC FBlock-Syntax and looks like this: </p>
-<div class="fragment"><div class="line"><span class="comment">/*! \brief Structure of a ConfigMsg */</span></div>
+</div><!-- fragment --><p>A <a class="el" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> message is based on INIC FBlock-Syntax and looks like this: </p>
+<div class="fragment"><div class="line"><span class="comment">/* Structure of a ConfigMsg */</span></div>
 <div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>Ucs_Ns_ConfigMsg_</div>
-<div class="line">{<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief FBlockId. */</span></div>
-<div class="line">    uint8_t FBlockId;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief InstId. */</span></div>
-<div class="line">    uint8_t InstId;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief FunktId. */</span></div>
-<div class="line">    uint16_t FunktId;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief OpCode. */</span></div>
-<div class="line">    uint8_t OpCode;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief Data length. */</span></div>
-<div class="line">    uint8_t DataLen;<span class="comment"></span></div>
-<div class="line"><span class="comment">    /*! \brief Reference to the Data */</span></div>
-<div class="line">    uint8_t * DataPtr;</div>
+<div class="line">{</div>
+<div class="line">    uint8_t fblock_id;  <span class="comment">/* FBlock ID of the config msg. */</span></div>
+<div class="line">    uint8_t inst_id;    <span class="comment">/* Instance ID of the config msg. */</span></div>
+<div class="line">    uint16_t funct_id;  <span class="comment">/* Function ID of the config msg. */</span></div>
+<div class="line">    uint8_t op_type;    <span class="comment">/* Operation type of the config msg. */</span></div>
+<div class="line">    uint8_t data_size;  <span class="comment">/* Size of the data to be transmitted or to be checked.  */</span></div>
+<div class="line">    uint8_t * data_ptr; <span class="comment">/* Reference to the data */</span></div>
 <div class="line"></div>
-<div class="line">} <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a>;</div>
+<div class="line">} <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a>;</div>
 </div><!-- fragment --><h1>Operation</h1>
-<p>The user specifies the desired scripts, binds them to the target nodes and then call the function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run()</a> for processing. The result of the operation is reported via the result callback function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gab0f1bc424462b8bbe0b2155d504025a5.html#gab0f1bc424462b8bbe0b2155d504025a5">Ucs_Ns_ResultCb_t</a>, which is passed by user in the arguments list of <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run()</a>. In addition to this callback function and the referred UCS instance the function requires a reference to the Node that contains the script(s).</p>
-<div class="fragment"><div class="line"><a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run</a>(<a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda" title="UNICENS instance.">Ucs_Inst_t</a> *<span class="keyword">self</span>, <a class="code" href="struct_ucs___rm___node__t.html" title="Configuration structure of a Node.">Ucs_Rm_Node_t</a> * node_ptr, <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gab0f1bc424462b8bbe0b2155d504025a5.html#gab0f1bc424462b8bbe0b2155d504025a5" title="Function signature used for the results of the Scripting Manager.">Ucs_Ns_ResultCb_t</a> result_fptr);</div>
-</div><!-- fragment --><p>The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run()</a> function starts the process to transmit the script(s) contained in the provided node and then checks for the expected results (specified by customer). The Node Scripting module will start a timer of 5200ms before sending the Tx command of each script. That is, if no incoming messages match the expected result of the script during this time the result code <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60ad0ba0f8f6ba494e7685980d490e48b72">UCS_NS_RES_ERROR</a> is returned via the <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gab0f1bc424462b8bbe0b2155d504025a5.html#gab0f1bc424462b8bbe0b2155d504025a5">Ucs_Ns_ResultCb_t</a> user callback function. This error code is also get when the script module couldn't perform the device synchronization of the remote device (this can be read in the detailed error messages, if enabled. See below). Otherwise, if an incoming message matches the expected result, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60af22bd910a1d7e2271b5b3cddf5892962">UCS_NS_RES_SUCCESS</a> is returned.</p>
-<p>The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run()</a> function will return <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cdad4a30091202638c890abbdb682ca4fe5">UCS_RET_ERR_API_LOCKED</a> when attempting to execute a script in a node that is currently busy with other(s) previous script(s). The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run()</a> function is namely locked for a Node when handling script(s) on this node and unlocked after reporting the result of the operation. However processing scripts can be executed on different nodes in parallel.</p>
+<p>The user specifies the desired scripts and then calls the function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a> for processing. The scripts can also be bound to the structure of the target node for automatic script execution after network startup. <br/>
+ The result of the <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a> operation is reported via the result callback function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a>, which is passed by user in the arguments list of <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a>. It is possible to give unique callback functions for different scripts. In addition to this callback function and the referred UCS instance the function requires a reference to the Node where the script(s) should be executed, a pointer to the script list and the size of the script list.</p>
+<div class="fragment"><div class="line"><a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run</a>(<a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda" title="UNICENS instance.">Ucs_Inst_t</a> *<span class="keyword">self</span>, <a class="code" href="struct_ucs___rm___node__t.html" title="Configuration structure of a Node.">Ucs_Rm_Node_t</a> *node_ptr, <a class="code" href="struct_ucs___ns___script__t.html" title="Structure of a node-script used to configure a remote node.">Ucs_Ns_Script_t</a> *script_list_ptr, uint8_t script_list_size, <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1" title="Function signature used for the results of the Scripting Manager.">Ucs_Ns_ResultCb_t</a> result_fptr);</div>
+</div><!-- fragment --><p>The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a> function starts the process to transmit the script(s) to the node and then checks for the expected results (specified by customer). The Node Scripting module will start a timer of 5200ms before sending the Tx command of each script. That is, if no incoming messages match the expected result of the script during this time the result code <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a2107cae82d792f256b6f4ef0ef7595">UCS_NS_RES_ERR_TIMEOUT</a> is returned via the <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a> user callback function. When the script module couldn't perform the device synchronization of the remote device the result code <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a180e4486fac96e8530d9f3060ebbc838">UCS_NS_RES_ERR_SYNC</a> is returned (this can be read in the detailed error messages, if enabled. See below). Also if the scripts couldn't be transmitted <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a20dd9e655d43d67b6246417fae632901">UCS_NS_RES_ERR_TX</a> is returned. To help users to identify errors caused by defective scripts the result codes <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a92d1550b0929e3fa794fcab5365b74c2">UCS_NS_RES_ERR_PAYLOAD</a> and <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a7dafe44f618d5f0338daf7ff2f0635">UCS_NS_RES_ERR_OPTYPE</a> and the <a class="el" href="struct_ucs___ns___error_info__t.html">Ucs_Ns_ErrorInfo_t</a> are given to the callback function. The <code>script_count</code> clarifies where the defective script is stored in the script list and <code>funct_id</code> gives the respective function ID. If the incoming message matches the expected result, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60af22bd910a1d7e2271b5b3cddf5892962">UCS_NS_RES_SUCCESS</a> is returned.</p>
+<p>The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a> function will return <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cdad4a30091202638c890abbdb682ca4fe5">UCS_RET_ERR_API_LOCKED</a> when attempting to execute a script in a node that is currently busy with other(s) previous script(s). The <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a> function is namely locked for a node when handling script(s) on this node and unlocked after reporting the result of the operation. However processing scripts can be executed on different nodes in parallel.</p>
+<dl class="section note"><dt>Note</dt><dd>Also note that the <a class="el" href="struct_ucs___ns___config_msg__t.html">DataPtr</a> member of the <code>exp_result</code> structure in <a class="el" href="struct_ucs___ns___script__t.html" title="Structure of a node-script used to configure a remote node.">Ucs_Ns_Script_t</a> does not have to contain the full expected information. Since the validation of the data is only done for the expected length, User can either disable the data check on incoming messages by setting the expected length <a class="el" href="struct_ucs___ns___config_msg__t_a510b9f81d6817d59826dff17d3b92806.html#a510b9f81d6817d59826dff17d3b92806">data_size</a> element of <a class="el" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> to <b>0x00</b> or can just specify the maximum amount of data to be checked (Refer to the example below). However to set the expected length to long will effect that the message will be interpreted as incorrect.</dd></dl>
 <p>The detailed error messages can be read when enabling the error trace output in <code>ucs_cfg.h</code> file as shown below.</p>
 <div class="fragment"><div class="line"><span class="comment">/* File: ucs_cfg.h */</span></div>
 <div class="line"><span class="comment">/*------------------------------------------------------------------------------------------------*/</span></div>
@@ -144,10 +138,10 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 <div class="line"><span class="comment">/*------------------------------------------------------------------------------------------------*/</span></div>
 <div class="line"><span class="preprocessor"># define UCS_TR_ERROR     App_TraceError</span></div>
 <div class="line"><span class="preprocessor"></span></div>
-<div class="line"><span class="keyword">extern</span> <span class="keywordtype">void</span> App_TraceError(<span class="keywordtype">void</span> *ucs_user_ptr, <span class="keyword">const</span> <span class="keywordtype">char</span> module_str[], <span class="keyword">const</span> <span class="keywordtype">char</span> entry_str[], </div>
-<div class="line">                           uint16_t vargs_cnt, ...); </div>
+<div class="line"><span class="keyword">extern</span> <span class="keywordtype">void</span> App_TraceError(<span class="keywordtype">void</span> *ucs_user_ptr, <span class="keyword">const</span> <span class="keywordtype">char</span> module_str[], <span class="keyword">const</span> <span class="keywordtype">char</span> entry_str[],</div>
+<div class="line">                           uint16_t vargs_cnt, ...);</div>
 </div><!-- fragment --><div class="fragment"><div class="line"><span class="comment">/* File: app_trace.c */</span></div>
-<div class="line"><span class="keywordtype">void</span> App_TraceError(<span class="keywordtype">void</span> *ucs_user_ptr, <span class="keyword">const</span> <span class="keywordtype">char</span> module_str[], <span class="keyword">const</span> <span class="keywordtype">char</span> entry_str[], </div>
+<div class="line"><span class="keywordtype">void</span> App_TraceError(<span class="keywordtype">void</span> *ucs_user_ptr, <span class="keyword">const</span> <span class="keywordtype">char</span> module_str[], <span class="keyword">const</span> <span class="keywordtype">char</span> entry_str[],</div>
 <div class="line">                    uint16_t vargs_cnt, ...)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (file_ != NULL)</div>
@@ -162,8 +156,8 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 <div class="line">        (void)fflush(file_);</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1>Example</h1>
-<p>The example below outlines the execution of a script within a node with address 0x200. This example is inserted as a guide and may not contain all of the necessary details and information.</p>
+</div><!-- fragment --><h1>Example: Running node internal and external scripts</h1>
+<p>The example below outlines the execution of a script within a node with address 0x200. It shows the option to run the node internal script and how to run any other script which is not included in the node structure. This example is inserted as a guide and may not contain all of the necessary details and information.</p>
 <div class="fragment"><div class="line"><span class="comment">/* Flag that checks whether node with address 0x200 is discovered by Node Discovering */</span></div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">bool</span> node200_discovered = <span class="keyword">false</span>;</div>
 <div class="line"></div>
@@ -171,19 +165,26 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnScriptingResult(uint16_t node_address, <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60" title="Result codes of the Node Script Management.">Ucs_Ns_ResultCode_t</a> result, <span class="keywordtype">void</span> *user_ptr);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Configuration Msg specification */</span></div>
-<div class="line"><span class="keyword">static</span> uint8_t  tx_data []  = { 0x00, 0x40, 0x01, 0x01 };</div>
-<div class="line"><span class="keyword">static</span> uint8_t  rx_data []  = { 0x0F, 0x00 };</div>
-<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a> tx_msg = { 0x00, 0x00, 0x6C1, 0x2,  4U, &amp;tx_data };</div>
-<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script.">Ucs_Ns_ConfigMsg_t</a> rx_msg = { 0x00, 0x01, 0x6C1, 0xC,  2U, &amp;rx_data };</div>
+<div class="line"><span class="keyword">static</span> uint8_t tx_data_1[] = { 0x00, 0x40, 0x01, 0x01 };</div>
+<div class="line"><span class="keyword">static</span> uint8_t rx_data_1[] = { 0x0F, 0x00 };</div>
+<div class="line"><span class="keyword">static</span> uint8_t tx_data_2[] = { 0x0F, 0x00, 0x00, 0x00, 0x20, 0x04, 0x00, 0x0A, 0xAD, 0xAC, 0xBE, 0xEF };</div>
+<div class="line"><span class="comment">//static uint8_t rx_data_2[] = { 0x0F, 0x00, 0x20, 0x04 }; /* Data Check is disabled */</span></div>
+<div class="line"></div>
+<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> tx_msg_1 = { 0x00, 0x00, 0x6C1, 0x2,  4U,    &amp;tx_data };</div>
+<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> rx_msg_1 = { 0x00, 0x01, 0x6C1, 0xC,  2U,    &amp;rx_data };</div>
+<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> tx_msg_2 = { 0x00, 0x00, 0x6C4, 0x2,  12U,   &amp;tx_data_2 };</div>
+<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___config_msg__t.html" title="Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages whi...">Ucs_Ns_ConfigMsg_t</a> rx_msg_2 = { 0x00, 0x01, 0x6C4, 0xC,  0x00U, NULL }; <span class="comment">/* Set DataLen to 0x00 will skip data check on result */</span></div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Scripts specification */</span></div>
-<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___script__t.html" title="Structure of a node-script used to configure a remote node.">Ucs_Ns_Script_t</a>  script_x = { 100U, &amp;tx_msg, &amp;rx_msg };</div>
+<div class="line"><span class="preprocessor">#define SCRIPTS_200_SZ  2</span></div>
+<div class="line"><span class="preprocessor"></span><span class="keyword">static</span> <a class="code" href="struct_ucs___ns___script__t.html" title="Structure of a node-script used to configure a remote node.">Ucs_Ns_Script_t</a>  scripts_200[SCRIPTS_200_SZ] = { { 0U, &amp;tx_msg_1, &amp;rx_msg_1 },</div>
+<div class="line">                                                        { 50U, &amp;tx_msg_2, &amp;rx_msg_2 } };</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Signature specification */</span></div>
 <div class="line"><a class="code" href="struct_ucs___signature__t.html" title="This structure holds the signature of the Hello, Welcome and Signature messages. It supports the sign...">Ucs_Signature_t</a> sig_200  = { 200U };</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Nodes objects Specification */</span></div>
-<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___rm___node__t.html" title="Configuration structure of a Node.">Ucs_Rm_Node_t</a> node_200 = { &amp;sig_200, &amp;script_x, 1U, 0U };</div>
+<div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___rm___node__t.html" title="Configuration structure of a Node.">Ucs_Rm_Node_t</a> node_200 = { &amp;sig_200, &amp;scripts_200[0], 2U, {0} };</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Main function */</span></div>
 <div class="line"><span class="keywordtype">void</span> main(uint8_t argc, <span class="keywordtype">char</span> *argv[])</div>
@@ -193,24 +194,50 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (node200_discovered)</div>
 <div class="line">    {</div>
-<div class="line">        (void)<a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga2f2737e4d507b9c15e165918db3f1456.html#ga2f2737e4d507b9c15e165918db3f1456" title="Runs the script(s) contained in the given node.">Ucs_Ns_Run</a>(ucs_inst_ptr, &amp;node_200, &amp;App_OnScriptingResult);</div>
+<div class="line">        <span class="comment">/* Run node internal script */</span></div>
+<div class="line">        (void)<a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run</a>( ucs_inst_ptr,</div>
+<div class="line">                          0x200U, node_200.<a class="code" href="struct_ucs___rm___node__t_aea359c78b2aa39d41fe2e846a38be6ec.html#aea359c78b2aa39d41fe2e846a38be6ec" title="Reference to a list of init scripts. This script list is executed automatically by the Manager after ...">init_script_list_ptr</a>,</div>
+<div class="line">                          node_200.<a class="code" href="struct_ucs___rm___node__t_a3df4b5dff28f09a1ccd110bed9fc69f6.html#a3df4b5dff28f09a1ccd110bed9fc69f6" title="The size of the list of init scripts. The value must be 0 if no scripts shall be executed automatical...">init_script_list_size</a>,</div>
+<div class="line">                          &amp;App_OnScriptingResult );</div>
+<div class="line"></div>
+<div class="line">        <span class="comment">/* Run any script */</span></div>
+<div class="line">        (void)<a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run</a>( ucs_inst_ptr, 0x200U,</div>
+<div class="line">                          any_script_list_ptr,</div>
+<div class="line">                          any_script_list_size,</div>
+<div class="line">                          &amp;App_OnScriptingResult );</div>
 <div class="line">    }</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">/* ... */</span></div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* The result callback function */</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnScriptingResult(<a class="code" href="struct_ucs___rm___node__t.html" title="Configuration structure of a Node.">Ucs_Rm_Node_t</a> * node_ptr, <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60" title="Result codes of the Node Script Management.">Ucs_Ns_ResultCode_t</a> result, <span class="keywordtype">void</span> *user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnScriptingResult( uint16_t node_address,</div>
+<div class="line">                                   <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60" title="Result codes of the Node Script Management.">Ucs_Ns_ResultCode_t</a> result,</div>
+<div class="line">                                   <a class="code" href="struct_ucs___ns___error_info__t.html" title="Includes detailed information of scripting errors.">Ucs_Ns_ErrorInfo_t</a> error_info,</div>
+<div class="line">                                   <span class="keywordtype">void</span> *user_ptr )</div>
 <div class="line">{</div>
 <div class="line">     <span class="keywordflow">switch</span> (result)</div>
 <div class="line">     {</div>
 <div class="line">         <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60af22bd910a1d7e2271b5b3cddf5892962" title="Transmission of script(s) was successful.">UCS_NS_RES_SUCCESS</a>:</div>
 <div class="line">           <span class="comment">/* Node can be set to &quot;Available&quot; for example */</span></div>
-<div class="line">           <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g_ga57ca34a488f06d57f2219be23fa0259f.html#ga57ca34a488f06d57f2219be23fa0259f" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable</a>(ucs_inst_ptr, node_ptr, <span class="keyword">true</span>);</div>
+<div class="line">           <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable</a>(ucs_inst_ptr, node_address, <span class="keyword">true</span>);</div>
 <div class="line">           <span class="keywordflow">break</span>;</div>
-<div class="line"></div>
-<div class="line">         <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60ad0ba0f8f6ba494e7685980d490e48b72" title="Transmission of script(s) failed.">UCS_NS_RES_ERROR</a>:</div>
-<div class="line">         <span class="keywordflow">default</span>:</div>
+<div class="line">         <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a2107cae82d792f256b6f4ef0ef7595" title="Script failed, missing response of the specified Function-ID.">UCS_NS_RES_ERR_TIMEOUT</a>:</div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">         <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a92d1550b0929e3fa794fcab5365b74c2" title="Script failed, expected payload does not match.">UCS_NS_RES_ERR_PAYLOAD</a>:</div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a9a7dafe44f618d5f0338daf7ff2f0635" title="Script failed, expected OP-Type does not match.">UCS_NS_RES_ERR_OPTYPE</a>:</div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a20dd9e655d43d67b6246417fae632901" title="Transmission of script failed.">UCS_NS_RES_ERR_TX</a>:</div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#ggabd3ecc8ab539f3b9de3fc8045c083b60a180e4486fac96e8530d9f3060ebbc838" title="Synchronization to the remote device failed .">UCS_NS_RES_ERR_SYNC</a>:</div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">default</span>:</div>
 <div class="line">           <span class="comment">/* Do whatever is necessary here */</span></div>
 <div class="line">           <span class="keywordflow">break</span>;</div>
 <div class="line">     }</div>
@@ -220,12 +247,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_o_d_e__s_c_r
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2017 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Fri May 26 2017 10:55:25 for UNICENS by
+Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

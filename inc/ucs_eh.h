@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -55,7 +55,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Definitions                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief A control FIFO synchronization is lost. When this event occurs the PMS still waits 
+/*! \brief A control FIFO synchronization is lost. When this event occurs the PMS still waits
  *         until all FIFOs are unsynchronized. So this event is no termination event.
  */
 #define EH_E_SYNC_LOST              0x0001U
@@ -65,7 +65,7 @@ extern "C"
 /*! \brief Notifies completed un-synchronization of Port Message FIFOs
  */
 #define EH_E_UNSYNC_COMPLETE        0x0004U
-/*! \brief Notifies that the Port Message Channel was not able to un-synchronize its FIFOs 
+/*! \brief Notifies that the Port Message Channel was not able to un-synchronize its FIFOs
  *         within a definite time
  */
 #define EH_E_UNSYNC_FAILED          0x0008U
@@ -88,7 +88,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief Function signature used for callback functions which notifies the event handler 
+/*! \brief Function signature used for callback functions which notifies the event handler
  *         observers.
  *  \param self             Instance pointer
  *  \param event_code       Reported event code

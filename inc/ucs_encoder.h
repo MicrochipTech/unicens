@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -58,32 +58,32 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief  Retrieves the size of a MOST message header
- *  \return The size of the MOST message header in bytes.
+/*! \brief  Retrieves the size of a control message header
+ *  \return The size of the control message header in bytes.
  */
 typedef uint8_t (*Enc_GetSize_t)(void);
 
-/*! \brief  Retrieves the content type of a MOST message header
- *  \return The content type of the MOST message header in bytes.
+/*! \brief  Retrieves the content type of a control message header
+ *  \return The content type of the control message header in bytes.
  */
 typedef uint8_t (*Enc_GetContType_t)(void);
 
-/*! \brief  Encodes a message telegram to the MOST message header 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Encodes a message telegram to the control message header
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-typedef void    (*Enc_Encode_t)(Msg_MostTel_t *tel_ptr, uint8_t header[]);
+typedef void    (*Enc_Encode_t)(Ucs_Message_t *tel_ptr, uint8_t header[]);
 
-/*! \brief  Decodes a MOST message header to a message telegram structure 
- *  \param  tel_ptr     Reference to the Msg_MostTel_t structure 
- *  \param  header      The header buffer 
+/*! \brief  Decodes a control message header to a message telegram structure
+ *  \param  tel_ptr     Reference to the Ucs_Message_t structure
+ *  \param  header      The header buffer
  */
-typedef void    (*Enc_Decode_t)(Msg_MostTel_t *tel_ptr, uint8_t header[]);
+typedef void    (*Enc_Decode_t)(Ucs_Message_t *tel_ptr, uint8_t header[]);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief      Identifier for a MOST Message Content */
+/*! \brief      Identifier for a Control Message Content */
 typedef enum Enc_MsgContent_
 {
     ENC_CONTENT_00 = 0x00,  /*!< \brief Content Type "0x00": Uncompressed, excluding retry values */
@@ -95,11 +95,11 @@ typedef enum Enc_MsgContent_
 /*! \brief      Interface for message encoder */
 typedef struct IEncoder_
 {
-    Enc_MsgContent_t    content_type;   /*!< \brief Retrieves the content type of the MOST message header */
+    Enc_MsgContent_t    content_type;   /*!< \brief Retrieves the content type of the control message header */
     uint8_t             pm_hdr_sz;      /*!< \brief Retrieves the size of the Port Message header */
-    uint8_t             msg_hdr_sz;     /*!< \brief Retrieves the size of the MOST message header */
-    Enc_Encode_t        encode_fptr;    /*!< \brief Function required to encode a MOST message header */
-    Enc_Decode_t        decode_fptr;    /*!< \brief Function required to decode a MOST message header */
+    uint8_t             msg_hdr_sz;     /*!< \brief Retrieves the size of the Control Message header */
+    Enc_Encode_t        encode_fptr;    /*!< \brief Function required to encode a Control Message header */
+    Enc_Decode_t        decode_fptr;    /*!< \brief Function required to decode a Control Message header */
 
 } IEncoder;
 

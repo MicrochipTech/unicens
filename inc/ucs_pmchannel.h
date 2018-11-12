@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -130,7 +130,7 @@ typedef struct Pmch_InitData_
 typedef struct Pmch_Receiver_
 {
     Pmch_OnRxMsg_t rx_fptr;                     /*!< \brief Reference to an Rx callback function */
-    void *inst_ptr;                             /*!< \brief Reference to the instance which shall be 
+    void *inst_ptr;                             /*!< \brief Reference to the instance which shall be
                                                  *          passed to the callback function */
 } Pmch_Receiver_t;
 
@@ -139,7 +139,7 @@ typedef struct Pmch_Receiver_
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   Structure of a PMS object */
 typedef struct CPmChannel_
-{ 
+{
     Pmch_InitData_t init_data;                      /*!< \brief Copy of initialization data */
 
     Lld_IntRxMsg_t  lld_rx_msgs[PMCH_POOL_SIZE_RX]; /*!< \brief Pre-allocated LLD Rx message objects */

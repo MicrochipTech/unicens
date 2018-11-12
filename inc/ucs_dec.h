@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -56,7 +56,7 @@ extern "C"
 /* Constants                                                                                      */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Stores FktID and OPType in one 16 bit value */
-#define DEC_FKTOP(a,b) ((uint16_t)((((uint16_t)((a)<<4)) & (uint16_t)0xFFF0)) | ((uint16_t)(((uint16_t)(b)) & (uint16_t)0x000F))) /* parasoft-suppress  MISRA2004-19_7 "Is used in arrays and therefore cannot be converted to inline function." */
+#define DEC_FKTOP(a,b) ((uint16_t)((uint16_t)((uint16_t)((a)<<4) & (uint16_t)0xFFF0U) | (uint16_t)((uint16_t)(b) & (uint16_t)0x000FU)))  /* parasoft-suppress  MISRA2004-19_7 "Is used in arrays and therefore cannot be converted to inline function." */
 
 /*! \brief Denotes the end of an FktOp table */
 #define DEC_FKTOP_TERMINATION   0xFFFFU
@@ -80,8 +80,8 @@ typedef enum Dec_Return_
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-typedef void (*Dec_IcmCb_t)(void *self, Msg_MostTel_t *msg_ptr);
-typedef void (*Dec_RcmCb_t)(void *self, Msg_MostTel_t *msg_ptr);
+typedef void (*Dec_IcmCb_t)(void *self, Ucs_Message_t *msg_ptr);
+typedef void (*Dec_RcmCb_t)(void *self, Ucs_Message_t *msg_ptr);
 
 
 

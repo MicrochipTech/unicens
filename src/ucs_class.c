@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -53,7 +53,7 @@
  *           requires communication with an exclusive INIC.
  *           Valid values: 1..10. Default Value: 1.
  *  \ingroup G_UCS_INIT_AND_SRV
- */ 
+ */
 #ifndef UCS_NUM_INSTANCES
 # define UCS_NUM_INSTANCES 1
 # define UCS_API_INSTANCES 1U                   /* default value */
@@ -64,6 +64,9 @@
 #else
 # define UCS_API_INSTANCES ((uint8_t)UCS_NUM_INSTANCES)
 #endif
+
+/*! \brief  Defines UCS unsupported flags for network status. */
+#define UCS_NET_NWS_INVALID_FLAGS           ((uint16_t)0xFF20U)
 
 /*! \cond UCS_INTERNAL_DOC
  *  \addtogroup G_UCS_CLASS
@@ -83,21 +86,23 @@ static void Ucs_InitNetComponent(CUcs *self);
 static void Ucs_InitLocalInicComponent(CUcs *self);
 static void Ucs_InitRoutingComponent(CUcs *self);
 static void Ucs_InitAtsClass(CUcs *self);
+static void Ucs_InitDiag(CUcs *self);
 static void Ucs_InitExcComponent(CUcs *self);
-static void Ucs_InitSysDiagComponent(CUcs *self);
+static void Ucs_InitDiagFdxComponent(CUcs *self);
 static void Ucs_InitNodeDiscovery(CUcs *self);
-static void Ucs_InitBackChannelDiagnosis(CUcs *self);
+static void Ucs_InitHalfDuplexDiagnosis(CUcs *self);
+static void Ucs_InitFbp(CUcs *self);
 static void Ucs_InitProgramming(CUcs *self);
 static void Ucs_InitManager(CUcs *self);
 static void Ucs_InitResultCb(void *self, void *result_ptr);
 static void Ucs_UninitResultCb(void *self, void *error_code_ptr);
-static void Ucs_OnRxRcm(void *self, Msg_MostTel_t *tel_ptr);
-static bool Ucs_OnRxMsgFilter(void *self, Msg_MostTel_t *tel_ptr);
+static void Ucs_OnRxRcm(void *self, Ucs_Message_t *tel_ptr);
+static bool Ucs_OnRxMsgFilter(void *self, Ucs_Message_t *tel_ptr);
 static void Ucs_OnGetTickCount(void *self, void *tick_count_value_ptr);
 static void Ucs_OnSetApplicationTimer(void *self, void *new_time_value_ptr);
 static void Ucs_OnServiceRequest(void *self, void *result_ptr);
 static void Ucs_OnGeneralError(void *self, void *result_ptr);
-static void Ucs_Most_PortStatusCb(void *self, void *result_ptr);
+static void Ucs_NetworkPortStatusCb(void *self, void *result_ptr);
 static void Ucs_StartAppNotification(CUcs *self);
 static void Ucs_StopAppNotification(CUcs *self);
 static void Ucs_Inic_OnDeviceStatus(void *self, void *data_ptr);
@@ -105,15 +110,22 @@ static void Ucs_NetworkStartupResult(void *self, void *result_ptr);
 static void Ucs_NetworkShutdownResult(void *self, void *result_ptr);
 static void Ucs_NetworkForceNAResult(void *self, void *result_ptr);
 static void Ucs_NetworkFrameCounterResult(void *self, void *result_ptr);
+static void Ucs_DiagTriggerRBDResult(void *self, void *result_ptr);
+static void Ucs_DiagRbdResult(void *self, void *result_ptr);
 static void Ucs_NetworkStatus(void *self, void *result_ptr);
 static void Ucs_InitPmsComponent(CUcs *self);
+#ifndef UCS_FOOTPRINT_NOAMS
 static void Ucs_InitPmsComponentApp(CUcs *self);
 static void Ucs_InitAmsComponent(CUcs *self);
 static void Ucs_AmsRx_Callback(void *self);
 static void Ucs_AmsTx_FreedCallback(void *self, void *data_ptr);
-static bool Ucs_McmRx_FilterCallback(void *self, Msg_MostTel_t *tel_ptr);
+static bool Ucs_McmRx_FilterCallback(void *self, Ucs_Message_t *tel_ptr);
+#endif
 static Ucs_Nd_CheckResult_t Ucs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_ptr);
 static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr);
+static void Ucs_Diag_FdxReport(void *self, void *result_ptr);
+static Ucs_Return_t Ucs_ApiExpect(CUcs *self, bool exp_initialized, bool exp_mgr_disabled, bool exp_mgr_enabled);
+static void Ucs_OnSynchronizeNodeResult(void * self, CNode *node_object_ptr, Rsm_Result_t result, Ucs_Ns_SynchronizeNodeCb_t result_cb);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Public Methods                                                                                 */
@@ -127,7 +139,7 @@ extern Ucs_Inst_t* Ucs_CreateInstance(void)
     if (next_index < UCS_API_INSTANCES)
     {
         CUcs *ucs_ptr = &api_instances[next_index];
-        ucs_ptr->ucs_inst_id = next_index + 1U;                         /* start with instance id "1" */
+        ucs_ptr->ucs_inst_id = (uint8_t)(next_index + 1U);              /* start with instance id "1" */
         TR_INFO((ucs_ptr->ucs_user_ptr, "[API]", "Ucs_CreateInstance(): returns 0x%p", 1U, ucs_ptr));
         inst_ptr = (Ucs_Inst_t*)(void*)ucs_ptr;                         /* convert API pointer to abstract data type */
         next_index++;
@@ -153,9 +165,11 @@ extern Ucs_Return_t Ucs_SetDefaultConfig(Ucs_InitData_t *init_ptr)
         MISC_MEM_SET(init_ptr, 0, sizeof(*init_ptr));
         /* -- add default values here -- */
         init_ptr->general.inic_watchdog_enabled = true;
+#ifndef UCS_FOOTPRINT_NOAMS
         init_ptr->ams.enabled = true;
+#endif
         init_ptr->network.status.notification_mask = 0xFFFFU;           /* Initialize notification masks for NET callbacks */
-        init_ptr->mgr.packet_bw = MGR_PACKET_BW_DEFAULT;
+        init_ptr->mgr.packet_bw = NTS_PACKET_BW_DEFAULT;
         init_ptr->mgr.enabled = false;
         ret = UCS_RET_SUCCESS;
     }
@@ -176,6 +190,7 @@ static bool Ucs_CheckInitData(const Ucs_InitData_t *init_ptr)
         (init_ptr->general.get_tick_count_fptr == NULL) ||
         (init_ptr->lld.start_fptr == NULL) ||
         (init_ptr->lld.stop_fptr == NULL) ||
+        (init_ptr->lld.reset_fptr == NULL) ||
         (init_ptr->lld.tx_transmit_fptr == NULL)
       )
     {
@@ -219,7 +234,7 @@ extern Ucs_Return_t Ucs_Init(Ucs_Inst_t* self, const Ucs_InitData_t *init_ptr, U
     /* Note: "self_->ucs_inst_id" is already set to the correct value in Ucs_CreateInstance(), do not overwrite it */
     TR_INFO((self_->ucs_user_ptr, "[API]", "Ucs_Init(init_ptr: 0x%p): called", 1U, init_ptr));
 
-    if (Ucs_CheckInitData(init_ptr))
+    if (Ucs_CheckInitData(init_ptr) != false)
     {
         Ucs_Ctor(self_, self_->ucs_inst_id, init_ptr->user_ptr);/* initialize object */
         self_->init_result_fptr = init_result_fptr;             /* backup result callback function */
@@ -253,8 +268,8 @@ extern void Ucs_Service(Ucs_Inst_t* self)
         }
     }
 
-    Tm_CheckForNextService(&self_->general.base.tm);                    /* If UCS timers are running: What is the next time that  
-                                                                         * the timer management must be serviced again? */   
+    Tm_CheckForNextService(&self_->general.base.tm);                    /* If UCS timers are running: What is the next time that
+                                                                         * the timer management must be serviced again? */
 }
 
 extern void Ucs_ReportTimeout(Ucs_Inst_t* self)
@@ -271,55 +286,102 @@ extern Ucs_Return_t Ucs_Stop(Ucs_Inst_t* self, Ucs_StdResultCb_t stopped_fptr)
 
     TR_INFO((self_->ucs_user_ptr, "[API]", "Ucs_Stop() called", 0U));
 
-    if ((self_->uninit_result_fptr == NULL) && (self_->init_complete != false))
+    if ((self_->uninit_result_fptr == NULL))
     {
-        if (stopped_fptr !=  NULL)
+        if (self_->init_complete != false)
         {
-            self_->uninit_result_fptr = stopped_fptr;
-            Eh_DelObsrvPublicError(&self_->general.base.eh);
-            Eh_AddObsrvInternalEvent(&self_->general.base.eh, &self_->uninit_result_obs);
-            ret_val = UCS_RET_SUCCESS;
-            Fifos_ConfigureSyncParams(&self_->fifos, FIFOS_UNSYNC_RETRIES, FIFOS_UNSYNC_TIMEOUT);
-            Fifos_Unsynchronize(&self_->fifos, true, false);
+            if (stopped_fptr !=  NULL)
+            {
+                self_->uninit_result_fptr = stopped_fptr;
+                Eh_DelObsrvPublicError(&self_->general.base.eh);
+                Eh_AddObsrvInternalEvent(&self_->general.base.eh, &self_->uninit_result_obs);
+                ret_val = UCS_RET_SUCCESS;
+                Fifos_ConfigureSyncParams(&self_->fifos, FIFOS_UNSYNC_RETRIES, FIFOS_UNSYNC_TIMEOUT);
+                Fifos_Unsynchronize(&self_->fifos, true, false);
+            }
+        }
+        else
+        {
+            ret_val =  UCS_RET_ERR_NOT_INITIALIZED; /* was not initialized before */
         }
     }
     else
     {
-        ret_val = UCS_RET_ERR_API_LOCKED;         /* termination is already running */
+        ret_val = UCS_RET_ERR_API_LOCKED;           /* termination is already running */
     }
 
     return ret_val;
+}
+
+/*! \brief   Checks expected precondition for API calls
+ *  \param   self                The instance
+ *  \param   exp_initialized     Expects initialization complete.
+ *  \param   exp_mgr_disabled    Expects manager feature disabled.
+ *  \param   exp_mgr_enabled     Expects manager feature enabled.
+ *  \return  Possible return values are shown in the table below.
+ *           Value                          | Description
+ *           ------------------------------ | ------------------------------------
+ *           UCS_RET_SUCCESS                | No error.
+ *           UCS_RET_ERR_NOT_INITIALIZED    | Expectation failed: Initialization is not complete
+ *           UCS_RET_ERR_NOT_SUPPORTED      | Expectation failed: Manager feature is disabled/enabled
+ *  \ingroup G_UCS_INIT_AND_SRV
+ */
+static Ucs_Return_t Ucs_ApiExpect(CUcs *self, bool exp_initialized, bool exp_mgr_disabled, bool exp_mgr_enabled)
+{
+    Ucs_Return_t ret = UCS_RET_SUCCESS;
+
+    if (self == NULL)
+    {
+        ret = UCS_RET_ERR_PARAM;
+    }
+    else if ((self->init_complete == false) && (exp_initialized != false))
+    {
+        ret = UCS_RET_ERR_NOT_INITIALIZED;
+    }
+    else
+    {    
+        if ((self->init_data.mgr.enabled != false) && (exp_mgr_disabled != false))
+        {
+            ret = UCS_RET_ERR_NOT_SUPPORTED;
+        }
+        
+        if ((self->init_data.mgr.enabled == false) && (exp_mgr_enabled != false))
+        {
+            ret = UCS_RET_ERR_NOT_SUPPORTED;
+        }
+    }
+
+    return ret;
 }
 
 /*------------------------------------------------------------------------------------------------*/
 /* Connection Routing Management                                                                  */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, uint16_t list_size)
+extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, uint16_t list_size)
 {
     CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-
-    if (self_->init_complete != false)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = Rtm_StartProcess (&self_->rtm, routes_list, list_size);
+        ret_val = Rtm_StartProcess(&self_->rtm, routes_list, list_size);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Rm_SetRouteActive (Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr, bool active)
+extern Ucs_Return_t Ucs_Rm_SetRouteActive(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr, bool active)
 {
     CUcs *self_ = (CUcs*)(void*)self;
 
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM; 
+    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
 
     if ((self_ != NULL) && (route_ptr != NULL))
     {
         ret_val = UCS_RET_ERR_NOT_INITIALIZED;
         if (self_->init_complete != false)
         {
-            if (!active)
+            if (active == false)
             {
                 ret_val = Rtm_DeactivateRoute(&self_->rtm, route_ptr);
             }
@@ -333,8 +395,8 @@ Ucs_Return_t Ucs_Rm_SetRouteActive (Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr,
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self, 
-                                          uint16_t destination_address,
+extern Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self,
+                                          uint16_t node_address,
                                           uint8_t index,
                                           Ucs_Stream_PortOpMode_t op_mode,
                                           Ucs_Stream_PortOption_t port_option,
@@ -343,57 +405,62 @@ Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self,
                                           Ucs_Xrm_Stream_PortCfgResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Xrm_Stream_SetPortConfig(Fac_GetXrmLegacy(&self_->factory, destination_address, self_->init_data.rm.xrm.check_unmute_fptr),
-                                               index,
-                                               op_mode,
-                                               port_option,
-                                               clock_mode,
-                                               clock_data_delay,
-                                               result_fptr);
-        }
+        ret_val = Xrm_Stream_SetPortConfig(Fac_FindXrm(&self_->factory, node_address),
+                                           index,
+                                           op_mode,
+                                           port_option,
+                                           clock_mode,
+                                           clock_data_delay,
+                                           result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t destination_address, uint8_t index,
+extern Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t node_address, uint8_t index,
                                           Ucs_Xrm_Stream_PortCfgResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Xrm_Stream_GetPortConfig(Fac_GetXrmLegacy(&self_->factory, destination_address, self_->init_data.rm.xrm.check_unmute_fptr),
-                                               index, result_fptr);
-        }
+        ret_val = Xrm_Stream_GetPortConfig(Fac_FindXrm(&self_->factory, node_address), index, result_fptr);
     }
 
     return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr)
+{
+    return Rtm_GetAtdValue(route_ptr, atd_value_ptr);
 }
 
 /*------------------------------------------------------------------------------------------------*/
 /* Node Management                                                                                */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Rm_SetNodeAvailable(Ucs_Inst_t *self, Ucs_Rm_Node_t *node_ptr, bool available)
+extern Ucs_Return_t Ucs_Rm_SetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address, bool available)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if ((self_ != NULL) && (node_ptr != NULL))
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
+        Ucs_Rm_Node_t *node_ptr = NULL;
+        CNode *node_obj_ptr = Fac_FindNode(&self_->factory, node_address);
+
+        ret_val = UCS_RET_ERR_INVALID_SHADOW;
+
+        if (node_obj_ptr != NULL)
+        {
+            node_ptr = Node_GetPublicNodeStruct(node_obj_ptr);
+        }
+
+        if (node_ptr != NULL)
         {
             ret_val = Rtm_SetNodeAvailable(&self_->rtm, node_ptr, available);
         }
@@ -402,21 +469,51 @@ Ucs_Return_t Ucs_Rm_SetNodeAvailable(Ucs_Inst_t *self, Ucs_Rm_Node_t *node_ptr, 
     return ret_val;
 }
 
-bool Ucs_Rm_GetNodeAvailable (Ucs_Inst_t *self, Ucs_Rm_Node_t *node_ptr)
+extern bool Ucs_Rm_GetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     bool ret_val = false;
+    Ucs_Return_t ret = Ucs_ApiExpect(self_, true, false, false);
 
-    if ((self_ != NULL) && (node_ptr != NULL))
+    if (ret == UCS_RET_SUCCESS)
     {
-        ret_val = Rtm_GetNodeAvailable(&self_->rtm, node_ptr);
+        Ucs_Rm_Node_t *node_ptr = NULL;
+        CNode *node_obj_ptr = Fac_FindNode(&self_->factory, node_address);
+
+        if (node_obj_ptr != NULL)
+        {
+            node_ptr = Node_GetPublicNodeStruct(node_obj_ptr);
+        }
+
+        if (node_ptr != NULL)
+        {
+            ret_val =  Rtm_GetNodeAvailable(&self_->rtm, node_ptr);
+        }
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Rm_GetAttachedRoutes (Ucs_Inst_t *self, Ucs_Rm_EndPoint_t * ep_inst, 
-                                         Ucs_Rm_Route_t * ls_found_routes[], uint16_t ls_size)
+/*! \brief   Retrieves the reference(s) of the route(s) currently attached to the given endpoint and stores It into the (external) table provided by user application.
+ *  Thus, User application should provide an external reference to an empty routes table where the potential routes will be stored.
+ *  That is, user application is responsible to allocate enough space to store the found routes. Refer to the \b Note below for more details.
+ *  \param   self               The UNICENS instance pointer.
+ *  \param   ep_ptr             Reference to the endpoint instance to be looked for.
+ *  \param   ls_found_routes    List to store references to the found routes. It should be allocated by user application.
+ *  \param   ls_size            Size of the provided list.
+ *  \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | -------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *
+ *  \note    The function will add a \b NULL \b pointer to the external table (provided by user application) to mark the end of the found routes. This can be helpful when user application doesn't exactly known the
+ *           number of routes referred to the endpoint. That is, User application should allocate enough space to store the found routes plus the NULL-terminated pointer.
+ *           Otherwise, the number of associated routes found will \b precisely \b equal the size of the list.
+ */
+extern Ucs_Return_t Ucs_Rm_GetAttachedRoutes(Ucs_Inst_t *self, Ucs_Rm_EndPoint_t *ep_ptr,
+                                      Ucs_Rm_Route_t *ls_found_routes[], uint16_t ls_size)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
@@ -426,14 +523,14 @@ Ucs_Return_t Ucs_Rm_GetAttachedRoutes (Ucs_Inst_t *self, Ucs_Rm_EndPoint_t * ep_
         ret_val = UCS_RET_ERR_NOT_INITIALIZED;
         if (self_->init_complete != false)
         {
-            ret_val = Rtm_GetAttachedRoutes(&self_->rtm, ep_inst, ls_found_routes, ls_size);
+            ret_val = Rtm_GetAttachedRoutes(&self_->rtm, ep_ptr, ls_found_routes, ls_size);
         }
     }
 
     return ret_val;
 }
 
-uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr)
+extern uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr)
 {
     uint16_t ret_value = 0U;
     CUcs *self_ = (CUcs*)(void*)self;
@@ -449,22 +546,64 @@ uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /* Node Scripting Management                                                                      */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Ns_Run (Ucs_Inst_t *self, Ucs_Rm_Node_t * node_ptr, Ucs_Ns_ResultCb_t result_fptr)
+extern Ucs_Return_t Ucs_Ns_SynchronizeNode(Ucs_Inst_t *self, uint16_t node_address, uint16_t node_pos_addr, Ucs_Rm_Node_t *node_ptr, Ucs_Ns_SynchronizeNodeCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if ((self_ != NULL) && (node_ptr != NULL) && (node_ptr->signature_ptr != NULL))
+    if ((node_ptr == NULL) || (node_address != node_ptr->signature_ptr->node_address))
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
+        ret_val = UCS_RET_ERR_PARAM;
+    }
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        CNode *node_obj_ptr = Nm_CreateNode(&self_->nm, node_address, node_pos_addr, node_ptr);
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+
+        if (node_obj_ptr != NULL)
         {
-            CNodeScriptManagement * nsm_inst = Fac_GetNsm(&self_->factory, node_ptr->signature_ptr->node_address);
+            ret_val = Node_Synchronize(node_obj_ptr, &Ucs_OnSynchronizeNodeResult, self_, result_fptr);
+        }
+    }
+
+    return ret_val;
+}
+
+/*! \brief Node synchronization result callback
+ *  \param self             Instance pointer
+ *  \param node_object_ptr  Reference to the related node
+ *  \param result           The synchronization result
+ *  \param result_cb        The public result callback
+ */
+static void Ucs_OnSynchronizeNodeResult(void *self, CNode *node_object_ptr, Rsm_Result_t result, Ucs_Ns_SynchronizeNodeCb_t result_cb)
+{
+    CUcs *self_ = (CUcs*)self;
+
+    if (result_cb != NULL)
+    {
+        Ucs_Ns_SyncResult_t code = (result.code == RSM_RES_SUCCESS) ? UCS_NS_SYNC_SUCCESS : UCS_NS_SYNC_ERROR;
+        result_cb(Addr_ReplaceLocalAddrApi(&self_->general.base.addr, Node_GetNodeAddress(node_object_ptr)),
+                  code, self_->ucs_user_ptr);
+    }
+}
+
+extern Ucs_Return_t Ucs_Ns_Run(Ucs_Inst_t *self, uint16_t node_address, UCS_NS_CONST Ucs_Ns_Script_t *script_list_ptr, uint8_t script_list_size, Ucs_Ns_ResultCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = UCS_RET_ERR_PARAM;
+        if ((result_fptr != NULL) && (script_list_ptr != NULL) && (script_list_size != 0U))
+        {
+            CNodeScriptManagement *nsm_inst = Fac_FindNsm(&self_->factory, node_address);
 
             ret_val = UCS_RET_ERR_NOT_AVAILABLE;
             if (nsm_inst != NULL)
             {
-                ret_val = Nsm_Run_Pb(nsm_inst, node_ptr, result_fptr);
+                ret_val = Nsm_Run_Pb(nsm_inst, script_list_ptr, script_list_size, result_fptr);
             }
         }
     }
@@ -475,175 +614,113 @@ Ucs_Return_t Ucs_Ns_Run (Ucs_Inst_t *self, Ucs_Rm_Node_t * node_ptr, Ucs_Ns_Resu
 /*------------------------------------------------------------------------------------------------*/
 /* GPIO and I2C Peripheral Bus Interfaces                                                         */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Gpio_CreatePort(Ucs_Inst_t *self, uint16_t destination_address, uint8_t index, uint16_t debounce_time, Ucs_Gpio_CreatePortResCb_t result_fptr)
+extern Ucs_Return_t Ucs_Gpio_CreatePort(Ucs_Inst_t *self, uint16_t node_address, uint8_t index, uint16_t debounce_time, Ucs_Gpio_CreatePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Gpio_CreatePort(Fac_GetGpio(&self_->factory, destination_address, self_->init_data.gpio.trigger_event_status_fptr), 
-                                      index, 
-                                      debounce_time, 
-                                      result_fptr);
-        }
+        ret_val = Gpio_CreatePort(Fac_FindGpio(&self_->factory, node_address), index, debounce_time, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Gpio_SetPinMode(Ucs_Inst_t *self, uint16_t destination_address, uint16_t gpio_port_handle, 
-                                 uint8_t pin, Ucs_Gpio_PinMode_t mode, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
+extern Ucs_Return_t Ucs_Gpio_SetPinMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle,
+                                        uint8_t pin, Ucs_Gpio_PinMode_t mode, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Gpio_SetPinModeConfig(Fac_GetGpio(&self_->factory, destination_address, self_->init_data.gpio.trigger_event_status_fptr),
-                                            gpio_port_handle, 
-                                            pin,
-                                            mode,
-                                            result_fptr);
-        }
+        ret_val = Gpio_SetPinModeConfig(Fac_FindGpio(&self_->factory, node_address), gpio_port_handle, pin, mode, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Gpio_GetPinMode(Ucs_Inst_t *self, uint16_t destination_address, uint16_t gpio_port_handle, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
+extern Ucs_Return_t Ucs_Gpio_GetPinMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Gpio_GetPinModeConfig(Fac_GetGpio(&self_->factory, destination_address, self_->init_data.gpio.trigger_event_status_fptr),
-                                            gpio_port_handle, 
-                                            result_fptr);
-        }
+        ret_val = Gpio_GetPinModeConfig(Fac_FindGpio(&self_->factory, node_address), gpio_port_handle, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Gpio_WritePort(Ucs_Inst_t *self, uint16_t destination_address, uint16_t gpio_port_handle, 
-                                uint16_t mask, uint16_t data, Ucs_Gpio_PinStateResCb_t result_fptr)
+extern Ucs_Return_t Ucs_Gpio_WritePort(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle,
+                                       uint16_t mask, uint16_t data, Ucs_Gpio_PinStateResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Gpio_SetPinStateConfig(Fac_GetGpio(&self_->factory, destination_address, self_->init_data.gpio.trigger_event_status_fptr),
-                                             gpio_port_handle,
-                                             mask, 
-                                             data,
-                                             result_fptr);
-        }
+        ret_val = Gpio_SetPinStateConfig(Fac_FindGpio(&self_->factory, node_address), gpio_port_handle, mask, data, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_Gpio_ReadPort(Ucs_Inst_t *self, uint16_t destination_address, uint16_t gpio_port_handle, Ucs_Gpio_PinStateResCb_t result_fptr)
+extern Ucs_Return_t Ucs_Gpio_ReadPort(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_PinStateResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Gpio_GetPinStateConfig(Fac_GetGpio(&self_->factory, destination_address, self_->init_data.gpio.trigger_event_status_fptr),
-                                             gpio_port_handle,
-                                             result_fptr);
-        }
+        ret_val = Gpio_GetPinStateConfig(Fac_FindGpio(&self_->factory, node_address), gpio_port_handle, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_I2c_CreatePort(Ucs_Inst_t *self, uint16_t destination_address, uint8_t index, Ucs_I2c_Speed_t speed, 
+extern Ucs_Return_t Ucs_I2c_CreatePort(Ucs_Inst_t *self, uint16_t node_address, uint8_t index, Ucs_I2c_Speed_t speed,
                                 uint8_t i2c_int_mask, Ucs_I2c_CreatePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = I2c_CreatePort(Fac_GetI2c(&self_->factory, destination_address, self_->init_data.i2c.interrupt_status_fptr),
-                                     index,
-                                     speed,
-                                     i2c_int_mask,
-                                     result_fptr);
-        }
+        ret_val = I2c_CreatePort(Fac_FindI2c(&self_->factory, node_address), index, speed, i2c_int_mask, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_I2c_WritePort(Ucs_Inst_t *self, uint16_t destination_address, uint16_t port_handle, Ucs_I2c_TrMode_t mode, uint8_t block_count, 
-                               uint8_t slave_address, uint16_t timeout, uint8_t data_len, uint8_t * data_ptr, 
+extern Ucs_Return_t Ucs_I2c_WritePort(Ucs_Inst_t *self, uint16_t node_address, uint16_t port_handle, Ucs_I2c_TrMode_t mode, uint8_t block_count,
+                               uint8_t slave_address, uint16_t timeout, uint8_t data_len, uint8_t *data_ptr,
                                Ucs_I2c_WritePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = I2c_WritePort(Fac_GetI2c(&self_->factory, destination_address, self_->init_data.i2c.interrupt_status_fptr),
-                                    port_handle,
-                                    mode,
-                                    block_count,
-                                    slave_address,
-                                    timeout,
-                                    data_len,
-                                    data_ptr,
-                                    result_fptr);
-        }
+        ret_val = I2c_WritePort(Fac_FindI2c(&self_->factory, node_address), port_handle, mode, block_count,
+                                slave_address, timeout, data_len, data_ptr, result_fptr);
     }
 
     return ret_val;
 }
 
-Ucs_Return_t Ucs_I2c_ReadPort(Ucs_Inst_t *self, uint16_t destination_address, uint16_t port_handle, uint8_t slave_address, uint8_t data_len, 
+extern Ucs_Return_t Ucs_I2c_ReadPort(Ucs_Inst_t *self, uint16_t node_address, uint16_t port_handle, uint8_t slave_address, uint8_t data_len,
                               uint16_t timeout, Ucs_I2c_ReadPortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = I2c_ReadPort(Fac_GetI2c(&self_->factory, destination_address, self_->init_data.i2c.interrupt_status_fptr),
-                                   port_handle,
-                                   slave_address,
-                                   data_len,
-                                   timeout,
-                                   result_fptr);
-        }
+        ret_val = I2c_ReadPort(Fac_FindI2c(&self_->factory, node_address), port_handle, slave_address,
+                               data_len, timeout, result_fptr);
     }
 
     return ret_val;
@@ -662,14 +739,18 @@ static void Ucs_InitComponents(CUcs* self)
     Ucs_InitLocalInicComponent(self);
     Ucs_InitNetComponent(self);
     Ucs_InitPmsComponent(self);
+#ifndef UCS_FOOTPRINT_NOAMS
     Ucs_InitAmsComponent(self);
+#endif
     Ucs_InitRoutingComponent(self);
     Ucs_InitAtsClass(self);
 
+    Ucs_InitDiag(self);
     Ucs_InitExcComponent(self);
-    Ucs_InitSysDiagComponent(self);
+    Ucs_InitDiagFdxComponent(self);
     Ucs_InitNodeDiscovery(self);
-    Ucs_InitBackChannelDiagnosis(self);
+    Ucs_InitHalfDuplexDiagnosis(self);
+    Ucs_InitFbp(self);
     Ucs_InitProgramming(self);
     Ucs_InitManager(self);      /* shall be called as last one due to re-configuration work */
 }
@@ -688,7 +769,7 @@ static void Ucs_InitFactoryComponent(CUcs *self)
     Fac_Ctor(&self->factory, &fac_init_data);
 }
 
-/*! \brief Initializes the the base component
+/*! \brief Initializes the base component
  *  \param self     The instance
  */
 static void Ucs_InitBaseComponent(CUcs *self)
@@ -729,15 +810,18 @@ static void Ucs_InitBaseComponent(CUcs *self)
  */
 static void Ucs_InitPmsComponent(CUcs *self)
 {
-    CPmFifo * mcm_fifo_ptr = NULL;
-        
-    if (self->init_data.ams.enabled == true)
+    CPmFifo *mcm_fifo_ptr = NULL;
+
+#ifndef UCS_FOOTPRINT_NOAMS
+    if (self->init_data.ams.enabled != false)
     {
         mcm_fifo_ptr = &self->msg.mcm_fifo;
     }
-    
+#endif
     Ucs_InitPmsComponentConfig(self);
+#ifndef UCS_FOOTPRINT_NOAMS
     Ucs_InitPmsComponentApp(self);
+#endif
 
     Fifos_Ctor(&self->fifos, &self->general.base, &self->pmch, &self->icm_fifo, mcm_fifo_ptr, &self->rcm_fifo);
     Pmev_Ctor(&self->pme, &self->general.base, &self->fifos);       /* initialize event handler */
@@ -808,10 +892,10 @@ static void Ucs_InitPmsComponentConfig(CUcs *self)
 #endif
 
     /* initialize transceivers and set reference to FIFO instance */
-    Trcv_Ctor(&self->icm_transceiver, &self->icm_fifo, MSG_ADDR_EHC_CFG, self->ucs_user_ptr, PMP_FIFO_ID_ICM);
+    Trcv_Ctor(&self->icm_transceiver, &self->icm_fifo, MSG_ADDR_EHC_CFG, MSG_LLRBC_ICM, self->ucs_user_ptr, PMP_FIFO_ID_ICM);
     Trcv_RxAssignFilter(&self->icm_transceiver, &Ucs_OnRxMsgFilter, self);
     Trcv_RxAssignReceiver(&self->icm_transceiver, &Inic_OnIcmRx, self->inic.local_inic);
-    Trcv_Ctor(&self->rcm_transceiver, &self->rcm_fifo, MSG_ADDR_EHC_CFG, self->ucs_user_ptr, PMP_FIFO_ID_RCM);
+    Trcv_Ctor(&self->rcm_transceiver, &self->rcm_fifo, MSG_ADDR_EHC_CFG, MSG_LLRBC_RCM, self->ucs_user_ptr, PMP_FIFO_ID_RCM);
     /* Assign RX filter and receiver function to the RCM transceiver */
     Trcv_RxAssignFilter(&self->rcm_transceiver, &Ucs_OnRxMsgFilter, self);
     Trcv_RxAssignReceiver(&self->rcm_transceiver, &Ucs_OnRxRcm, self);
@@ -849,18 +933,29 @@ static void Ucs_InitRoutingComponent(CUcs *self)
 {
     Epm_InitData_t epm_init;
     Rtm_InitData_t rtm_init;
+    Nm_InitData_t  nm_init;
 
     /* Initialize the unique XRM Pool Instance */
     Xrmp_Ctor(&self->xrmp);
+
+    /* Initialize the Node Management Instance */
+    nm_init.base_ptr = &self->general.base;
+    nm_init.net_ptr = &self->net.inst;
+    nm_init.factory_ptr = &self->factory;
+    nm_init.check_unmute_fptr           = self->init_data.rm.xrm.check_unmute_fptr;
+    nm_init.i2c_interrupt_report_fptr   = self->init_data.i2c.interrupt_status_fptr;
+    nm_init.trigger_event_status_fptr   = self->init_data.gpio.trigger_event_status_fptr;
+    Nm_Ctor(&self->nm, &nm_init);
 
     /* Initialize the EndPoint Management Instance */
     epm_init.base_ptr = &self->general.base;
     epm_init.fac_ptr  = &self->factory;
     epm_init.res_debugging_fptr = self->init_data.rm.debug_resource_status_fptr;
     epm_init.check_unmute_fptr  = self->init_data.rm.xrm.check_unmute_fptr;
-    Epm_Ctor (&self->epm, &epm_init);
+    Epm_Ctor(&self->epm, &epm_init);
 
     /* Initialize the Routes Management Instance */
+    rtm_init.fac_ptr = &self->factory;
     rtm_init.base_ptr = &self->general.base;
     rtm_init.epm_ptr  = &self->epm;
     rtm_init.net_ptr  = &self->net.inst;
@@ -881,6 +976,18 @@ static void Ucs_InitAtsClass(CUcs *self)
     Ats_Ctor(&self->inic.attach, &ats_init_data);
 }
 
+
+/*! \brief Initializes the diagnosis component
+ *  \param self     The instance
+ */
+static void Ucs_InitDiag(CUcs *self)
+{
+    Sobs_Ctor(&self->diag.trigger_rbd_obs, self, &Ucs_DiagTriggerRBDResult);
+    Sobs_Ctor(&self->diag.rbd_result_obs,  self, &Ucs_DiagRbdResult);
+    Sobs_Ctor(&self->diag.diag_fdx_report_obs, self, &Ucs_Diag_FdxReport);
+}
+
+
 /*! \brief Initializes the FBlock ExtendedNetworkControl API
  *  \param self The instance
  */
@@ -890,13 +997,13 @@ static void Ucs_InitExcComponent(CUcs *self)
     Exc_Ctor(&self->exc, &self->general.base, &self->rcm_transceiver);
 }
 
-/*! \brief Initializes the SystemDiagnosis component
+/*! \brief Initializes the FullDuplex Diagnosis component
  *  \param self The instance
  */
-static void Ucs_InitSysDiagComponent(CUcs *self)
+static void Ucs_InitDiagFdxComponent(CUcs *self)
 {
-    /* Create the System Diagnosis instance */
-    SysDiag_Ctor(&self->sys_diag, self->inic.local_inic, &self->general.base, &self->exc);
+    /* Create the FullDuplex Diagnosis instance */
+    Fdx_Ctor(&self->diag_fdx, self->inic.local_inic, &self->general.base, &self->exc);
 }
 
 
@@ -921,9 +1028,15 @@ static void Ucs_InitNodeDiscovery(CUcs *self)
 
 }
 
-static void Ucs_InitBackChannelDiagnosis(CUcs *self)
+static void Ucs_InitHalfDuplexDiagnosis(CUcs *self)
 {
-    Bcd_Ctor(&self->bcd, self->inic.local_inic, &self->general.base, &self->exc);
+    Hdx_Ctor(&self->diag_hdx, self->inic.local_inic, &self->general.base, &self->exc);
+}
+
+
+static void Ucs_InitFbp(CUcs *self)
+{
+    Fbp_Ctor(&self->fbp, self->inic.local_inic, &self->general.base, &self->exc);
 }
 
 static void Ucs_InitProgramming(CUcs *self)
@@ -939,23 +1052,23 @@ static void Ucs_InitProgramming(CUcs *self)
  */
 static void Ucs_InitManager(CUcs *self)
 {
-    if (self->init_data.mgr.enabled == true)
+    if (self->init_data.mgr.enabled != false)
     {
-        Mgr_Ctor(&self->mgr, &self->general.base, self->inic.local_inic, &self->net.inst, &self->nd, self->init_data.mgr.packet_bw);
-        Nobs_Ctor(&self->nobs, &self->general.base, &self->nd, &self->rtm, &self->init_data.mgr);
+        Nts_Ctor(&self->starter, &self->general.base, self->inic.local_inic, &self->net.inst, &self->nd, self->init_data.mgr.packet_bw);
+        Nobs_Ctor(&self->nobs, &self->general.base, &self->starter, &self->nd, &self->rtm, &self->net.inst, &self->nm, &self->init_data.mgr);
     }
 }
 
 
 /*! \brief Callback function which announces the result of the attach process
  *  \param self         The instance
- *  \param result_ptr   Result of the initialization process. Result must be casted into data type 
+ *  \param result_ptr   Result of the initialization process. Result must be casted into data type
  *                      Ucs_InitResult_t. Possible return values are shown in the table below.
- *         Result Code                   | Description 
+ *         Result Code                   | Description
  *         ----------------------------- | ----------------------------------------------------
  *         UCS_INIT_RES_SUCCESS          | Initialization succeeded
  *         UCS_INIT_RES_ERR_BUF_OVERFLOW | No message buffer available
- *         UCS_INIT_RES_ERR_PMS_INIT     | PMS Initialization failed
+ *         UCS_INIT_RES_ERR_INIC_SYNC    | PMS Initialization failed
  *         UCS_INIT_RES_ERR_INIC_VERSION | INIC device version check failed
  *         UCS_INIT_RES_ERR_DEV_ATT_CFG  | Device attach failed due to an configuration error
  *         UCS_INIT_RES_ERR_DEV_ATT_PROC | Device attach failed due to a system error
@@ -1029,20 +1142,24 @@ static void Ucs_StartAppNotification(CUcs *self)
     Eh_AddObsrvPublicError(&self->general.base.eh, &self->general.general_error_obs);
 
     if (self->init_data.network.status.cb_fptr != NULL)                             /* Start notification of Network Status */
-    {
+    {                                                                               /* remove unsupported flags in notification mask */
+        uint16_t notification_mask = self->init_data.network.status.notification_mask & ((uint16_t)~UCS_NET_NWS_INVALID_FLAGS);
+                                                                                    /* register masked observer in net class */
         self->net.status_fptr = self->init_data.network.status.cb_fptr;
         Mobs_Ctor(&self->net.status_obs,
                   self,
-                  (uint32_t)self->init_data.network.status.notification_mask,
+                  (uint32_t)notification_mask,
                   &Ucs_NetworkStatus);
         Net_AddObserverNetworkStatus(&self->net.inst, &self->net.status_obs);
     }
 
+#ifndef UCS_FOOTPRINT_NOAMS
     if ((self->init_data.ams.tx.message_freed_fptr != NULL) && (self->msg.ams_tx_alloc_failed != false))
     {
         self->msg.ams_tx_alloc_failed = false;
         self->init_data.ams.tx.message_freed_fptr(self->ucs_user_ptr);
     }
+#endif
 
     if (self->init_data.inic.power_state_fptr != NULL)
     {
@@ -1050,12 +1167,12 @@ static void Ucs_StartAppNotification(CUcs *self)
         self->init_data.inic.power_state_fptr(self->inic.power_state, self->ucs_user_ptr);
         Inic_AddObsvrDeviceStatus(self->inic.local_inic, &self->inic.device_status_obs);
     }
-    
-    if(self->init_data.rm.xrm.most_port_status_fptr != NULL)                        /* Initialize callback pointer for MOST port status callback */
+
+    if (self->init_data.rm.xrm.nw_port_status_fptr != NULL)                        /* Initialize callback pointer for network port status callback */
     {
-        self->xrm.most_port_status_fptr = self->init_data.rm.xrm.most_port_status_fptr;
-        Obs_Ctor(&self->xrm.most_port_status_obs, self, &Ucs_Most_PortStatusCb);
-        Inic_AddObsrvMostPortStatus(self->inic.local_inic, &self->xrm.most_port_status_obs);
+        self->xrm.nw_port_status_fptr = self->init_data.rm.xrm.nw_port_status_fptr;
+        Obs_Ctor(&self->xrm.nw_port_status_obs, self, &Ucs_NetworkPortStatusCb);
+        Inic_AddObsrvNetworkPortStatus(self->inic.local_inic, &self->xrm.nw_port_status_obs);
     }
 }
 
@@ -1073,11 +1190,11 @@ static void Ucs_StopAppNotification(CUcs *self)
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief  Callback function to receive RCM Rx messages
  *  \param  self     The UCS instance
- *  \param  tel_ptr  The received RCM Rx message object 
+ *  \param  tel_ptr  The received RCM Rx message object
  *  \return Returns \c true to discard the message and free it to the pool (no-pass).
  *          Otherwise, returns \c false (pass).
  */
-static void Ucs_OnRxRcm(void *self, Msg_MostTel_t *tel_ptr)
+static void Ucs_OnRxRcm(void *self, Ucs_Message_t *tel_ptr)
 {
     CUcs *self_ = (CUcs*)self;
 
@@ -1087,9 +1204,9 @@ static void Ucs_OnRxRcm(void *self, Msg_MostTel_t *tel_ptr)
     }
     else if (tel_ptr->id.fblock_id == FB_INIC)
     {
-        if (!Nsm_OnRcmRxFilter(Fac_FindNsm(&self_->factory, tel_ptr->source_addr), tel_ptr))
+        if (Nsm_OnRcmRxFilter(Fac_FindNsm(&self_->factory, tel_ptr->source_addr), tel_ptr) == false)
         {
-            CInic * inic_ptr = Fac_FindInic(&self_->factory, tel_ptr->source_addr);
+            CInic *inic_ptr = Fac_FindInic(&self_->factory, tel_ptr->source_addr);
             if (inic_ptr != NULL)
             {
                 Inic_OnRcmRxFilter(inic_ptr, tel_ptr);
@@ -1102,11 +1219,11 @@ static void Ucs_OnRxRcm(void *self, Msg_MostTel_t *tel_ptr)
 
 /*! \brief  Callback function which filters Control Rx messages
  *  \param  self     The UCS instance
- *  \param  tel_ptr  The received Rx message object 
+ *  \param  tel_ptr  The received Rx message object
  *  \return Returns \c true to discard the message and free it to the pool (no-pass).
  *          Otherwise, returns \c false (pass).
  */
-static bool Ucs_OnRxMsgFilter(void *self, Msg_MostTel_t *tel_ptr)
+static bool Ucs_OnRxMsgFilter(void *self, Ucs_Message_t *tel_ptr)
 {
     CUcs *self_ = (CUcs*)self;
     bool ret = false;                   /* just pass - do not discard message */
@@ -1139,7 +1256,7 @@ static bool Ucs_OnRxMsgFilter(void *self, Msg_MostTel_t *tel_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Callback function which is invoked to request the current tick count value
  *  \param self                     The instance
- *  \param tick_count_value_ptr     Reference to the requested tick count value. The pointer must 
+ *  \param tick_count_value_ptr     Reference to the requested tick count value. The pointer must
  *                                  be casted into data type uint16_t.
  */
 static void Ucs_OnGetTickCount(void *self, void *tick_count_value_ptr)
@@ -1149,9 +1266,9 @@ static void Ucs_OnGetTickCount(void *self, void *tick_count_value_ptr)
 }
 
 /*! \brief  Callback function which is invoked to start the application timer when the UNICENS service
- *          is implemented event driven         
+ *          is implemented event driven
  *  \param  self                The instance
- *  \param  new_time_value_ptr  Reference to the new timer value. The pointer must be casted into 
+ *  \param  new_time_value_ptr  Reference to the new timer value. The pointer must be casted into
  *                              data type uint16_t.
  */
 static void Ucs_OnSetApplicationTimer(void *self, void *new_time_value_ptr)
@@ -1188,22 +1305,22 @@ static void Ucs_OnGeneralError(void *self, void *result_ptr)
 
     if (self_->general.general_error_fptr != NULL)              /* callback is not assigned during initialization  */
     {
-        self_->general.general_error_fptr(error_code, self_->ucs_user_ptr); 
+        self_->general.general_error_fptr(error_code, self_->ucs_user_ptr);
     }
 }
 
-/*! \brief Observer callback for Inic_MostPortStatus_Status/Error(). Casts the result and 
+/*! \brief Observer callback for Inic_NetworkPortStatus_Status/Error(). Casts the result and
  *         invokes the application result callback.
  *  \param self         Instance pointer
  *  \param result_ptr   Reference to result
  */
-static void Ucs_Most_PortStatusCb(void *self, void *result_ptr)
+static void Ucs_NetworkPortStatusCb(void *self, void *result_ptr)
 {
     CUcs *self_ = (CUcs*)self;
-    if(self_->xrm.most_port_status_fptr != NULL)
+    if (self_->xrm.nw_port_status_fptr != NULL)
     {
-        Inic_MostPortStatus_t status = *((Inic_MostPortStatus_t *)result_ptr);
-        self_->xrm.most_port_status_fptr(status.most_port_handle,
+        Inic_NetworkPortStatus_t status = *((Inic_NetworkPortStatus_t *)result_ptr);
+        self_->xrm.nw_port_status_fptr(status.nw_port_handle,
                                          status.availability,
                                          status.avail_info,
                                          status.freestreaming_bw,
@@ -1234,13 +1351,13 @@ static void Ucs_Inic_OnDeviceStatus(void *self, void *data_ptr)
 /*------------------------------------------------------------------------------------------------*/
 /* Network Management                                                                             */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Network_Startup(Ucs_Inst_t* self, uint16_t packet_bw, uint16_t forced_na_timeout,
+extern Ucs_Return_t Ucs_Network_Startup(Ucs_Inst_t* self, uint16_t packet_bw, uint16_t forced_na_timeout,
                                  Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-    if (self_->init_complete != false)
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Inic_NwStartup(self_->inic.local_inic, forced_na_timeout,
                                  packet_bw, &self_->net.startup_obs);
@@ -1267,11 +1384,12 @@ static void Ucs_NetworkStartupResult(void *self, void *result_ptr)
     }
 }
 
-Ucs_Return_t Ucs_Network_Shutdown(Ucs_Inst_t *self, Ucs_StdResultCb_t result_fptr)
+extern Ucs_Return_t Ucs_Network_Shutdown(Ucs_Inst_t *self, Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-    if (self_->init_complete != false)
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Inic_NwShutdown(self_->inic.local_inic, &self_->net.shutdown_obs);
         if (ret_val == UCS_RET_SUCCESS)
@@ -1297,11 +1415,12 @@ static void Ucs_NetworkShutdownResult(void *self, void *result_ptr)
     }
 }
 
-Ucs_Return_t Ucs_Network_ForceNotAvailable(Ucs_Inst_t *self, bool force, Ucs_StdResultCb_t result_fptr)
+extern Ucs_Return_t Ucs_Network_ForceNotAvailable(Ucs_Inst_t *self, bool force, Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-    if (self_->init_complete != false)
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Inic_NwForceNotAvailable(self_->inic.local_inic, force, &self_->net.force_na_obs);
         if (ret_val == UCS_RET_SUCCESS)
@@ -1327,7 +1446,7 @@ static void Ucs_NetworkForceNAResult(void *self, void *result_ptr)
     }
 }
 
-Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t reference, Ucs_Network_FrameCounterCb_t result_fptr)
+extern Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t reference, Ucs_Network_FrameCounterCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
@@ -1345,7 +1464,7 @@ Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t reference, U
 
 /*! \brief Callback function which announces the result of Ucs_Network_GetFrameCounter()
  *  \param self         The instance
- *  \param result_ptr   Reference to result. Must be casted into Inic_StdResult_t and data_info 
+ *  \param result_ptr   Reference to result. Must be casted into Inic_StdResult_t and data_info
  *                      must be casted into Inic_FrameCounterStatus_t.
  */
 static void Ucs_NetworkFrameCounterResult(void *self, void *result_ptr)
@@ -1357,7 +1476,7 @@ static void Ucs_NetworkFrameCounterResult(void *self, void *result_ptr)
         Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
         uint32_t reference;
         uint32_t frame_counter;
-        uint8_t  lock;
+        bool  lock;
 
         if (result_ptr_->data_info != NULL)
         {
@@ -1370,7 +1489,7 @@ static void Ucs_NetworkFrameCounterResult(void *self, void *result_ptr)
         {
             reference     = 0U;
             frame_counter = 0U;
-            lock          = 0U;  
+            lock          = false;
         }
 
         self_->net.frame_counter_fptr(reference, frame_counter, lock, result_ptr_->result, self_->ucs_user_ptr);
@@ -1388,35 +1507,55 @@ static void Ucs_NetworkStatus(void *self, void *result_ptr)
 
     if (self_->net.status_fptr != NULL)
     {
-        self_->net.status_fptr( result_ptr_->change_mask,
+        /* remove unused and un-documented bits here */
+        uint16_t change_mask = result_ptr_->change_mask & ((uint16_t)~UCS_NET_NWS_INVALID_FLAGS);
+
+        self_->net.status_fptr( change_mask,
                                 result_ptr_->events,
                                 result_ptr_->availability,
                                 result_ptr_->avail_info,
                                 result_ptr_->avail_trans_cause,
                                 result_ptr_->node_address,
-                                result_ptr_->node_position,
                                 result_ptr_->max_position,
                                 result_ptr_->packet_bw,
                                 self_->ucs_user_ptr);
     }
 }
 
-uint8_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self)
+extern uint8_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     return Inic_GetNumberOfNodes(self_->inic.local_inic);
 }
 
+extern Ucs_Return_t Ucs_Network_SetPacketFilterMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t mode, Ucs_StdNodeResultCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        CNode *node_obj_ptr = Fac_FindNode(&self_->factory, node_address);
+
+        ret_val = UCS_RET_ERR_INVALID_SHADOW;
+        if (node_obj_ptr != NULL)
+        {
+            ret_val = Node_SetPacketFilter(node_obj_ptr, mode, result_fptr);
+        }
+    }
+
+    return ret_val;
+}
 
 /*------------------------------------------------------------------------------------------------*/
 /* Node Discovery                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t* self)
+extern Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if (self_->init_complete != false)
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Nd_Start(&self_->nd);
     }
@@ -1424,12 +1563,12 @@ Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t* self)
 }
 
 
-Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t* self)
+extern Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if (self_->init_complete != false)
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Nd_Stop(&self_->nd);
     }
@@ -1437,12 +1576,12 @@ Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t* self)
 }
 
 
-Ucs_Return_t Ucs_Nd_InitAll(Ucs_Inst_t* self)
+extern Ucs_Return_t Ucs_Nd_InitAll(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if (self_->init_complete != false)
+    if (ret_val == UCS_RET_SUCCESS)
     {
         Nd_InitAll(&self_->nd);
         ret_val = UCS_RET_SUCCESS;
@@ -1471,7 +1610,7 @@ static Ucs_Nd_CheckResult_t Ucs_OnNdEvaluate(void *self, Ucs_Signature_t *signat
 
 /*! \brief  Callback function to proxy the user callback for node evaluation
  *  \param  self            The instance
- *  \param  code            The report code 
+ *  \param  code            The report code
  *  \param  signature_ptr   Reference to the node signature or NULL if no signature applies.
  */
 static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr)
@@ -1486,21 +1625,58 @@ static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *s
 
 
 /*------------------------------------------------------------------------------------------------*/
-/* BackChannel Diagnosis                                                                          */
+/* HalfDuplex Diagnosis                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Bcd_Start(Ucs_Inst_t* self, Ucs_Bcd_ReportCb_t report_fptr)
+extern Ucs_Return_t Ucs_Diag_StartHdxDiagnosis(Ucs_Inst_t* self, Ucs_Diag_HdxReportCb_t report_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if (report_fptr == NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_PARAM;
+        if (report_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            ret_val = Hdx_Start(&self_->diag_hdx, report_fptr);
+        }
     }
-    else if (self_->init_complete != false)
+    return ret_val;
+}
+
+
+/*------------------------------------------------------------------------------------------------*/
+/* Fallback protection                                                                            */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Fbp_Start(Ucs_Inst_t* self, uint16_t duration, Ucs_Fbp_ReportCb_t report_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        Bcd_Start(&self_->bcd, report_fptr);
-        ret_val = UCS_RET_SUCCESS;
+        if (report_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            Fbp_Start(&self_->fbp, duration, report_fptr);
+        }
+    }
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Fbp_Stop(Ucs_Inst_t* self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        Fbp_Stop(&self_->fbp);
     }
     return ret_val;
 }
@@ -1509,32 +1685,241 @@ Ucs_Return_t Ucs_Bcd_Start(Ucs_Inst_t* self, Ucs_Bcd_ReportCb_t report_fptr)
 /*------------------------------------------------------------------------------------------------*/
 /*  Programming service                                                                              */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t *self, 
-                            uint16_t node_id, 
-                            Ucs_Signature_t *signature, 
-                            Ucs_Prg_SessionType_t session_type, 
-                            Ucs_Prg_Command_t* command_list, 
+extern Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t *self,
+                            uint16_t node_pos_addr,
+                            Ucs_Signature_t *signature,
+                            Ucs_Prg_Command_t* command_list,
                             Ucs_Prg_ReportCb_t result_fptr)
 {
-    CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    CUcs *self_          = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
 
-    if (result_fptr == NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_PARAM;
-    }
-    else if (self_->init_complete != false)
-    {
-        Prg_Start(&self_->prg, node_id, signature, session_type, command_list, result_fptr);
-        ret_val = UCS_RET_SUCCESS;
+        if (result_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            ret_val = Prg_Start(&self_->prg, node_pos_addr, signature, command_list, result_fptr);
+        }
     }
 
     return ret_val;
 }
 
+
+extern Ucs_Return_t Ucs_Prog_IS_RAM(Ucs_Inst_t *self,
+                             Ucs_Signature_t *signature,
+                             Ucs_IdentString_t *ident_string,
+                             Ucs_Prg_ReportCb_t result_fptr)
+{
+    CUcs *self_          = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (   (signature    == NULL)
+            || (ident_string == NULL)
+            || (result_fptr  == NULL))
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+    }
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Prg_IS_RAM(&self_->prg, signature, ident_string, result_fptr);
+    }
+
+    return ret_val;
+}
+
+
+extern Ucs_Return_t Ucs_Prog_IS_ROM(Ucs_Inst_t *self,
+                             Ucs_Signature_t *signature,
+                             Ucs_IdentString_t *ident_string,
+                             Ucs_Prg_ReportCb_t result_fptr)
+{
+    CUcs *self_          = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (   (signature    == NULL)
+            || (ident_string == NULL)
+            || (result_fptr  == NULL))
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+    }
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Prg_IS_ROM(&self_->prg, signature, ident_string, result_fptr);
+    }
+
+    return ret_val;
+}
+
+
+/*------------------------------------------------------------------------------------------------*/
+/*  Ring Break Diagnosis                                                                          */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Diag_TriggerRbd(Ucs_Inst_t *self,
+                                 Ucs_Diag_RbdType_t type,
+                                 Ucs_StdResultCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Inic_NetworkRbd_Sr(self_->inic.local_inic,
+                                     type,
+                                     &self_->diag.trigger_rbd_obs);
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            self_->diag.trigger_rbd_fptr = result_fptr;
+        }
+    }
+    return ret_val;
+}
+
+/*! \brief Callback function which announces the result of Ucs_Diag_TriggerRbd()
+ *  \param self         Instance pointer (not used for single instance API)
+ *  \param result_ptr   Reference to result. Must be casted into Inic_StdResult_t and data_info
+ *                      must be casted into Ucs_Diag_RbdResult_t.
+ */
+static void Ucs_DiagTriggerRBDResult(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+    if (self_->diag.trigger_rbd_fptr != NULL)
+    {
+        Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
+        self_->diag.trigger_rbd_fptr(result_ptr_->result, self_->ucs_user_ptr);
+    }
+}
+
+
+extern Ucs_Return_t Ucs_Diag_GetRbdResult(Ucs_Inst_t *self, Ucs_Diag_RbdResultCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (result_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            ret_val = Inic_NetworkRbdResult_Get(self_->inic.local_inic, &self_->diag.rbd_result_obs);
+            if (ret_val == UCS_RET_SUCCESS)
+            {
+                self_->diag.rbd_result_fptr = result_fptr;
+            }
+        }
+    }
+    return ret_val;
+}
+
+
+/*! \brief Callback function which announces the result of Ucs_Diag_GetRbdResult()
+ *  \param self         The instance
+ *  \param result_ptr   Reference to result. Must be casted into Inic_StdResult_t and data_info
+ *                      must be casted into Inic_RbdResult_t.
+ */
+static void Ucs_DiagRbdResult(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+    if (self_->diag.rbd_result_fptr != NULL)
+    {
+        Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
+        Inic_RbdResult_t rbd_result_data = {UCS_DIAG_RBD_NO_ERROR, 0U, 0xFF, 0x0000};
+        if (result_ptr_->data_info != NULL)
+        {
+            rbd_result_data = *(Inic_RbdResult_t *)(result_ptr_->data_info);
+        }
+        self_->diag.rbd_result_fptr(rbd_result_data.result,
+                                    rbd_result_data.position,
+                                    rbd_result_data.status,
+                                    rbd_result_data.diag_id,
+                                    result_ptr_->result,
+                                    self_->ucs_user_ptr);
+    }
+}
+
+
+/*------------------------------------------------------------------------------------------------*/
+/*  FullDuplex Diagnosis                                                                              */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Diag_StartFdxDiagnosis(Ucs_Inst_t *self, Ucs_Diag_FdxReportCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (result_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            ret_val = Fdx_StartDiag(&self_->diag_fdx, &self_->diag.diag_fdx_report_obs);
+            if (ret_val == UCS_RET_SUCCESS)
+            {
+                self_->diag.diag_fdx_report_fptr = result_fptr;
+            }
+        }
+    }
+    return ret_val;
+}
+
+/*! \brief Stops the FullDuplex Diagnosis
+ *
+ * \param self  The UNICENS instance
+ * \return  Possible return values are shown in the table below. 
+ *           Value                       | Description 
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_AVAILABLE   | FullDuplex Diagnosis is not running
+ * \ingroup G_UCS_FDX_DIAGNOSIS
+ */
+extern Ucs_Return_t Ucs_Diag_StopFdxDiagnosis(Ucs_Inst_t *self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Fdx_StopDiag(&self_->diag_fdx);
+    }
+    return ret_val;
+}
+
+
+static void Ucs_Diag_FdxReport(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+    if (self_->diag.diag_fdx_report_fptr != NULL)
+    {
+        Ucs_Fdx_Report_t  *result_ptr_ = (Ucs_Fdx_Report_t  *)result_ptr;
+
+        self_->diag.diag_fdx_report_fptr(*(result_ptr_), self_->ucs_user_ptr);
+    }
+}
+
+
 /*------------------------------------------------------------------------------------------------*/
 /* Message Handling                                                                               */
 /*------------------------------------------------------------------------------------------------*/
+#ifndef UCS_FOOTPRINT_NOAMS
 /*! \brief Initializes the port message service for application interface (MCM)
  *  \param self     The instance
  */
@@ -1573,7 +1958,7 @@ static void Ucs_InitPmsComponentApp(CUcs *self)
 #endif
 
     /* initialize transceivers and set reference to FIFO instance */
-    Trcv_Ctor(&self->msg.mcm_transceiver, &self->msg.mcm_fifo, MSG_ADDR_EHC_APP, self->ucs_user_ptr, PMP_FIFO_ID_MCM);
+    Trcv_Ctor(&self->msg.mcm_transceiver, &self->msg.mcm_fifo, MSG_ADDR_EHC_APP, MSG_LLRBC_DEFAULT, self->ucs_user_ptr, PMP_FIFO_ID_MCM);
     Trcv_RxAssignFilter(&self->msg.mcm_transceiver, &Ucs_McmRx_FilterCallback, self);
 }
 
@@ -1603,79 +1988,96 @@ static void Ucs_InitAmsComponent(CUcs *self)
 
     Cmd_Ctor(&self->msg.cmd, &self->general.base);
 }
+#endif
 
 extern Ucs_AmsTx_Msg_t* Ucs_AmsTx_AllocMsg(Ucs_Inst_t *self, uint16_t data_size)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_AmsTx_Msg_t *ret_ptr = NULL;
-
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled == true))
+#ifndef UCS_FOOTPRINT_NOAMS
+    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
     {
         ret_ptr = Ams_TxGetMsg(&self_->msg.ams, data_size);
     }
 
     self_->msg.ams_tx_alloc_failed = (ret_ptr == NULL) ? true : false;
+#endif
+    MISC_UNUSED(self_);
+    MISC_UNUSED(data_size);
     return ret_ptr;
 }
 
 extern Ucs_Return_t Ucs_AmsTx_SendMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr, Ucs_AmsTx_CompleteCb_t tx_complete_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled == true))
+    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_AVAILABLE;
+#ifndef UCS_FOOTPRINT_NOAMS
+    ret_val = UCS_RET_ERR_NOT_INITIALIZED;
+    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
     {
         ret_val = Ams_TxSendMsg(&self_->msg.ams, msg_ptr, NULL, tx_complete_fptr, self_->ucs_user_ptr);
     }
-
+#endif
+    MISC_UNUSED(self_);
+    MISC_UNUSED(msg_ptr);
+    MISC_UNUSED(tx_complete_fptr);
     return ret_val;
 }
 
 extern void Ucs_AmsTx_FreeUnusedMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-
+#ifndef UCS_FOOTPRINT_NOAMS
     if (msg_ptr != NULL)
     {
         Ams_TxFreeUnusedMsg(&self_->msg.ams, msg_ptr);
     }
+#endif
+    MISC_UNUSED(self_);
+    MISC_UNUSED(msg_ptr);
 }
 
 extern Ucs_AmsRx_Msg_t* Ucs_AmsRx_PeekMsg(Ucs_Inst_t *self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_AmsRx_Msg_t *ret = NULL;
-
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled == true))
+#ifndef UCS_FOOTPRINT_NOAMS
+    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
     {
         ret = Amd_RxPeekMsg(&self_->msg.amd);
     }
-
+#endif
+    MISC_UNUSED(self_);
     return ret;
 }
 
 extern void Ucs_AmsRx_ReleaseMsg(Ucs_Inst_t *self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-
+#ifndef UCS_FOOTPRINT_NOAMS
     if ((self_->init_complete != false) && (self_->init_data.ams.enabled == true))
     {
         Amd_RxReleaseMsg(&self_->msg.amd);
     }
+#endif
+    MISC_UNUSED(self_);
 }
 
 extern uint16_t Ucs_AmsRx_GetMsgCnt(Ucs_Inst_t *self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     uint16_t ret = 0U;
-
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled == true))
+#ifndef UCS_FOOTPRINT_NOAMS
+    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
     {
         ret = Amd_RxGetMsgCnt(&self_->msg.amd);
     }
+#endif
+    MISC_UNUSED(self_);
     return ret;
 }
 
+#ifndef UCS_FOOTPRINT_NOAMS
 /*! \brief  Callback function which announces that a new application message
  *          is added to the Rx queue
  *  \param  self     The instance
@@ -1709,11 +2111,11 @@ static void Ucs_AmsTx_FreedCallback(void *self, void *data_ptr)
 
 /*! \brief  Callback function which filters MCM Rx messages
  *  \param  self     The instance
- *  \param  tel_ptr  The received Rx message object 
+ *  \param  tel_ptr  The received Rx message object
  *  \return Returns \c true to discard the message and free it to the pool (no-pass).
  *          Otherwise, returns \c false (pass).
  */
-static bool Ucs_McmRx_FilterCallback(void *self, Msg_MostTel_t *tel_ptr)
+static bool Ucs_McmRx_FilterCallback(void *self, Ucs_Message_t *tel_ptr)
 {
     CUcs *self_ = (CUcs*)self;
     bool ret = false;                           /* default: pass the message */
@@ -1729,53 +2131,62 @@ static bool Ucs_McmRx_FilterCallback(void *self, Msg_MostTel_t *tel_ptr)
 
     return ret;
 }
+#endif
 
 /*------------------------------------------------------------------------------------------------*/
 /* Message decoding                                                                               */
 /*------------------------------------------------------------------------------------------------*/
-Ucs_Cmd_Return_t Ucs_Cmd_AddMsgIdTable(Ucs_Inst_t *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr)
+extern Ucs_Return_t Ucs_Cmd_AddMsgIdTable(Ucs_Inst_t *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr, uint16_t length)
 {
-    Ucs_Cmd_Return_t ret_val;
+    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_AVAILABLE;
     CUcs *self_ = (CUcs*)(void*)self;
-
-    if (msg_id_tab_ptr != NULL)
+#ifndef UCS_FOOTPRINT_NOAMS
+    ret_val = UCS_RET_ERR_PARAM;
+    if ((msg_id_tab_ptr != NULL) && (length != 0U))
     {
-        ret_val = Cmd_AddMsgIdTable(&(self_->msg.cmd), msg_id_tab_ptr);
+        ret_val = Cmd_AddMsgIdTable(&(self_->msg.cmd), msg_id_tab_ptr, length);
     }
-    else
-    {
-        ret_val = UCS_CMD_RET_ERR_NULL_PTR;
-    }
+#endif
 
+    MISC_UNUSED(self_);
+    MISC_UNUSED(msg_id_tab_ptr);
+    MISC_UNUSED(length);
     return ret_val;
 }
 
 
-Ucs_Cmd_Return_t Ucs_Cmd_RemoveMsgIdTable(Ucs_Inst_t *self)
+extern Ucs_Return_t Ucs_Cmd_RemoveMsgIdTable(Ucs_Inst_t *self)
 {
-    Ucs_Cmd_Return_t ret_val;
     CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_AVAILABLE;
 
+#ifndef UCS_FOOTPRINT_NOAMS
     ret_val = Cmd_RemoveMsgIdTable(&(self_->msg.cmd));
+#endif
 
+    MISC_UNUSED(self_);
     return ret_val;
 }
 
 
-Ucs_Cmd_Return_t Ucs_Cmd_DecodeMsg(Ucs_Inst_t *self, Ucs_AmsRx_Msg_t *msg_rx_ptr)
+extern Ucs_Cmd_Handler_Function_t Ucs_Cmd_DecodeMsg(Ucs_Inst_t *self, Ucs_AmsRx_Msg_t *msg_rx_ptr)
 {
-    Ucs_Cmd_Return_t ret_val;
+    Ucs_Cmd_Handler_Function_t ret_val = NULL;
     CUcs *self_ = (CUcs*)(void*)self;
 
-    if(msg_rx_ptr != NULL)
+#ifndef UCS_FOOTPRINT_NOAMS
+    if (msg_rx_ptr != NULL)
     {
         ret_val = Cmd_DecodeMsg(&(self_->msg.cmd), msg_rx_ptr);
     }
     else
     {
-        ret_val = UCS_CMD_RET_ERR_NULL_PTR;
+        ret_val = NULL;
     }
+#endif
 
+    MISC_UNUSED(self_);
+    MISC_UNUSED(msg_rx_ptr);
     return ret_val;
 }
 

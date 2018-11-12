@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------------------------------*/
-/* UNICENS V2.1.0-3564                                                                            */
-/* Copyright 2017, Microchip Technology Inc. and its subsidiaries.                                */
+/* UNICENS - Unified Centralized Network Stack                                                    */
+/* Copyright (c) 2017, Microchip Technology Inc. and its subsidiaries.                            */
 /*                                                                                                */
 /* Redistribution and use in source and binary forms, with or without                             */
 /* modification, are permitted provided that the following conditions are met:                    */
@@ -66,7 +66,7 @@ void Pool_Ctor(CPool *self, CMessage messages[], uint16_t size, void *ucs_user_p
     self->initial_size = size;
     self->messages = messages;
 
-    Dl_Ctor(&self->message_list, self->ucs_user_ptr); 
+    Dl_Ctor(&self->message_list, self->ucs_user_ptr);
 
     for (index = 0U; index < size; index++)
     {
@@ -96,7 +96,7 @@ CMessage* Pool_GetMsg(CPool *self)
 
 /*! \brief  Returns a message object to the pool pre-assigned pool
  *  \param  msg_ptr Reference to the message object which needs
- *                  to be returned to the pool. 
+ *                  to be returned to the pool.
  */
 void Pool_ReturnMsg(CMessage *msg_ptr)
 {
@@ -113,7 +113,7 @@ void Pool_ReturnMsg(CMessage *msg_ptr)
     }
 }
 
-/*! \brief  Retrieves the current number of available message objects in the pool 
+/*! \brief  Retrieves the current number of available message objects in the pool
  *  \param  self    The instance
  *  \return The current number of available message objects in the pool
  */
