@@ -44,10 +44,11 @@ You can find the latest documentation [here](https://rawgit.com/MicrochipTech/un
 * [UNICENS Linux Daemon](https://github.com/MicrochipTech/unicens-linux-daemon)
 * [UNICENS Example for Atmel SAM V71](https://github.com/MicrochipTech/unicens-bare-metal-sam-v71)
 * [MOST Linux Driver](https://github.com/microchip-ais/linux)
-* [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://github.com/iotbzh/unicens2-binding)
+* [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://git.automotivelinux.org/apps/agl-service-unicens/)
 
 ## Hardware
 * The [K2L Slim Board Family](https://www.k2l.de/products/34/MOST150%20Slim%20Board%20Family/) is supported by the projects mentioned above.
+* Various [Fiberdyne](http://fiberdyne.com.au/) amplifier models are supported by the [UNICENS Binding](https://git.automotivelinux.org/apps/agl-service-unicens/) for Automotive Grade Linux.
 
 ## UNICENS on GitHub
 This GitHub repository is used to publish UNICENS. Please be aware that UNICENS 
