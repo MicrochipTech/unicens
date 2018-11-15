@@ -47,7 +47,7 @@ You can find the latest documentation [here](https://rawgit.com/MicrochipTech/un
 * [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://github.com/iotbzh/unicens2-binding)
 
 ## Hardware
-* The [K2L Slim Board Family](https://www.k2l.de/products/34/MOST150%20Slim%20Board%20Family/) is supported by the projects mentioned above.
+* The [Microchip Slim Board Family](https://www.k2l.de/products/34/MOST150%20Slim%20Board%20Family/) is supported by the projects mentioned above.
 
 ## UNICENS on GitHub
 This GitHub repository is used to publish UNICENS. Please be aware that UNICENS 
