@@ -400,8 +400,6 @@ static const Fsm_StateElem_t fdx_trans_tab[FDX_NUM_STATES][FDX_NUM_EVENTS] =    
     self->exc  = exc;
     self->base = base;
 
-    Fsm_Ctor(&self->fsm, self, &(fdx_trans_tab[0][0]), FDX_NUM_EVENTS, FDX_S_IDLE);
-
     Sobs_Ctor(&self->fdx_diag_start,           self, &Fdx_NwFdxStartResultCb);
     Sobs_Ctor(&self->fdx_diag_stop,            self, &Fdx_NwFdxStopResultCb);
     Sobs_Ctor(&self->fdx_hello,                self, &Fdx_HelloStatusCb);
@@ -411,7 +409,7 @@ static const Fsm_StateElem_t fdx_trans_tab[FDX_NUM_STATES][FDX_NUM_EVENTS] =    
     Sobs_Ctor(&self->fdx_cable_link_diagnosis, self, &Fdx_CableLinkDiagnosisResultCb);
 
     /* register termination events */
-    Mobs_Ctor(&self->fdx_terminate, self, EH_M_TERMINATION_EVENTS, &Fdx_OnTerminateEventCb);
+    Mobs_Ctor(&self->fdx_terminate, self, EH_M_TERMINATION_EVENTS | EH_E_UNSYNC_STARTED, &Fdx_OnTerminateEventCb);
     Eh_AddObsrvInternalEvent(&self->base->eh, &self->fdx_terminate);
 
     /* Initialize FullDuplex Diagnosis service */
@@ -433,10 +431,10 @@ static void Fdx_Service(void *self)
     {
         Fsm_State_t result;
         Srv_ClearEvent(&self_->fdx_srv, FDX_EVENT_SERVICE);
-        TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "FSM __ %d %d", 2U, self_->fsm.current_state, self_->fsm.event_occured));
+        TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "FSM S:%d E:%d", 2U, self_->fsm.current_state, self_->fsm.event_occured));
         result = Fsm_Service(&self_->fsm);
         TR_ASSERT(self_->base->ucs_user_ptr, "[FDX]", (result != FSM_STATE_ERROR));
-        TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "FSM -> %d", 1U, self_->fsm.current_state));
+        TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "FSM -> S:%d", 1U, self_->fsm.current_state));
         MISC_UNUSED(result);
     }
 }
@@ -447,7 +445,7 @@ static void Fdx_Service(void *self)
  * \param self          Reference to FullDuplex Diagnosis object
  * \param obs_ptr       Observer pointer
  * \return UCS_RET_SUCCESS              Operation successful
- * \return UCS_RET_ERR_API_LOCKED       FullDuplex Diagnosis was already started
+ * \return UCS_RET_ERR_API_LOCKED       Required INIC API is already in use by another task.
  * \return UCS_RET_ERR_BUFFER_OVERFLOW  Invalid observer
  */
 Ucs_Return_t Fdx_StartDiag(CFdx *self, CSingleObserver *obs_ptr)
@@ -458,12 +456,14 @@ Ucs_Return_t Fdx_StartDiag(CFdx *self, CSingleObserver *obs_ptr)
     {
         Ssub_Ret_t ret_ssub;
 
-        ret_ssub = Ssub_AddObserver(&self->diag_fdx, obs_ptr);
+        ret_ssub = Ssub_AddObserver(&self->ssub_diag_fdx, obs_ptr);
         if (ret_ssub != SSUB_UNKNOWN_OBSERVER)  /* obs_ptr == NULL ? */
         {
             self->exc->service_locked = true;
 
             Fdx_Init(self);
+            self->started = true;
+            Fsm_Ctor(&self->fsm, self, &(fdx_trans_tab[0][0]), FDX_NUM_EVENTS, FDX_S_IDLE);
 
             Fsm_SetEvent(&self->fsm, FDX_E_STARTDIAG);
             Srv_SetEvent(&self->fdx_srv, FDX_EVENT_SERVICE);
@@ -543,9 +543,9 @@ static void Fdx_A_NwFdxStart(void *self)
 
     CFdx *self_ = (CFdx *)self;
 
+    TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_A_NwFdxStart", 0U));
     ret_val = Inic_NwDiagFullDuplex_Sr(self_->inic, &self_->fdx_diag_start);
     TR_ASSERT(self_->base->ucs_user_ptr, "[FDX]", ret_val == UCS_RET_SUCCESS);
-    TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_A_NwFdxStart", 0U));
 
     Tm_SetTimer(&self_->base->tm,
                 &self_->timer,
@@ -598,7 +598,7 @@ static void Fdx_A_NwFdxTimeout(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code            = UCS_FDX_ERROR;
     self_->report.err_info        = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     Fdx_NwFdxStop(self_);
 }
@@ -616,7 +616,7 @@ static void Fdx_A_EnablePortTimeout(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code            = UCS_FDX_ERROR;
     self_->report.err_info        = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     Fdx_NwFdxStop(self_);
 }
@@ -634,7 +634,7 @@ static void Fdx_A_DisablePortTimeout(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code            = UCS_FDX_ERROR;
     self_->report.err_info        = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     Fdx_NwFdxStop(self_);
 }
@@ -667,7 +667,7 @@ static void Fdx_NwFdxStop(void *self)
         self_->report.code      = UCS_FDX_ERROR;
         self_->report.err_info  = UCS_FDX_ERR_STOP_DIAG_FAILED;
 
-        Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+        Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
         Fsm_SetEvent(&self_->fsm, FDX_E_ERROR);
         Srv_SetEvent(&self_->fdx_srv, FDX_EVENT_SERVICE);
@@ -871,7 +871,7 @@ static void Fdx_WelcomeResultCb(void *self, void *result_ptr)
                 /*self_->report.cable_link_info = 0U;*/     /* element is not written deliberately */
                 /*self_->report.err_info        = 0U;*/     /* element is not written deliberately */
 
-                Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+                Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
                 TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_WelcomeResultCb ReportSegment", 0U));
             }
 
@@ -890,7 +890,7 @@ static void Fdx_WelcomeResultCb(void *self, void *result_ptr)
             /*self_->report.cable_link_info = 0U;*/     /* element is not written deliberately */
             self_->report.err_info        = UCS_FDX_ERR_WELCOME_NO_SUCCESS;
 
-            Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+            Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
             Fsm_SetEvent(&self_->fsm, FDX_E_NO_SUCCESS);
             TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_WelcomeResultCb reported NoSuccess", 0U));
@@ -1031,7 +1031,7 @@ static void Fdx_A_EnablePort(void *self)
 /*! Function is called on reception of the EnablePort.Result message
  *
  * \param self          Reference to FullDuplex Diagnosis object
- * \param *result_ptr
+ * \param result_ptr
  */
 static void Fdx_EnablePortResultCb(void *self, void *result_ptr)
 {
@@ -1062,7 +1062,7 @@ static void Fdx_EnablePortResultCb(void *self, void *result_ptr)
             /*self_->report.segment.target  = self_->target.signature;*/
             self_->report.err_info        = UCS_FDX_ERR_PORT_NOT_USED;
 
-            Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+            Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
             TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_EnablePortResultCb reported UCS_FDX_ERR_PORT_NOT_USED", 0U));
             Fsm_SetEvent(&self_->fsm, FDX_E_PORT_NOT_ENABLED);
         }
@@ -1080,7 +1080,7 @@ static void Fdx_EnablePortResultCb(void *self, void *result_ptr)
             /*self_->report.segment.target  = self_->target.signature;*/
             self_->report.err_info        = UCS_FDX_ERR_NO_FDX_MODE;
 
-            Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+            Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
             TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_EnablePortResultCb reported UCS_FDX_ERR_NO_FDX_MODE", 0U));
             Fsm_SetEvent(&self_->fsm, FDX_E_PORT_NOT_ENABLED);
         }
@@ -1213,7 +1213,7 @@ static void Fdx_CableLinkDiagnosisResultCb(void *self, void *result_ptr)
         self_->report.cable_link_info = (*(Exc_CableLinkDiagResult_t *)(result_ptr_->data_info)).result;
         /*self_->report.err_info        = 0U;*/     /* element is not written deliberately */
 
-        Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+        Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
 
         Fsm_SetEvent(&self_->fsm, FDX_E_CABLE_LINK_RES);
@@ -1241,7 +1241,7 @@ static void Fdx_A_CableLinkDiagTimeout(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code     = UCS_FDX_ERROR;
     self_->report.err_info = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     TR_FAILED_ASSERT(self_->base->ucs_user_ptr, "[FDX]");
     Fdx_NwFdxStop(self_);
@@ -1258,7 +1258,7 @@ static void Fdx_A_WelcomeTimeout(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code      = UCS_FDX_ERROR;
     self_->report.err_info  = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     TR_FAILED_ASSERT(self_->base->ucs_user_ptr, "[FDX]");
     Fdx_NwFdxStop(self_);
@@ -1292,9 +1292,10 @@ static void Fdx_A_Finish(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
 
     self_->report.code = UCS_FDX_FINISHED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, true);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, true);
 
     self_->exc->service_locked = false;
+    self_->started = false;
 
     TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_A_Finish", 0U));
 }
@@ -1310,7 +1311,7 @@ static void Fdx_A_Error(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code     = UCS_FDX_ERROR;
     self_->report.err_info = UCS_FDX_ERR_UNSPECIFIED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     Fdx_NwFdxStop(self_);
     TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_A_Error", 0U));
@@ -1339,14 +1340,15 @@ static void Fdx_A_StopDiagFailed(void *self)
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code     = UCS_FDX_ERROR;
     self_->report.err_info = UCS_FDX_ERR_STOP_DIAG_FAILED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     /* always finish the FullDuplex Diagnosis with event UCS_FDX_FINISHED */
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code = UCS_FDX_FINISHED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, true);     /* remove the observer function */
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, true);     /* remove the observer function */
 
     self_->exc->service_locked = false;
+    self_->started = false;
 
     TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_A_StopDiagFailed", 0U));
 }
@@ -1361,7 +1363,7 @@ static void Fdx_A_Abort(void *self)
 
     MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
     self_->report.code = UCS_FDX_ABORTED;
-    Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+    Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
     if (self_->fsm.current_state != FDX_S_IDLE)
     {
@@ -1384,26 +1386,29 @@ static void Fdx_OnTerminateEventCb(void *self, void *result_ptr)
 
     MISC_UNUSED(result_ptr);
 
-    if (self_->fsm.current_state != FDX_S_IDLE)
+    TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_OnTerminateEventCb (FSM S:%d)", 1U, self_->fsm.current_state));
+
+    if (self_->started == true)
     {
         Tm_ClearTimer(&self_->base->tm, &self_->timer);
 
         MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
         self_->report.code     = UCS_FDX_ERROR;
         self_->report.err_info = UCS_FDX_ERR_TERMINATED;
-        Ssub_Notify(&self_->diag_fdx, &self_->report, false);
+        Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, false);
 
         /* always finish the FullDuplex Diagnosis with event UCS_FDX_FINISHED */
         MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
         self_->report.code = UCS_FDX_FINISHED;
-        Ssub_Notify(&self_->diag_fdx, &self_->report, true);     /* remove the observer function */
+        Ssub_Notify(&self_->ssub_diag_fdx, &self_->report, true);     /* remove the observer function */
 
-        TR_INFO((self_->base->ucs_user_ptr, "[FDX]", "Fdx_OnTerminateEventCb", 0U));
 
         /* reset FSM */
         self_->exc->service_locked = false;
+        self_->started = false;
+
         Fdx_Init(self_);
-        self_->fsm.current_state = FDX_S_IDLE;
+        Fsm_End(&(self_->fsm));
     }
 }
 

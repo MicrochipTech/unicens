@@ -91,7 +91,7 @@ typedef struct CFdx_
     CExc    *exc;                       /*!< \brief Reference to CExc object */
     CBase   *base;                      /*!< \brief Reference to CBase object */
 
-    CSingleSubject diag_fdx;            /*!< \brief Subject for the FullDuplex Diagnosis reports */
+    CSingleSubject  ssub_diag_fdx;      /*!< \brief Subject for the FullDuplex Diagnosis reports */
 
     CSingleObserver fdx_diag_start;     /*!< \brief Observes the Inic_NwDiagFullDuplex_Sr() command */
     CSingleObserver fdx_diag_stop;      /*!< \brief Observes the Inic_NwDiagFullDuplexEnd_Sr() command */
@@ -105,18 +105,19 @@ typedef struct CFdx_
     CFsm     fsm;                       /*!< \brief FullDuplex Diagnosis state machine  */
     CService fdx_srv;                    /*!< \brief Service instance for the scheduler */
 
-    uint8_t  segment_nr;                /*!< \brief segment number which is currently checked*/
-    uint8_t  num_ports;                 /*!< \brief number of ports of master node */
-    uint8_t  curr_branch;               /*!< \brief branch which is currently examined */
-    uint16_t admin_node_address;        /*!< \brief node address used during FullDuplex Diagnosis */
-    Fdx_ResultCode_t last_result;       /*!< \brief result of last segment */
-    Fdx_Node  master;                   /*!< \brief Timing Master node */
-    Fdx_Node  source;                   /*!< \brief Source node of segment to be tested  */
-    Fdx_Node  target;                   /*!< \brief Target node of segment to be tested  */
-    uint16_t hello_retry;               /*!< \brief retry counter for hello message  */
-    CTimer   timer;                     /*!< \brief timer for monitoring messages */
+    bool     started;                   /*!< \brief Indicates that FullDuplex Diagnosis was started. */
+    uint8_t  segment_nr;                /*!< \brief Segment number which is currently checked*/
+    uint8_t  num_ports;                 /*!< \brief Number of ports of master node */
+    uint8_t  curr_branch;               /*!< \brief Branch which is currently examined */
+    uint16_t admin_node_address;        /*!< \brief Node address used during FullDuplex Diagnosis */
+    Fdx_ResultCode_t last_result;       /*!< \brief Result of last segment */
+    Fdx_Node master;                    /*!< \brief Timing Master node */
+    Fdx_Node source;                    /*!< \brief Source node of segment to be tested  */
+    Fdx_Node target;                    /*!< \brief Target node of segment to be tested  */
+    uint16_t hello_retry;               /*!< \brief Retry counter for hello message  */
+    CTimer   timer;                     /*!< \brief Timer for monitoring messages */
 
-    Ucs_Fdx_Report_t  report;           /*!< \brief reports segment results */
+    Ucs_Fdx_Report_t  report;           /*!< \brief Reports segment results */
 
 } CFdx;
 

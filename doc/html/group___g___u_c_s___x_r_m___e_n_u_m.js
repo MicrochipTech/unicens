@@ -50,9 +50,7 @@ var group___g___u_c_s___x_r_m___e_n_u_m =
       [ "UCS_SOCKET_DIR_OUTPUT", "group___g___u_c_s___x_r_m___e_n_u_m_ga28477f727fe10f9d6fd21cfc98a9c115.html#gga28477f727fe10f9d6fd21cfc98a9c115aa14fc95a1f8c5f54aa6d601614a887fe", null ]
     ] ],
     [ "Ucs_Stream_PortClockConfig_t", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#ga0e856884fa1c7908c59718da0f396484", [
-      [ "UCS_STREAM_PORT_CLK_CFG_8FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484ae3b3cf726190fda9d105b4b7561cb455", null ],
-      [ "UCS_STREAM_PORT_CLK_CFG_16FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484ad4d29b36625c2a20c585524b9bbeab10", null ],
-      [ "UCS_STREAM_PORT_CLK_CFG_32FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484a23baa6e65f75b4b7bb11716bf01a2bda", null ],
+      [ "UCS_STREAM_PORT_CLK_CFG_NONE", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484aa53335fc0c6c50903c76cdbb050e6c11", null ],
       [ "UCS_STREAM_PORT_CLK_CFG_64FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484a6ecefb4d6d534dfc6225644bf6cb9823", null ],
       [ "UCS_STREAM_PORT_CLK_CFG_128FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484a070b6e6a42de4464e8c702b27fc56b26", null ],
       [ "UCS_STREAM_PORT_CLK_CFG_256FS", "group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484ab74d511c86daf3ce6aa90a98381c7e8a", null ],

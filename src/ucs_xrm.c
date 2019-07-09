@@ -306,8 +306,19 @@ void Xrm_MnsNwStatusInfosCb(void *self, void *result_ptr)
         if ((result_ptr_->availability == UCS_NW_NOT_AVAILABLE)  &&
             (self_->IsInRemoteControlMode != false))
         {
+            self_->nw_availability = UCS_NW_NOT_AVAILABLE;
+            /* Free API of currently created resources */
+            if (Xrm_IsApiFree(self_) == false)
+            {
+                TR_INFO((self_->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_MnsNwStatusInfosCb(): API for XRM of node=0x%03X is freed" , 1U, Inic_GetTargetAddress(self_->inic_ptr)));
+                Xrm_ReportAutoDestructionResult(self_);
+            }
             /* Release all resources */
             Xrm_ReleaseResrcHandles(self_);
+        }
+        else
+        {
+            self_->nw_availability = UCS_NW_AVAILABLE;
         }
     }
 }
@@ -333,7 +344,7 @@ void Xrm_RmtDevSyncLostCb(void *self, void *result_ptr)
 {
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     MISC_UNUSED(result_ptr);
-
+    TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_RmtDevSyncLostCb, node id 0x%X", 1U, self_->inic_ptr->target_address));
     Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_NOTIFY_AUTO_DEST_RESR);
 }
 
@@ -388,33 +399,39 @@ Ucs_Return_t Xrm_Process(CExtendedResourceManager *self,
                         {
                             ret_val = UCS_RET_ERR_ALREADY_SET;
                             Xrm_ApiLocking(self, false);
+                             TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_Process, UCS_RET_ERR_ALREADY_SET", 0U));
                         }
                     }
                     else
                     {
                         ret_val = UCS_RET_ERR_PARAM;
                         Xrm_ApiLocking(self, false);
+                        TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_Process, UCS_RET_ERR_PARAM 1", 0U));
                     }
                 }
                 else
                 {
                     Xrm_ApiLocking(self, false);
                     ret_val = UCS_RET_ERR_NOT_AVAILABLE;
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_Process, UCS_RET_ERR_NOT_AVAILABLE", 0U));
                 }
             }
             else
             {
                 ret_val = UCS_RET_ERR_PARAM;
+                TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_Process,UCS_RET_ERR_PARAM 2", 0U));
             }
         }
         else
         {
             ret_val = UCS_RET_ERR_API_LOCKED;
+            TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Xrm_Process,UCS_RET_ERR_API_LOCKED", 0U));
         }
     }
     else
     {
         ret_val = UCS_RET_ERR_PARAM;
+        TR_ERROR((0U, "[XRM]", "Xrm_Process,UCS_RET_ERR_PARAM 3", 0U));
     }
 
     return ret_val;
@@ -659,21 +676,6 @@ uint16_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
     return Xrmp_GetResourceHandleIdx(self->xrmp_ptr, job_ptr, obj_pptr);
 }
 
-/*! \brief  Check if the current device is already attached respectively sync'ed.
- *  \param  self    Reference to the XRM instance
- *  \return \c true if no error occurred, otherwise \c false.
- */
-bool Xrm_IsCurrDeviceAlreadyAttached(CExtendedResourceManager *self)
-{
-    bool ret_val = true;
-
-    if (Rsm_GetDevState(self->rsm_ptr) == RSM_DEV_UNSYNCED)
-    {
-        ret_val = false;
-    }
-
-    return ret_val;
-}
 
 /*! \brief  Check if the current device is already attached respectively sync'ed.
  *  \param  self    Reference to the XRM instance
@@ -746,62 +748,55 @@ void Xrm_ProcessJob(CExtendedResourceManager *self)
     {
         if (*self->current_obj_pptr != NULL)
         {
-            if (Xrm_IsCurrDeviceAlreadyAttached(self) == false)
+            switch (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr))
             {
-                (void)Xrm_RemoteDeviceAttach(self, XRM_EVENT_PROCESS);
-            }
-            else
-            {
-                switch (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr))
-                {
-                    case UCS_XRM_RC_TYPE_NW_SOCKET:
-                        Xrm_CreateNetworkSocket(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_MLB_PORT:
-                        Xrm_CreateMlbPort(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_MLB_SOCKET:
-                        Xrm_CreateMlbSocket(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_USB_PORT:
-                        Xrm_CreateUsbPort(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_USB_SOCKET:
-                        Xrm_CreateUsbSocket(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_RMCK_PORT:
-                        Xrm_CreateRmckPort(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_STRM_PORT:
-                        Xrm_CreateStreamPort(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_STRM_SOCKET:
-                        Xrm_CreateStreamSocket(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_SYNC_CON:
-                        Xrm_CreateSyncCon(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_DFIPHASE_CON:
-                        Xrm_CreateDfiPhaseCon(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_COMBINER:
-                        Xrm_CreateCombiner(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_SPLITTER:
-                        Xrm_CreateSplitter(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_AVP_CON:
-                        Xrm_CreateAvpCon(self);
-                        break;
-                    case UCS_XRM_RC_TYPE_QOS_CON:
-                        Xrm_CreateQoSCon(self);
-                        break;
-                    default:
-                        TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Unexpected Resource Type: 0x%02X", 1U, *(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr)));
-                        self->report_result.code = UCS_XRM_RES_ERR_CONFIG;
-                        Xrm_HandleError(self);
-                        break;
-                }
+                case UCS_XRM_RC_TYPE_NW_SOCKET:
+                    Xrm_CreateNetworkSocket(self);
+                    break;
+                case UCS_XRM_RC_TYPE_MLB_PORT:
+                    Xrm_CreateMlbPort(self);
+                    break;
+                case UCS_XRM_RC_TYPE_MLB_SOCKET:
+                    Xrm_CreateMlbSocket(self);
+                    break;
+                case UCS_XRM_RC_TYPE_USB_PORT:
+                    Xrm_CreateUsbPort(self);
+                    break;
+                case UCS_XRM_RC_TYPE_USB_SOCKET:
+                    Xrm_CreateUsbSocket(self);
+                    break;
+                case UCS_XRM_RC_TYPE_RMCK_PORT:
+                    Xrm_CreateRmckPort(self);
+                    break;
+                case UCS_XRM_RC_TYPE_STRM_PORT:
+                    Xrm_CreateStreamPort(self);
+                    break;
+                case UCS_XRM_RC_TYPE_STRM_SOCKET:
+                    Xrm_CreateStreamSocket(self);
+                    break;
+                case UCS_XRM_RC_TYPE_SYNC_CON:
+                    Xrm_CreateSyncCon(self);
+                    break;
+                case UCS_XRM_RC_TYPE_DFIPHASE_CON:
+                    Xrm_CreateDfiPhaseCon(self);
+                    break;
+                case UCS_XRM_RC_TYPE_COMBINER:
+                    Xrm_CreateCombiner(self);
+                    break;
+                case UCS_XRM_RC_TYPE_SPLITTER:
+                    Xrm_CreateSplitter(self);
+                    break;
+                case UCS_XRM_RC_TYPE_AVP_CON:
+                    Xrm_CreateAvpCon(self);
+                    break;
+                case UCS_XRM_RC_TYPE_QOS_CON:
+                    Xrm_CreateQoSCon(self);
+                    break;
+                default:
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[XRM]", "Unexpected Resource Type: 0x%02X", 1U, *(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr)));
+                    self->report_result.code = UCS_XRM_RES_ERR_CONFIG;
+                    Xrm_HandleError(self);
+                    break;
             }
         }
         else
@@ -850,41 +845,6 @@ uint16_t Xrm_GetResourceHandle(CExtendedResourceManager *self,
                                UCS_XRM_CONST Ucs_Xrm_ResObject_t *resource_object_ptr, Xrmp_CheckJobListFunc_t func_ptr)
 {
     return Xrmp_GetResourceHandle(self->xrmp_ptr, job_ptr, resource_object_ptr, func_ptr, self);
-}
-
-/*! \brief      Retrieves the resource handle identified by the given endpoint, resource type and connection label.
- *  \details    Goes through the endpoint job list and seeks the job matching to the resource type.
- *              This job is given to the XRM pool to get the corresponding resource handle.
- *  \param  self                Instance pointer of the XRM module
- *  \param  conn_lab            The connection label of the route
- *  \param  end_point_ptr       Reference to the routes endpoint
- *  \param  resource_type       The seeked resource type
- *  \return Resource handle if handle was found, otherwise XRM_INVALID_RESOURCE_HANDLE.
- */
-uint16_t Xrm_GetResourceHandleForAtd(CExtendedResourceManager *self,
-                               uint16_t conn_lab,
-                               Ucs_Rm_EndPoint_t *end_point_ptr,
-                               Ucs_Xrm_ResourceType_t resource_type)
-{
-    uint16_t resource_handle = XRM_INVALID_RESOURCE_HANDLE;
-    uint16_t i = 0U;
-    bool loop = true;
-
-    while (loop != false)
-    {
-        if (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(end_point_ptr->jobs_list_ptr[i]) == resource_type)
-        {
-            resource_handle = Xrmp_GetResourceHandleForAtd(self->xrmp_ptr, conn_lab, end_point_ptr->jobs_list_ptr[i]);
-            break;
-        }
-        else if (end_point_ptr->jobs_list_ptr[i] == NULL) /* Exit loop: job list ends with NULL */
-        {
-            loop = false;
-        }
-        i++;
-    }
-
-    return resource_handle;
 }
 
 /*! \brief  Checks for the resource handle in the given resource handle list and counts It if found.

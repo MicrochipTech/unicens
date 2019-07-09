@@ -113,9 +113,9 @@ typedef enum Ucs_InitResult_
  */
 typedef struct Ucs_StdResult_
 {
-    Ucs_Result_t code;  /*!< \brief Result/Error code */
-    uint8_t *info_ptr;  /*!< \brief INIC error data */
-    uint8_t info_size;  /*!< \brief Size of the INIC error data in bytes */
+    Ucs_Result_t  code;       /*!< \brief Result/Error code */
+    uint8_t      *info_ptr;   /*!< \brief INIC error data */
+    uint8_t       info_size;  /*!< \brief Size of the INIC error data in bytes */
 
 } Ucs_StdResult_t;
 

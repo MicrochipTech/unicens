@@ -70,33 +70,6 @@ static uint16_t Xrm_CreatePortHandle(CExtendedResourceManager *self,
     return (uint16_t)((uint16_t)((uint16_t)port_type << 8) | (uint16_t)index);
 }
 
-/*! \brief  Activates remote synchronization on the current device
- *  \param  self            Reference to the XRM instance
- *  \param  next_set_event  Next event to set once the remote synchronization succeeded
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           -------------------------   | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | no message buffer available
- */
-extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_Event_t next_set_event)
-{
-    Ucs_Return_t result;
-
-    result = Rsm_SyncDev(self->rsm_ptr, self, &Xrm_RmtDevAttachResultCb);
-
-    if (result == UCS_RET_SUCCESS)
-    {
-        self->queued_event_mask |= next_set_event;
-        TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start Synchronization of remote device", 0U));
-    }
-    else if (result == UCS_RET_ERR_BUFFER_OVERFLOW)
-    {
-        Xrm_WaitForTxMsgObj(self, next_set_event);
-    }
-
-    return result;
-}
 
 /*! \brief  Triggers the creation of a network socket.
  *  \param  self    Reference to the XRM instance
@@ -104,14 +77,24 @@ extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_
 void Xrm_CreateNetworkSocket(CExtendedResourceManager *self)
 {
     UCS_XRM_CONST Ucs_Xrm_NetworkSocket_t *cfg_ptr = (UCS_XRM_CONST  Ucs_Xrm_NetworkSocket_t *)(UCS_XRM_CONST void*)(*self->current_obj_pptr);
-    uint16_t con_label = (cfg_ptr->direction == UCS_SOCKET_DIR_INPUT) ? self->current_job_ptr->network_connection_label : 0xFFFFU;
-    Ucs_Return_t result = Inic_NetworkSocketCreate(self->inic_ptr,
-                                                   cfg_ptr->nw_port_handle,
-                                                   cfg_ptr->direction,
-                                                   cfg_ptr->data_type,
-                                                   cfg_ptr->bandwidth,
-                                                   con_label,
-                                                   &self->obs.std_result_obs);
+    uint16_t con_label;
+    Ucs_Return_t result;
+    /* Check the highest bit of given connection label: 1 = static, 0 = dynamic */
+    if ((self->current_job_ptr->network_connection_label & ((uint16_t)((uint16_t) 1U << 15U))) == 0U ) /* dynamic connection label */
+    {
+        con_label = (cfg_ptr->direction == UCS_SOCKET_DIR_INPUT) ? self->current_job_ptr->network_connection_label : 0xFFFFU;
+    }
+    else /* Proxy Channel (static connection label) */
+    {
+        con_label = self->current_job_ptr->network_connection_label;
+    }
+    result = Inic_NetworkSocketCreate(self->inic_ptr,
+                                      cfg_ptr->nw_port_handle,
+                                      cfg_ptr->direction,
+                                      cfg_ptr->data_type,
+                                      cfg_ptr->bandwidth,
+                                      con_label,
+                                      &self->obs.std_result_obs);
     if (result == UCS_RET_SUCCESS)
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[XRM]", "Start creating network socket", 0U));
@@ -969,7 +952,8 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
     CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
     Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
 
-    if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL))
+    if ((result_ptr_->result.code == UCS_RES_SUCCESS) && (result_ptr_->data_info != NULL) && ((self_->nw_availability == UCS_NW_AVAILABLE ) ||
+        ((self_->nw_availability != UCS_NW_AVAILABLE ) && (UCS_ADDR_LOCAL_NODE == Inic_GetTargetAddress(self_->inic_ptr))) ) )
     {
         uint16_t resource_handle = 0U;
         if (*(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr) == UCS_XRM_RC_TYPE_NW_SOCKET)
@@ -1039,66 +1023,6 @@ void Xrm_StdResultCb(void *self, void *result_ptr)
     }
 }
 
-/*! \brief  Handles the result of "device.sync" operations.
- *  \param  self        Reference to the XRM instance
- *  \param  result      RSM result
- */
-void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result)
-{
-    CExtendedResourceManager *self_ = (CExtendedResourceManager *)self;
-    if (result.code == RSM_RES_SUCCESS)
-    {
-        Srv_SetEvent(&self_->xrm_srv, self_->queued_event_mask);
-        self_->queued_event_mask = 0U;
-        TR_INFO((self_->base_ptr->ucs_user_ptr, "[XRM]", "Remote device has been successfully synchronized.", 0U));
-    }
-    else
-    {
-        /* In case of StreamingConfig, simulate an error configuration since there
-         * is currently no possibility to signal SyncLost
-         */
-        if ((self_->queued_event_mask  == XRM_EVENT_STREAMPORT_CONFIG_SET) ||
-            (self_->queued_event_mask  == XRM_EVENT_STREAMPORT_CONFIG_GET))
-        {
-            Inic_StdResult_t sim_inic_res;
-            sim_inic_res.result.code = result.details.inic_result.code;
-            sim_inic_res.result.info_ptr = NULL;
-            sim_inic_res.result.info_size = 0U;
-            sim_inic_res.data_info = NULL;
-
-            self_->queued_event_mask = 0U;
-            /* Force a Notification of the Streaming observer */
-            self_->obs.stream_port_config_fptr = self_->current_streamport_config.result_fptr;
-            self_->obs.stream_port_config_obs.update_fptr(self, &sim_inic_res);
-        }
-        else
-        {
-            if (result.details.inic_result.code == UCS_RES_ERR_TRANSMISSION)
-            {
-                self_->report_result.details.result_type = UCS_XRM_RESULT_TYPE_TX;
-            }
-            else
-            {
-                self_->report_result.details.result_type = UCS_XRM_RESULT_TYPE_TGT;
-            }
-            self_->report_result.code = UCS_XRM_RES_ERR_SYNC;
-            self_->report_result.details.inic_result.code = result.details.inic_result.code;
-            self_->report_result.details.inic_result.info_ptr  = result.details.inic_result.info_ptr;
-            self_->report_result.details.inic_result.info_size = result.details.inic_result.info_size;
-            self_->report_result.details.resource_type = *(UCS_XRM_CONST Ucs_Xrm_ResourceType_t *)(UCS_XRM_CONST void*)(*self_->current_obj_pptr);
-            self_->report_result.details.resource_index = Xrm_GetResourceObjectIndex(self_,
-                                                                                        self_->current_job_ptr,
-                                                                                        self_->current_obj_pptr);
-            self_->report_result.details.tx_result = (Ucs_MsgTxStatus_t)result.details.tx_result;
-
-            self_->queued_event_mask = 0U;
-            Srv_SetEvent(&self_->xrm_srv, XRM_EVENT_ERROR);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[XRM]", "Synchronization to the remote device failed. Result code: 0x%02X", 1U, result));
-        }
-    }
-}
-
-
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class CExtendedResourceManager (INIC Resource Management API)                */
 /*------------------------------------------------------------------------------------------------*/
@@ -1166,31 +1090,24 @@ Ucs_Return_t Xrm_SetStreamPortConfiguration (CExtendedResourceManager *self)
 {
     Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
 
-    if (Xrm_IsCurrDeviceAlreadyAttached(self) == false)
+    ret_val = Inic_StreamPortConfig_SetGet(self->inic_ptr,
+                                            self->current_streamport_config.index,
+                                            self->current_streamport_config.op_mode,
+                                            self->current_streamport_config.port_option,
+                                            self->current_streamport_config.clock_mode,
+                                            self->current_streamport_config.clock_data_delay,
+                                            &self->obs.stream_port_config_obs);
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = Xrm_RemoteDeviceAttach(self, XRM_EVENT_STREAMPORT_CONFIG_SET);
+        self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
     }
-    else
+    else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
-        ret_val = Inic_StreamPortConfig_SetGet(self->inic_ptr,
-                                                self->current_streamport_config.index,
-                                                self->current_streamport_config.op_mode,
-                                                self->current_streamport_config.port_option,
-                                                self->current_streamport_config.clock_mode,
-                                                self->current_streamport_config.clock_data_delay,
-                                                &self->obs.stream_port_config_obs);
-        if (ret_val == UCS_RET_SUCCESS)
-        {
-            self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
-        }
-        else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
-        {
-            Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_SET);
-        }
-        else if (ret_val == UCS_RET_ERR_API_LOCKED)
-        {
-            Xrm_ApiLocking(self, false);
-        }
+        Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_SET);
+    }
+    else if (ret_val == UCS_RET_ERR_API_LOCKED)
+    {
+        Xrm_ApiLocking(self, false);
     }
 
     return ret_val;
@@ -1253,23 +1170,16 @@ Ucs_Return_t Xrm_GetStreamPortConfiguration (CExtendedResourceManager *self)
 {
     Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
 
-    if (Xrm_IsCurrDeviceAlreadyAttached(self) == false)
+    ret_val = Inic_StreamPortConfig_Get(self->inic_ptr,
+                                        self->current_streamport_config.index,
+                                        &self->obs.stream_port_config_obs);
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = Xrm_RemoteDeviceAttach(self, XRM_EVENT_STREAMPORT_CONFIG_GET);
+        self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
     }
-    else
+    else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
     {
-        ret_val = Inic_StreamPortConfig_Get(self->inic_ptr,
-                                            self->current_streamport_config.index,
-                                            &self->obs.stream_port_config_obs);
-        if (ret_val == UCS_RET_SUCCESS)
-        {
-            self->obs.stream_port_config_fptr = self->current_streamport_config.result_fptr;
-        }
-        else if (ret_val == UCS_RET_ERR_BUFFER_OVERFLOW)
-        {
-            Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_GET);
-        }
+        Xrm_WaitForTxMsgObj(self, XRM_EVENT_STREAMPORT_CONFIG_GET);
     }
 
     return ret_val;

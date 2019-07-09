@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -122,7 +122,8 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___a_m_s.html','');})
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The allocated Tx message object or <code>NULL</code> if no Tx message object is available. If the function returns <code>NULL</code> the application can use <a class="el" href="struct_ucs___ams_tx___init_data__t_a9217a093b6d7e68b7cd9d759c5cef192.html#a9217a093b6d7e68b7cd9d759c5cef192">ams.tx.message_freed_fptr</a> as trigger to request a message object again. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocated Tx message object or <code>NULL</code> if no Tx message object is available. If the function returns <code>NULL</code> the application can use <a class="el" href="struct_ucs___ams_tx___init_data__t_a9217a093b6d7e68b7cd9d759c5cef192.html#a9217a093b6d7e68b7cd9d759c5cef192">ams.tx.message_freed_fptr</a> as trigger to request a message object again.<br/>
+ Please note that the function also returns <code>NULL</code> if the current <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Supervisor Mode</a> does not allow the execution, or the AMS feature is disabled either by defining <a class="el" href="group___g___u_c_s___m_i_s_c_ga0922091e9a1dd367834936f40a4d477c.html#ga0922091e9a1dd367834936f40a4d477c">UCS_FOOTPRINT_DISABLE_AMS</a> or by setting the initialization attribute <a class="el" href="struct_ucs___ams___init_data__t.html">ams.enabled</a> to <code>false</code>. In the first case it is recommended to re-trigger this function if the <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Supervisor Mode</a> alters to a valid one. </dd></dl>
 <dl class="section note"><dt>Note</dt><dd>The application may also allocate a certain number of message objects without transmitting in one go. In this case the message object is handed over to the application which is now responsible to transmit or free the object. When UNICENS terminates it is possible that user allocated memory is still dedicated to such a message buffer. In this case the application must do the following steps for every retained Tx message object:<ul>
 <li>Free application provided payload</li>
 <li>Call <a class="el" href="group___g___u_c_s___a_m_s_ga9e03946330dcc4ed4111b1d43714308d.html#ga9e03946330dcc4ed4111b1d43714308d" title="Frees an unused Tx message object.">Ucs_AmsTx_FreeUnusedMsg()</a> to release the message to UNICENS</li>
@@ -138,12 +139,12 @@ After performing these steps the application is allowed to call <a class="el" hr
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a></li>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

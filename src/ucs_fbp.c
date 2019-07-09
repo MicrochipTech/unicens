@@ -49,7 +49,7 @@
 /* Internal constants                                                                             */
 /*------------------------------------------------------------------------------------------------*/
 #define FBP_NUM_STATES               6U     /*!< \brief Number of state machine states */
-#define FBP_NUM_EVENTS              11U     /*!< \brief Number of state machine events */
+#define FBP_NUM_EVENTS              10U     /*!< \brief Number of state machine events */
 
 
 #define ADMIN_BASE_ADDR         0x0F00U
@@ -67,14 +67,14 @@
 /*! \brief supervise EXC commands */
 #define FBP_T_COMMAND              100U
 /*! \brief Timeout for the ReverseRequest command.
-           = t_switch + t_t_wait + some guard time */
+           = t_switch + t_wait + some guard time */
 #define FBP_T_TIMEOUT           (FBP_T_NEG_INITIATOR + 17000U)
 /*! \brief Time to reach a stable signal after TxEnable */
 #define FBP_T_SIG_PROP          (FBP_T_SWITCH + 100U)
 #define FBP_T_LIGHT_PROGRESS    20U
 
 /*!< \brief Wait for end of negotiation phase. > 300ms */
-#define FBP_T_NEG_PHASE 600U
+#define FBP_T_NEG_PHASE 600U            
 
 
 /*------------------------------------------------------------------------------------------------*/
@@ -95,14 +95,14 @@ typedef enum Fbp_Events_
     FBP_E_NIL                = 0U,      /*!< \brief NIL Event */
     FBP_E_START              = 1U,      /*!< \brief API start command was called. */
     FBP_E_STOP               = 2U,      /*!< \brief API stop command was called. */
-    FBP_E_FBP_MODE_END       = 3U,      /*!< \brief INIC.FBPiagEnd.Result successful. */
-    FBP_E_FBP_MODE_STARTED   = 4U,      /*!< \brief INIC.FBPiag.Result successful. */
-    FBP_E_FBP_RESULT         = 5U,      /*!< \brief EXC.FBPIAG.Result Ok received. */
-    FBP_E_NET_OFF            = 6U,      /*!< \brief NetOff occurred. */
+    FBP_E_FBP_MODE_END       = 3U,      /*!< \brief INIC.NetworkFallbackEnd.Result successful. */
+    FBP_E_FBP_MODE_STARTED   = 4U,      /*!< \brief INIC.NetworkFallback.Result successful. */
+    FBP_E_REVREQ_RESULT      = 5U,      /*!< \brief EXC.RevReq.Result Ok received. */
+    FBP_E_FB_OFF             = 6U,      /*!< \brief Fallback mode was left. */
     FBP_E_TIMEOUT            = 7U,      /*!< \brief Timeout occurred. */
     FBP_E_ERROR              = 8U,      /*!< \brief An unexpected error occurred. */
-    FBP_E_SYNC_ERR           = 9U,      /*!< \brief Synchronous error on an internal function call. */
-    FBP_E_ALIVE              = 10U      /*!< \brief Alive Message was received. */
+    FBP_E_SYNC_ERR           = 9U       /*!< \brief Synchronous error on an internal function call. */
+
 
 } Fbp_Events_t;
 
@@ -128,16 +128,19 @@ typedef enum Fbp_State_
 /*------------------------------------------------------------------------------------------------*/
 static void Fbp_Service(void *self);
 
+static void Fbp_FinishFbp(void *self);
+
 static void Fbp_InicFbpStartCb(void *self, void *result_ptr);
-static void Fbp_ReverseRequest_ResultCb(void *self, void *result_ptr);
 static void Fbp_InicFbpEndCb(void *self, void *result_ptr);
-static void Fbp_Alive_ResultCb(void *self, void *result_ptr);
+static void Fbp_ReverseRequest_ResultCb(void *self, void *result_ptr);
+
 
 static void Fbp_NetworkStatusCb(void *self, void *result_ptr);
 
 static void Fbp_A_StartFBPMode(void *self);
 static void Fbp_A_TimeoutFbpMode(void *self);
 static void Fbp_A_StartFbpModeFailed(void *self);
+static void Fbp_A_StopFBPMode(void *self);
 static void Fbp_A_RevReqStart(void *self);
 static void Fbp_A_RevReqTimeout(void *self);
 static void Fbp_A_RevReqStartFailed(void *self);
@@ -145,8 +148,6 @@ static void Fbp_A_FbpStopTimeout(void *self);
 static void Fbp_A_FbpStopFailed(void *self);
 
 static void Fbp_A_EndFbp(void *self);
-static void Fbp_A_Alive(void *self);
-static void Fbp_A_FinishFbp(void *self);
 static void Fbp_A_Go_Neg_Phase(void *self);
 static void Fbp_A_Go_Fbp(void *self);
 
@@ -162,15 +163,14 @@ static const Fsm_StateElem_t fbp_trans_tab[FBP_NUM_STATES][FBP_NUM_EVENTS] =    
     { /* State FBP_S_IDLE */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_IDLE              },
         /* FBP_E_START              */ {Fbp_A_StartFBPMode,         FBP_S_STARTED           },
-        /* FBP_E_STOP               */ {NULL,                       FBP_S_IDLE              },
+        /* FBP_E_STOP               */ {Fbp_A_StopFBPMode,          FBP_S_END               },
         /* FBP_E_FBP_MODE_END       */ {NULL,                       FBP_S_IDLE              },
-        /* FBP_E_FBP_MODE_STARTE D  */ {NULL,                       FBP_S_IDLE              },
-        /* FBP_E_FBP_RESULT         */ {NULL,                       FBP_S_IDLE              },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_IDLE              },
+        /* FBP_E_FBP_MODE_STARTED   */ {NULL,                       FBP_S_IDLE              },
+        /* FBP_E_REVREQ_RESULT      */ {NULL,                       FBP_S_IDLE              },
+        /* FBP_E_FB_OFF             */ {NULL,                       FBP_S_IDLE              },
         /* FBP_E_TIMEOUT            */ {NULL,                       FBP_S_IDLE              },
         /* FBP_E_ERROR              */ {NULL,                       FBP_S_IDLE              },
-        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_IDLE              },
-        /* FBP_E_ALIVE              */ {NULL,                       FBP_S_IDLE              }
+        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_IDLE              }
     },
     { /* State FBP_S_STARTED */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_STARTED           },
@@ -178,12 +178,11 @@ static const Fsm_StateElem_t fbp_trans_tab[FBP_NUM_STATES][FBP_NUM_EVENTS] =    
         /* FBP_E_STOP               */ {NULL,                       FBP_S_STARTED           },
         /* FBP_E_FBP_MODE_END       */ {NULL,                       FBP_S_STARTED           },
         /* FBP_E_FBP_MODE_STARTED   */ {Fbp_A_Go_Neg_Phase,         FBP_S_WAIT_NEG          },
-        /* FBP_E_FBP_RESULT         */ {NULL,                       FBP_S_STARTED           },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_STARTED           },
-        /* FBP_E_TIMEOUT            */ {Fbp_A_TimeoutFbpMode,       FBP_S_END               },
-        /* FBP_E_ERROR              */ {Fbp_A_StartFbpModeFailed,   FBP_S_END               },
-        /* FBP_E_SYNC_ERR           */ {Fbp_A_StartFbpModeFailed,   FBP_S_END               },
-        /* FBP_E_ALIVE              */ {NULL,                       FBP_S_STARTED           }
+        /* FBP_E_REVREQ_RESULT      */ {NULL,                       FBP_S_STARTED           },
+        /* FBP_E_FB_OFF             */ {NULL,                       FBP_S_STARTED           },
+        /* FBP_E_TIMEOUT            */ {Fbp_A_TimeoutFbpMode,       FBP_S_IDLE              },
+        /* FBP_E_ERROR              */ {Fbp_A_StartFbpModeFailed,   FBP_S_IDLE              },
+        /* FBP_E_SYNC_ERR           */ {Fbp_A_StartFbpModeFailed,   FBP_S_IDLE              }
     },
     { /* State FBP_S_WAIT_NEG */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_WAIT_NEG          },
@@ -191,12 +190,11 @@ static const Fsm_StateElem_t fbp_trans_tab[FBP_NUM_STATES][FBP_NUM_EVENTS] =    
         /* FBP_E_STOP               */ {NULL,                       FBP_S_WAIT_NEG          },
         /* FBP_E_FBP_MODE_END       */ {NULL,                       FBP_S_WAIT_NEG          },
         /* FBP_E_FBP_MODE_STARTED   */ {NULL,                       FBP_S_WAIT_REV_REQ      },
-        /* FBP_E_FBP_RESULT         */ {NULL,                       FBP_S_WAIT_NEG          },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_WAIT_NEG          },
+        /* FBP_E_REVREQ_RESULT      */ {NULL,                       FBP_S_WAIT_NEG          },
+        /* FBP_E_FB_OFF             */ {NULL,                       FBP_S_WAIT_NEG          },
         /* FBP_E_TIMEOUT            */ {Fbp_A_RevReqStart,          FBP_S_WAIT_REV_REQ      },
         /* FBP_E_ERROR              */ {NULL,                       FBP_S_WAIT_NEG          },
-        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_WAIT_NEG          },
-        /* FBP_E_ALIVE              */ {NULL,                       FBP_S_WAIT_NEG          }
+        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_WAIT_NEG          }
     },
     { /* State FBP_S_WAIT_REV_REQ */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_WAIT_REV_REQ      },
@@ -204,25 +202,23 @@ static const Fsm_StateElem_t fbp_trans_tab[FBP_NUM_STATES][FBP_NUM_EVENTS] =    
         /* FBP_E_STOP               */ {NULL,                       FBP_S_WAIT_REV_REQ      },
         /* FBP_E_FBP_MODE_END       */ {NULL,                       FBP_S_WAIT_REV_REQ      },
         /* FBP_E_FBP_MODE_STARTED   */ {NULL,                       FBP_S_WAIT_REV_REQ      },
-        /* FBP_E_FBP_RESULT         */ {Fbp_A_Go_Fbp,               FBP_S_STAY_FBP          },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_WAIT_REV_REQ      },
+        /* FBP_E_REVREQ_RESULT      */ {Fbp_A_Go_Fbp,               FBP_S_STAY_FBP          },
+        /* FBP_E_FB_OFF             */ {NULL,                       FBP_S_WAIT_REV_REQ      },
         /* FBP_E_TIMEOUT            */ {Fbp_A_RevReqTimeout,        FBP_S_END               },
         /* FBP_E_ERROR              */ {Fbp_A_RevReqStartFailed,    FBP_S_END               },
-        /* FBP_E_SYNC_ERR           */ {Fbp_A_RevReqStartFailed,    FBP_S_END               },
-        /* FBP_E_ALIVE              */ {NULL,                       FBP_S_WAIT_REV_REQ      }
+        /* FBP_E_SYNC_ERR           */ {Fbp_A_RevReqStartFailed,    FBP_S_END               }
     },
     { /* State FBP_S_STAY_FBP */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_STAY_FBP          },
         /* FBP_E_START              */ {NULL,                       FBP_S_STAY_FBP          },
-        /* FBP_E_STOP               */ {Fbp_A_FinishFbp,            FBP_S_END               },
+        /* FBP_E_STOP               */ {Fbp_A_StopFBPMode,          FBP_S_END               },
         /* FBP_E_FBP_MODE_END       */ {NULL,                       FBP_S_STAY_FBP          },
         /* FBP_E_FBP_MODE_STARTED   */ {NULL,                       FBP_S_STAY_FBP          },
-        /* FBP_E_FBP_RESULT         */ {NULL,                       FBP_S_STAY_FBP          },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_STAY_FBP          },
+        /* FBP_E_REVREQ_RESULT      */ {NULL,                       FBP_S_STAY_FBP          },
+        /* FBP_E_FB_OFF             */ {Fbp_A_EndFbp,               FBP_S_IDLE              },
         /* FBP_E_TIMEOUT            */ {NULL,                       FBP_S_STAY_FBP          },
         /* FBP_E_ERROR              */ {NULL,                       FBP_S_STAY_FBP          },
-        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_STAY_FBP          },
-        /* FBP_E_ALIVE              */ {Fbp_A_Alive,                FBP_S_STAY_FBP          }
+        /* FBP_E_SYNC_ERR           */ {NULL,                       FBP_S_STAY_FBP          }
     },
     { /* State FBP_S_END */
         /* FBP_E_NIL                */ {NULL,                       FBP_S_END               },
@@ -230,12 +226,11 @@ static const Fsm_StateElem_t fbp_trans_tab[FBP_NUM_STATES][FBP_NUM_EVENTS] =    
         /* FBP_E_STOP               */ {NULL,                       FBP_S_END               },
         /* FBP_E_FBP_MODE_END       */ {Fbp_A_EndFbp,               FBP_S_IDLE              },
         /* FBP_E_FBP_MODE_STARTED   */ {NULL,                       FBP_S_END               },
-        /* FBP_E_FBP_RESULT         */ {NULL,                       FBP_S_END               },
-        /* FBP_E_NET_OFF            */ {NULL,                       FBP_S_IDLE              },
+        /* FBP_E_REVREQ_RESULT      */ {NULL,                       FBP_S_END               },
+        /* FBP_E_FB_OFF             */ {NULL,                       FBP_S_IDLE              },
         /* FBP_E_TIMEOUT            */ {Fbp_A_FbpStopTimeout,       FBP_S_IDLE              },
         /* FBP_E_ERROR              */ {Fbp_A_FbpStopFailed,        FBP_S_IDLE              },
-        /* FBP_E_SYNC_ERR           */ {Fbp_A_FbpStopFailed,        FBP_S_IDLE              },
-        /* FBP_E_ALIVE              */ {NULL,                       FBP_S_END               }
+        /* FBP_E_SYNC_ERR           */ {Fbp_A_FbpStopFailed,        FBP_S_IDLE              }
     }
 };
 
@@ -261,12 +256,11 @@ void Fbp_Ctor(CFbackProt *self, CInic *inic, CBase *base, CExc *exc)
     Sobs_Ctor(&self->fbp_inic_fbp_start, self, &Fbp_InicFbpStartCb);
     Sobs_Ctor(&self->fbp_inic_fbp_end,   self, &Fbp_InicFbpEndCb);
     Sobs_Ctor(&self->fbp_rev_req,        self, &Fbp_ReverseRequest_ResultCb);
-    Sobs_Ctor(&self->fbp_alive,          self, &Fbp_Alive_ResultCb);
 
     /* Register NetOn and MPR events */
     Obs_Ctor(&self->fbp_nwstatus, self, &Fbp_NetworkStatusCb);
     Inic_AddObsrvNwStatus(self->inic,  &self->fbp_nwstatus);
-    self->neton = false;
+    self->fallback = false;
 
     /* Initialize Node Discovery service */
     Srv_Ctor(&self->service, FBP_SRV_PRIO, self, &Fbp_Service);
@@ -306,22 +300,25 @@ static void Fbp_Service(void *self)
  *  \param duration Time until the nodes, which are not Fallback Protection master, finish the Fallback
  *                  Protection mode.  The unit is seconds. A value of 0xFFFF means that these nodes
  *                  never leave the Fallback Protection mode.
- *  \param report_fptr  Reference to result callback used by Fallback Protection
-*/
-void Fbp_Start(CFbackProt *self, uint16_t duration, Ucs_Fbp_ReportCb_t report_fptr)
+ */
+void Fbp_Start(CFbackProt *self, uint16_t duration)
 {
+
     self->duration    = duration;
-    self->report_fptr = report_fptr;
 
     Fsm_SetEvent(&self->fsm, FBP_E_START);
     Srv_SetEvent(&self->service, FBP_EVENT_SERVICE);
 
     TR_INFO((self->base->ucs_user_ptr, "[FBP]", "Fbp_Start", 0U));
-
 }
 
+/*! \brief Stops the Fallback Protection mode.
+ *
+ * \param self   Reference to Fallback Protection object
+ */
 void Fbp_Stop(CFbackProt *self)
 {
+
     Fsm_SetEvent(&self->fsm, FBP_E_STOP);
     Srv_SetEvent(&self->service, FBP_EVENT_SERVICE);
 
@@ -329,12 +326,42 @@ void Fbp_Stop(CFbackProt *self)
 
 }
 
+/*! \brief Registers an observer to report the result of the Fallback Protection mode.
+ *
+ * \param self     Reference to Fallback Protection object
+ * \param obs_ptr  Reference to observer
+ * \return 
+ */
+Ucs_Return_t Fbp_RegisterReportObserver(CFbackProt* self, CSingleObserver* obs_ptr)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+
+    Ssub_Ret_t ret_ssub;
+
+    ret_ssub = Ssub_AddObserver(&self->ssub_fbp_report, obs_ptr);
+    if (ret_ssub == SSUB_UNKNOWN_OBSERVER)
+    {
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return ret_val;
+}
+
+
+/*! \brief Unregisters the observer
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+void Fbp_UnRegisterReportObserver(CFbackProt* self)
+{
+    Ssub_RemoveObserver(&self->ssub_fbp_report);
+}
 
 
 /**************************************************************************************************/
 /*  FSM Actions                                                                                   */
 /**************************************************************************************************/
-/*! Sets the Fallback Protection mode.
+/*! \brief Sets the Fallback Protection mode.
  *
  * \param self  The instance
  */
@@ -372,6 +399,10 @@ static void Fbp_A_StartFBPMode(void *self)
 }
 
 
+/*! \brief Sets timer for negotiation phase
+ *
+ * \param self  Reference to Fallback Protection object
+ */
 static void Fbp_A_Go_Neg_Phase(void *self)
 {
 
@@ -386,7 +417,7 @@ static void Fbp_A_Go_Neg_Phase(void *self)
 
 }
 
-/*! Starts the diagnosis command for one certain segment.
+/*! \brief Starts the diagnosis command for one certain segment.
  *
  * \param self  The instance
  */
@@ -406,10 +437,9 @@ static void Fbp_A_RevReqStart(void *self)
                                            self_->current_position,
                                            FBP_T_SWITCH,
                                            FBP_T_SEND,
-                                           FBP_T_BACK,
+                                           self_->duration,
                                            req_list,
-                                           &self_->fbp_rev_req,
-                                           &self_->fbp_alive);
+                                           &self_->fbp_rev_req);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -430,51 +460,163 @@ static void Fbp_A_RevReqStart(void *self)
 }
 
 
+/*! \brief Report successful transition to fallback mode
+ *
+ * \param self  Reference to Fallback Protection object
+ */
 static void Fbp_A_Go_Fbp(void *self)
 {
-
+    Ucs_Fbp_ResCode_t result;
     CFbackProt *self_ = (CFbackProt *)self;
 
     TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_Go_Fbp", 0U));
-    if (self_->report_fptr != NULL)
-    {
-        self_->report_fptr(UCS_FBP_RES_SUCCESS, self_->base->ucs_user_ptr);
-    }
+
+    result = UCS_FBP_RES_SUCCESS;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
 }
 
 
 
-
-
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
 static void Fbp_A_EndFbp(void *self)
 {
+    Ucs_Fbp_ResCode_t result;
     CFbackProt *self_ = (CFbackProt *)self;
 
     TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_EndFbp", 0U));
-    if (self_->report_fptr != NULL)
-    {
-        self_->report_fptr(UCS_FBP_RES_END, self_->base->ucs_user_ptr);
-    }
+
+    result = UCS_FBP_RES_END;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
 }
 
-static void Fbp_A_Alive(void *self)
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_StopFBPMode(void *self)
 {
     CFbackProt *self_ = (CFbackProt *)self;
 
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_Alive", 0U));
-    if (self_->report_fptr != NULL)
-    {
-        self_->report_fptr(UCS_FBP_RES_ALIVE, self_->base->ucs_user_ptr);
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_StopFBPMode", 0U));
+
+    Fbp_FinishFbp(self);
+    MISC_UNUSED(self_);
     }
+
+
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_TimeoutFbpMode(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_TimeoutFbpMode", 0U));
+
+    result = UCS_FBP_RES_TIMEOUT;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
 }
 
 
-static void Fbp_A_FinishFbp(void *self)
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_StartFbpModeFailed(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_StartFbpModeFailed", 0U));
+
+    result = UCS_FBP_RES_ERROR;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
+}
+
+
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_RevReqStartFailed(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_RevReqStartFailed", 0U));
+
+    result = UCS_FBP_RES_ERROR;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
+
+    Fbp_FinishFbp(self);    /* try to leave FBP mode. */
+}
+
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_RevReqTimeout(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_RevReqTimeout", 0U));
+
+    result = UCS_FBP_RES_TIMEOUT;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
+
+    Fbp_FinishFbp(self);    /* try to leave FBP mode. */
+}
+
+
+/*!  \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_FbpStopFailed(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_FbpStopFailed", 0U));
+
+    result = UCS_FBP_RES_ERROR;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
+}
+
+/*! \brief 
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_A_FbpStopTimeout(void *self)
+{
+    Ucs_Fbp_ResCode_t result;
+    CFbackProt *self_ = (CFbackProt *)self;
+
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_FbpStopTimeout", 0U));
+
+    result = UCS_FBP_RES_TIMEOUT;
+    Ssub_Notify(&self_->ssub_fbp_report, &result, false);
+}
+
+
+/*--------------------------*/
+
+/*! \brief Send command to finish FallbackProtection mode.
+ *
+ * \param self  Reference to Fallback Protection object
+ */
+static void Fbp_FinishFbp(void *self)
 {
     CFbackProt *self_ = (CFbackProt *)self;
     Ucs_Return_t ret_val;
 
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_FinishFbp", 0U));
+    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_FinishFbp", 0U));
 
     /* try to finish Fallback Protection mode: send INIC.FBPiagEnd.StartResult */
     ret_val = Inic_FBP_End(self_->inic,  &self_->fbp_inic_fbp_end);
@@ -501,85 +643,6 @@ static void Fbp_A_FinishFbp(void *self)
 
 
 
-static void Fbp_A_TimeoutFbpMode(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_TimeoutFbpMode", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_TIMEOUT, self_->base->ucs_user_ptr);
-    }
-}
-
-
-static void Fbp_A_StartFbpModeFailed(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_StartFbpModeFailed", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_ERROR, self_->base->ucs_user_ptr);
-    }
-}
-
-
-static void Fbp_A_RevReqStartFailed(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_RevReqStartFailed", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_ERROR, self_->base->ucs_user_ptr);
-    }
-}
-
-static void Fbp_A_RevReqTimeout(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_RevReqTimeout", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_TIMEOUT, self_->base->ucs_user_ptr);
-    }
-}
-
-
-static void Fbp_A_FbpStopFailed(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_FbpStopFailed", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_ERROR, self_->base->ucs_user_ptr);
-    }
-}
-
-static void Fbp_A_FbpStopTimeout(void *self)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
-
-    TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_A_FbpStopTimeout", 0U));
-
-    if (self_->report_fptr != NULL)
-    {
-            self_->report_fptr(UCS_FBP_RES_TIMEOUT, self_->base->ucs_user_ptr);
-    }
-}
-
-
-/*--------------------------*/
-
-
 
 
 
@@ -592,7 +655,7 @@ static void Fbp_A_FbpStopTimeout(void *self)
 /*  Callback functions                                                                            */
 /**************************************************************************************************/
 
-/*! \brief  Function is called on reception of the INIC.FBPiag.Result message
+/*! \brief  Function is called on reception of the INIC.NetworkFallback.Result message
  *  \param  self        Reference to Fallback Protection object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -624,48 +687,7 @@ static void Fbp_InicFbpStartCb(void *self, void *result_ptr)
 }
 
 
-
-
-/*! \brief  Function is called on reception of the ENC.FBP.Result message
- *  \param  self        Reference to Fallback Protection object
- *  \param  result_ptr  Pointer to the result of the FBPiag message
- */
-static void Fbp_ReverseRequest_ResultCb(void *self, void *result_ptr)
-{
-    CFbackProt *self_      = (CFbackProt *)self;
-    Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *)result_ptr;
-
-    if (result_ptr_->result.code == UCS_RES_SUCCESS)
-    {
-        self_->fbp_result = *((Exc_ReverseReq1_Result_t *)(result_ptr_->data_info));
-        if (self_->fbp_result.req_id == EXC_REV_REQ_FBP)
-        {
-            switch (self_->fbp_result.result_list.result)
-            {
-            case EXC_REVREQ1_RES_SUCCESS:
-                /* node is ok */
-                Fsm_SetEvent(&self_->fsm, FBP_E_FBP_RESULT);
-                TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb SUCCESS", 0U));
-                break;
-
-            default:
-                Fsm_SetEvent(&self_->fsm, FBP_E_ERROR);
-                TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb ERROR", 0U));
-                break;
-            }
-        }
-    }
-    else
-    {
-        Fsm_SetEvent(&self_->fsm, FBP_E_ERROR);
-        TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb Error  0x%x", 1U, result_ptr_->result.code));
-    }
-
-    Srv_SetEvent(&self_->service, FBP_EVENT_SERVICE);
-}
-
-
-/*! \brief  Function is called on reception of the INIC.FBPiagEnd.Result message
+/*! \brief  Function is called on reception of the INIC.NetworkFallback.Result message
  *  \param  self        Reference to Fallback Protection object
  *  \param  result_ptr  Pointer to the result of the Welcome message
  */
@@ -691,59 +713,51 @@ static void Fbp_InicFbpEndCb(void *self, void *result_ptr)
 }
 
 
-static void Fbp_Alive_ResultCb(void *self, void *result_ptr)
-{
-    CFbackProt *self_        = (CFbackProt *)self;
-    Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *)result_ptr;
 
-    Tm_ClearTimer(&self_->base->tm, &self_->timer);
+
+/*! \brief  Function is called on reception of the ENC.ReverseRequest.Result message
+ *  \param  self        Reference to Fallback Protection object
+ *  \param  result_ptr  Pointer to the result of the FBPiag message
+ */
+static void Fbp_ReverseRequest_ResultCb(void *self, void *result_ptr)
+{
+    CFbackProt *self_      = (CFbackProt *)self;
+    Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *)result_ptr;
 
     if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
-        Fsm_SetEvent(&self_->fsm, FBP_E_ALIVE);
-        TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_Alive_ResultCb FBP_E_ALIVE", 0U));
+        self_->fbp_result = *((Exc_ReverseReq1_Result_t *)(result_ptr_->data_info));
+        if (self_->fbp_result.req_id == EXC_REV_REQ_FBP)
+        {
+            switch (self_->fbp_result.result_list.result)
+            {
+            case EXC_REVREQ1_RES_SUCCESS:
+                /* node is ok */
+                Fsm_SetEvent(&self_->fsm, FBP_E_REVREQ_RESULT);
+                TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb SUCCESS", 0U));
+                break;
+
+            default:
+                Fsm_SetEvent(&self_->fsm, FBP_E_ERROR);
+                TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb ERROR", 0U));
+                break;
+            }
+        }
     }
     else
     {
         Fsm_SetEvent(&self_->fsm, FBP_E_ERROR);
-        TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_Alive_ResultCb Error  0x%x", 1U, result_ptr_->result.code));
+        TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_DiagnosisResultCb Error  0x%x", 1U, result_ptr_->result.code));
     }
 
     Srv_SetEvent(&self_->service, FBP_EVENT_SERVICE);
-
 }
 
-#if 0
-/*!  Function is called on severe internal errors
- *
- * \param self          Reference to Node Discovery object
- * \param result_ptr    Reference to data
- */
-static void Fbp_OnTerminateEventCb(void *self, void *result_ptr)
-{
-    CFbackProt *self_ = (CFbackProt *)self;
 
-    MISC_UNUSED(result_ptr);
-
-    if (self_->fsm.current_state != FBP_S_IDLE)
-    {
-        Tm_ClearTimer(&self_->base->tm, &self_->timer);
-        if (self_->report_fptr != NULL)
-        {
-            if (self_->first_error_reported == false)
-            {
-                self_->report_fptr(UCS_FBP_RES_ERROR, UCS_FBP_DUMMY_POS, dummy, self_->base->ucs_user_ptr);
-                self_->first_error_reported = true;
-                self_->report_fptr(UCS_FBP_RES_END, UCS_FBP_DUMMY_POS, dummy, self_->base->ucs_user_ptr);
-            }
-        }
-    }
-}
-#endif
 
 /*! \brief Callback function for the INIC.NetworkStatus status and error messages
  *
- * \param self          Reference to Node Discovery object
+ * \param self          Reference to Reference to Fallback Protection object 
  * \param result_ptr    Pointer to the result of the INIC.NetworkStatus message
  */
 static void Fbp_NetworkStatusCb(void *self, void *result_ptr)
@@ -754,12 +768,17 @@ static void Fbp_NetworkStatusCb(void *self, void *result_ptr)
     if (result_ptr_->result.code == UCS_RES_SUCCESS)
     {
         TR_INFO((self_->base->ucs_user_ptr, "[FBP]", "Fbp_NetworkStatusCb  0x%x", 1U, result_ptr_->result.code));
-        /* check for NetOn/NetOff events */
-        if (    (self_->neton == true)
-             && ((((Inic_NetworkStatus_t *)(result_ptr_->data_info))->availability) == UCS_NW_NOT_AVAILABLE) )
+        /* check for entering fallback mode */
+        if (   (self_->fallback == false)
+            && ((((Inic_NetworkStatus_t *)(result_ptr_->data_info))->avail_info) == UCS_NW_AVAIL_INFO_FALLBACK))
         {
-            self_->neton = false;
-            Fsm_SetEvent(&self_->fsm, FBP_E_NET_OFF);
+            self_->fallback = true;
+        }
+        else if (   (self_->fallback == true)   /* leaving fallback mode */
+            && ((((Inic_NetworkStatus_t *)(result_ptr_->data_info))->avail_info) == UCS_NW_AVAIL_INFO_REGULAR))
+        {
+            self_->fallback = false;
+            Fsm_SetEvent(&self_->fsm, FBP_E_FB_OFF);
             Srv_SetEvent(&self_->service, FBP_EVENT_SERVICE);
         }
     }

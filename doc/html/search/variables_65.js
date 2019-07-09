@@ -1,12 +1,13 @@
 var searchData=
 [
-  ['enabled',['enabled',['../struct_ucs___ams___init_data__t_a8740ba80e30dd75e71d09fa1dcf04f3d.html#a8740ba80e30dd75e71d09fa1dcf04f3d',1,'Ucs_Ams_InitData_t::enabled()'],['../struct_ucs___mgr___init_data__t_a8740ba80e30dd75e71d09fa1dcf04f3d.html#a8740ba80e30dd75e71d09fa1dcf04f3d',1,'Ucs_Mgr_InitData_t::enabled()']]],
+  ['enabled',['enabled',['../struct_ucs___ams___init_data__t_a8740ba80e30dd75e71d09fa1dcf04f3d.html#a8740ba80e30dd75e71d09fa1dcf04f3d',1,'Ucs_Ams_InitData_t::enabled()'],['../struct_ucs___rm___atd__t_a071e5007ca753b83d24505a6b6daba5c.html#a071e5007ca753b83d24505a6b6daba5c',1,'Ucs_Rm_Atd_t::enabled()']]],
   ['end_5fpoint_5faddr',['end_point_addr',['../struct_ucs___xrm___usb_socket__t_a10acc74574f398d6b12989cc1ed95fe0.html#a10acc74574f398d6b12989cc1ed95fe0',1,'Ucs_Xrm_UsbSocket_t']]],
-  ['endpoint_5ftype',['endpoint_type',['../struct_ucs___rm___end_point__t_a7e46feb849d169800b21d689de273901.html#a7e46feb849d169800b21d689de273901',1,'Ucs_Rm_EndPoint_t']]],
+  ['endpoint_5ftype',['endpoint_type',['../struct_ucs___rm___end_point__t_a7e46feb849d169800b21d689de273901.html#a7e46feb849d169800b21d689de273901',1,'Ucs_Rm_EndPoint_t::endpoint_type()'],['../struct_ucs___rm___d_c___end_point__t_a7e46feb849d169800b21d689de273901.html#a7e46feb849d169800b21d689de273901',1,'Ucs_Rm_DC_EndPoint_t::endpoint_type()']]],
   ['err_5finfo',['err_info',['../struct_ucs___fdx___report__t_a41ef9c9a0a2cb182fe52a65367b52f19.html#a41ef9c9a0a2cb182fe52a65367b52f19',1,'Ucs_Fdx_Report_t']]],
   ['error',['error',['../struct_c_programming_a2e6eb03384cae6a78a3ab2a9a63229e9.html#a2e6eb03384cae6a78a3ab2a9a63229e9',1,'CProgramming']]],
   ['error_5ffptr',['error_fptr',['../struct_ucs___general___init_data__t_aa197d5a04c7eee7b95eb9e1de232d161.html#aa197d5a04c7eee7b95eb9e1de232d161',1,'Ucs_General_InitData_t']]],
-  ['eval_5ffptr',['eval_fptr',['../struct_ucs___nd___init_data__t_ab9bc02a84c7daeff234344541d41be62.html#ab9bc02a84c7daeff234344541d41be62',1,'Ucs_Nd_InitData_t']]],
+  ['error_5fptr',['error_ptr',['../struct_ucs___prg___report__t_a7d0c204bbd5a5abe7889d4f4edd449e8.html#a7d0c204bbd5a5abe7889d4f4edd449e8',1,'Ucs_Prg_Report_t']]],
+  ['error_5fsize',['error_size',['../struct_ucs___prg___report__t_a20a783978d3902a49e935e5d75c7a8fd.html#a20a783978d3902a49e935e5d75c7a8fd',1,'Ucs_Prg_Report_t']]],
   ['exc',['exc',['../struct_c_programming_a510e91e91f2f7b75fb6ea9d7760fc81c.html#a510e91e91f2f7b75fb6ea9d7760fc81c',1,'CProgramming']]],
   ['exp_5fresult',['exp_result',['../struct_ucs___ns___script__t_a1c91fae0aadcb0b4dd34031cd908dbdb.html#a1c91fae0aadcb0b4dd34031cd908dbdb',1,'Ucs_Ns_Script_t']]]
 ];

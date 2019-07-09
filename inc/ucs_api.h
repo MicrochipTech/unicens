@@ -49,7 +49,7 @@
 /*! \brief UNICENS Minor Version Number
  *  \ingroup G_UCS_MISC
  */
-#define UCS_VERSION_MINOR   2
+#define UCS_VERSION_MINOR   3
 
 /*! \brief UNICENS Release Version Number
  *  \ingroup G_UCS_MISC
@@ -59,7 +59,7 @@
 /*! \brief UNICENS Build Number
  *  \ingroup G_UCS_MISC
  */
-#define UCS_VERSION_BUILD   4073
+#define UCS_VERSION_BUILD   4567
 
 /* parasoft unsuppress item  MISRA2004-19_4 reason "No message in public version (PPP issue)" */
 

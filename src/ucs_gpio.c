@@ -56,6 +56,8 @@ static void Gpio_PortCreate_Result(void *self, Ucs_Message_t *msg_ptr);
 static void Gpio_PortPinMode_Status(void *self, Ucs_Message_t *msg_ptr);
 static void Gpio_PortPinState_Status(void *self, Ucs_Message_t *msg_ptr);
 static void Gpio_NsmResultCb(void *self, Nsm_Result_t result);
+static bool Gpio_CacheRxMsg(CGpio *self, Ucs_Message_t *tel_ptr);
+static void Gpio_CallResultFunctionForMsgId(CGpio *self);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class GPIO                                                                   */
@@ -531,6 +533,24 @@ static void Gpio_TriggerEventStatusCb(void *self, void *result_ptr)
     }
 }
 
+/*! \brief  Caches the received message for the later use when Gpio_NsmResultCb is called.
+ *  \param  self             Reference to the GPIO instance
+ *  \param  tel_ptr          Reference to the message object
+  * \return  Returns \c true if message was cached. Otherwise, returns
+ *           \c false.
+ */
+static bool Gpio_CacheRxMsg(CGpio *self, Ucs_Message_t *tel_ptr)
+{
+    bool ret_val = false;
+
+    if ((self != NULL) && (tel_ptr != NULL))
+    {
+        self->curr_res_msg_ptr = tel_ptr;
+        ret_val = true;
+    }
+
+    return ret_val;
+}
 
 /*! \brief  Checks whether the incoming is our expected message and handles it if so.
  *  \param  tel_ptr          Reference to the message object
@@ -541,41 +561,47 @@ static void Gpio_TriggerEventStatusCb(void *self, void *result_ptr)
 static bool Gpio_RxFilter4NsmCb(Ucs_Message_t *tel_ptr, void *self)
 {
     CGpio *self_ = (CGpio *)self;
-    bool ret_val = true;
+    bool ret_val = false;
 
     if ((tel_ptr != NULL) && (tel_ptr->id.function_id == self_->curr_script.script.send_cmd->funct_id))
     {
-        if (tel_ptr->id.op_type == UCS_OP_RESULT)
-        {
-            switch (tel_ptr->id.function_id)
-            {
-            case INIC_FID_GPIO_PORT_CREATE:
-                Gpio_PortCreate_Result(self_, tel_ptr);
-                break;
-            case INIC_FID_GPIO_PORT_PIN_MODE:
-                Gpio_PortPinMode_Status(self_, tel_ptr);
-                break;
-            case INIC_FID_GPIO_PORT_PIN_STATE:
-                Gpio_PortPinState_Status(self_, tel_ptr);
-                break;
-            default:
-                ret_val = false;
-                break;
-            }
-        }
-        else if (tel_ptr->id.op_type == UCS_OP_ERROR)
-        {
-            Gpio_ErrResultCb_t res_cb_fptr = self_->curr_res_cb;
-            Gpio_RxError(self_, tel_ptr, res_cb_fptr);
-        }
-    }
-    else
-    {
-        ret_val = false;
+        ret_val = Gpio_CacheRxMsg(self_, tel_ptr);
     }
 
     return ret_val;
 }
+
+/*! \brief  Calls a result function corresponding to the function id of the cached message.
+ *  \param  self             Reference to the GPIO instance
+ *  \return  Returns \c true to discard the message and free it to the pool if it's  our message. Otherwise, returns
+ *           \c false.
+ */
+static void Gpio_CallResultFunctionForMsgId(CGpio *self)
+{
+    if (self->curr_res_msg_ptr->id.op_type == UCS_OP_RESULT)
+    {
+        switch (self->curr_res_msg_ptr->id.function_id)
+        {
+        case INIC_FID_GPIO_PORT_CREATE:
+            Gpio_PortCreate_Result(self, self->curr_res_msg_ptr);
+            break;
+        case INIC_FID_GPIO_PORT_PIN_MODE:
+            Gpio_PortPinMode_Status(self, self->curr_res_msg_ptr);
+            break;
+        case INIC_FID_GPIO_PORT_PIN_STATE:
+            Gpio_PortPinState_Status(self, self->curr_res_msg_ptr);
+            break;
+        default:
+            break;
+        }
+    }
+    else if (self->curr_res_msg_ptr->id.op_type == UCS_OP_ERROR)
+    {
+        Gpio_ErrResultCb_t res_cb_fptr = self->curr_res_cb;
+        Gpio_RxError(self, self->curr_res_msg_ptr, res_cb_fptr);
+    }
+}
+
 
 /*! \brief  Result callback function for NSM result.
  *  \details Whenever this function is called the NodeScripting has finished the script's execution.
@@ -592,7 +618,11 @@ static void Gpio_NsmResultCb(void *self, Nsm_Result_t result)
         Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
         bool allow_report = false;
 
-        if ((result.code != UCS_NS_RES_SUCCESS) && (result.details.result_type == NS_RESULT_TYPE_TX))
+        if ((result.code == UCS_NS_RES_SUCCESS) && (self_ != NULL))
+        {
+            Gpio_CallResultFunctionForMsgId(self_);
+        }
+        else if ((result.code != UCS_NS_RES_SUCCESS) && (result.details.result_type == NS_RESULT_TYPE_TX))
         {
             res_data.data_info        = &result.details.tx_result;
             res_data.result.code      = UCS_RES_ERR_TRANSMISSION;

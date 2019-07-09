@@ -76,7 +76,7 @@ typedef struct Ucs_AmsTx_Msg_
     uint8_t         llrbc;                      /*!< \brief   Specifies the "Low-Level Retry Block Count" (LLRBC)
                                                  *   \details Valid values: 0..100. Default value: configurable via \ref Ucs_AmsTx_InitData_t "default_llrbc"
                                                  *            of the initialization structure \ref Ucs_AmsTx_InitData_t.
-                                                 *            \mns_ic_inic{ See also <i>INIC API User's Guide</i>, section \ref SEC_IIC_18. }
+                                                 *            \dox_ic_inic{ See also <i>INIC API User's Guide</i>, section \ref SEC_IIC_18. }
                                                  */
     uint8_t        *data_ptr;                   /*!< \brief   Payload data */
     uint16_t        data_size;                  /*!< \brief   The size of payload data in bytes */

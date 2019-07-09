@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -89,8 +89,9 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___h_d_x___d_i_a_g_n_
 
 <div class="header">
   <div class="summary">
-<a href="#groups">Topics</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#typedef-members">Callback Functions</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
 <div class="title">HalfDuplex Diagnosis</div>  </div>
 <div class="ingroups"><a class="el" href="group___g___u_c_s___n_e_t_w_o_r_k___d_i_a_g_n_o_s_i_s.html">Network Diagnosis</a></div></div><!--header-->
@@ -99,17 +100,40 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___h_d_x___d_i_a_g_n_
 <p>HalfDuplex Diagnosis.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
-Topics</h2></td></tr>
-<tr class="memitem:group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s.html">Referred Types</a></td></tr>
-<tr class="memdesc:group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s"><td class="mdescLeft">&#160;</td><td class="mdescRight">Referred Types used by the HalfDuplex Diagnosis. <br/></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___hdx___report__t.html">Ucs_Hdx_Report_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report values of the HalfDuplex Diagnosis.  <a href="struct_ucs___hdx___report__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ga150a5a45c252c3fa1419796e229f8069"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_ga150a5a45c252c3fa1419796e229f8069.html#ga150a5a45c252c3fa1419796e229f8069">Ucs_Diag_StartHdxDiagnosis</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, <a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s_ga90d69a55d9619d758608f8904f74c643.html#ga90d69a55d9619d758608f8904f74c643">Ucs_Diag_HdxReportCb_t</a> report_fptr)</td></tr>
-<tr class="memdesc:ga150a5a45c252c3fa1419796e229f8069"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the HalfDuplex Diagnosis.  <a href="#ga150a5a45c252c3fa1419796e229f8069"></a><br/></td></tr>
-<tr class="separator:ga150a5a45c252c3fa1419796e229f8069"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Callback Functions</h2></td></tr>
+<tr class="memitem:gacd6a8c13ce11adc741188d1d14841fc8"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gacd6a8c13ce11adc741188d1d14841fc8.html#gacd6a8c13ce11adc741188d1d14841fc8">Ucs_Diag_HdxReportCb_t</a> )(<a class="el" href="struct_ucs___hdx___report__t.html">Ucs_Hdx_Report_t</a> *result_ptr, void *user_ptr)</td></tr>
+<tr class="memdesc:gacd6a8c13ce11adc741188d1d14841fc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by HalfDuplex Diagnosis.  <a href="#gacd6a8c13ce11adc741188d1d14841fc8"></a><br/></td></tr>
+<tr class="separator:gacd6a8c13ce11adc741188d1d14841fc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gafa01f1b7b6f56959f81e7cea4e147331"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#gafa01f1b7b6f56959f81e7cea4e147331">Ucs_Hdx_ResCode_t</a> { <br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331a46a8447cedf2ffc7c539090b0c0cf2f1">UCS_HDX_RES_SUCCESS</a> = 0x00U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331ac4086e0e6224d0a49f1a219ef458e83c">UCS_HDX_RES_SLAVE_WRONG_POS</a> = 0x01U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331a37ddc8819581e529159d968f8bc5b808">UCS_HDX_RES_RING_BREAK</a> = 0x02U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331a9e917b9e541075a9cd431daf02b35bd2">UCS_HDX_RES_NO_RING_BREAK</a> = 0x03U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331aaa0e0d136d0fbf4d521180a64391ce75">UCS_HDX_RES_NO_RESULT</a> = 0x04U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331a843cd917c6af7127848a659dcdff8c0f">UCS_HDX_RES_TIMEOUT</a> = 0x05U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331add938cdfdbb6ad142b840732fc820c84">UCS_HDX_RES_ERROR</a> = 0x06U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#ggafa01f1b7b6f56959f81e7cea4e147331adb0251b350e5ee777ded49e1af733b02">UCS_HDX_RES_END</a> = 0x07U
+<br/>
+ }</td></tr>
+<tr class="memdesc:gafa01f1b7b6f56959f81e7cea4e147331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result values of the HalfDuplex Diagnosis.  <a href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gafa01f1b7b6f56959f81e7cea4e147331.html#gafa01f1b7b6f56959f81e7cea4e147331">More...</a><br/></td></tr>
+<tr class="separator:gafa01f1b7b6f56959f81e7cea4e147331"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>HalfDuplex Diagnosis. </p>
@@ -118,12 +142,12 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

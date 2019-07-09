@@ -78,6 +78,7 @@
 /*------------------------------------------------------------------------------------------------*/
 static bool Ucs_CheckInitData(const Ucs_InitData_t *init_ptr);
 static void Ucs_Ctor(CUcs* self, uint8_t ucs_inst_id, void *api_user_ptr);
+static void Ucs_SetInitComplete(CUcs* self, bool complete);
 static void Ucs_InitComponents(CUcs* self);
 static void Ucs_InitFactoryComponent(CUcs *self);
 static void Ucs_InitBaseComponent(CUcs *self);
@@ -90,10 +91,10 @@ static void Ucs_InitDiag(CUcs *self);
 static void Ucs_InitExcComponent(CUcs *self);
 static void Ucs_InitDiagFdxComponent(CUcs *self);
 static void Ucs_InitNodeDiscovery(CUcs *self);
-static void Ucs_InitHalfDuplexDiagnosis(CUcs *self);
+static void Ucs_InitDiagHdxComponent(CUcs *self);
 static void Ucs_InitFbp(CUcs *self);
 static void Ucs_InitProgramming(CUcs *self);
-static void Ucs_InitManager(CUcs *self);
+static void Ucs_InitSupervisor(CUcs *self);
 static void Ucs_InitResultCb(void *self, void *result_ptr);
 static void Ucs_UninitResultCb(void *self, void *error_code_ptr);
 static void Ucs_OnRxRcm(void *self, Ucs_Message_t *tel_ptr);
@@ -123,8 +124,11 @@ static bool Ucs_McmRx_FilterCallback(void *self, Ucs_Message_t *tel_ptr);
 #endif
 static Ucs_Nd_CheckResult_t Ucs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_ptr);
 static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr);
+static void Ucs_Fbp_OnReport(void *self, void *result_ptr);
+static void Ucs_Network_OnAliveMsg(void *self, void *result_ptr);
 static void Ucs_Diag_FdxReport(void *self, void *result_ptr);
-static Ucs_Return_t Ucs_ApiExpect(CUcs *self, bool exp_initialized, bool exp_mgr_disabled, bool exp_mgr_enabled);
+static void Ucs_Diag_HdxReport(void *self, void *result_ptr);
+static void Ucs_PrgReport(void *self, void *result_ptr);
 static void Ucs_OnSynchronizeNodeResult(void * self, CNode *node_object_ptr, Rsm_Result_t result, Ucs_Ns_SynchronizeNodeCb_t result_cb);
 
 /*------------------------------------------------------------------------------------------------*/
@@ -169,8 +173,8 @@ extern Ucs_Return_t Ucs_SetDefaultConfig(Ucs_InitData_t *init_ptr)
         init_ptr->ams.enabled = true;
 #endif
         init_ptr->network.status.notification_mask = 0xFFFFU;           /* Initialize notification masks for NET callbacks */
-        init_ptr->mgr.packet_bw = NTS_PACKET_BW_DEFAULT;
-        init_ptr->mgr.enabled = false;
+        init_ptr->supv.packet_bw = NTS_PACKET_BW_DEFAULT;
+        init_ptr->supv.mode = UCS_SUPV_MODE_NORMAL;
         ret = UCS_RET_SUCCESS;
     }
 
@@ -203,9 +207,10 @@ static bool Ucs_CheckInitData(const Ucs_InitData_t *init_ptr)
         TR_ERROR((0U, "[API]", "Initialization failed. To run UCS in event driven service mode, both callback functions must be assigned.", 0U));
         ret_val = false;
     }
-    else if ((init_ptr->mgr.enabled != false) && ((init_ptr->nd.eval_fptr != NULL) || (init_ptr->nd.report_fptr != NULL)))
+    else if ((init_ptr->supv.mode == UCS_SUPV_MODE_DIAGNOSIS) || (init_ptr->supv.mode == UCS_SUPV_MODE_PROGRAMMING))
     {
-        TR_INFO((0U, "[API]", "Ambiguous initialization structure. NodeDiscovery callback functions are not effective if 'mgr.enabled' is 'true'.", 0U));
+        TR_ERROR((0U, "[API]", "Initialization failed. Initial Supervisor Modes Diagnosis and Programming are not allowed.", 0U));
+        ret_val = false;
     }
 
     return ret_val;
@@ -224,6 +229,16 @@ static void Ucs_Ctor(CUcs* self, uint8_t ucs_inst_id, void *api_user_ptr)
     MISC_MEM_SET(self, 0, sizeof(*self));                       /* reset memory and backup/restore instance id */
     self->ucs_inst_id = ucs_inst_id;
     self->ucs_user_ptr = api_user_ptr;
+}
+
+/*! \brief Set the init_complete flag for UCS and API class.
+ *  \param self         The instance
+ *  \param complete     The new init_complete status
+ */
+static void Ucs_SetInitComplete(CUcs* self, bool complete)
+{
+    self->init_complete = complete;
+    Svm_SetInitComplete(&self->supv_mode, complete);
 }
 
 extern Ucs_Return_t Ucs_Init(Ucs_Inst_t* self, const Ucs_InitData_t *init_ptr, Ucs_InitResultCb_t init_result_fptr)
@@ -293,6 +308,7 @@ extern Ucs_Return_t Ucs_Stop(Ucs_Inst_t* self, Ucs_StdResultCb_t stopped_fptr)
             if (stopped_fptr !=  NULL)
             {
                 self_->uninit_result_fptr = stopped_fptr;
+                Eh_ReportEvent(&self_->general.base.eh, EH_E_UNSYNC_STARTED);
                 Eh_DelObsrvPublicError(&self_->general.base.eh);
                 Eh_AddObsrvInternalEvent(&self_->general.base.eh, &self_->uninit_result_obs);
                 ret_val = UCS_RET_SUCCESS;
@@ -313,42 +329,62 @@ extern Ucs_Return_t Ucs_Stop(Ucs_Inst_t* self, Ucs_StdResultCb_t stopped_fptr)
     return ret_val;
 }
 
-/*! \brief   Checks expected precondition for API calls
- *  \param   self                The instance
- *  \param   exp_initialized     Expects initialization complete.
- *  \param   exp_mgr_disabled    Expects manager feature disabled.
- *  \param   exp_mgr_enabled     Expects manager feature enabled.
- *  \return  Possible return values are shown in the table below.
- *           Value                          | Description
- *           ------------------------------ | ------------------------------------
- *           UCS_RET_SUCCESS                | No error.
- *           UCS_RET_ERR_NOT_INITIALIZED    | Expectation failed: Initialization is not complete
- *           UCS_RET_ERR_NOT_SUPPORTED      | Expectation failed: Manager feature is disabled/enabled
- *  \ingroup G_UCS_INIT_AND_SRV
- */
-static Ucs_Return_t Ucs_ApiExpect(CUcs *self, bool exp_initialized, bool exp_mgr_disabled, bool exp_mgr_enabled)
+/*------------------------------------------------------------------------------------------------*/
+/* Supervisor                                                                                     */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Supv_SetFallbackDuration(Ucs_Inst_t *self, uint16_t fallback_duration)
 {
-    Ucs_Return_t ret = UCS_RET_SUCCESS;
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_SUPV_SET_FB_DURATION);
 
-    if (self == NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret = UCS_RET_ERR_PARAM;
+        Nts_SetFallbackDuration(&self_->starter, fallback_duration);
     }
-    else if ((self->init_complete == false) && (exp_initialized != false))
+
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Supv_SetMode(Ucs_Inst_t *self, Ucs_Supv_Mode_t mode)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+
+    Ucs_Return_t ret = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_SUPV_SET_MODE);
+
+    if (ret == UCS_RET_SUCCESS)
     {
-        ret = UCS_RET_ERR_NOT_INITIALIZED;
+        ret = Svm_CheckApiTranistion(&self_->supv_mode, mode);
     }
-    else
-    {    
-        if ((self->init_data.mgr.enabled != false) && (exp_mgr_disabled != false))
-        {
-            ret = UCS_RET_ERR_NOT_SUPPORTED;
-        }
-        
-        if ((self->init_data.mgr.enabled == false) && (exp_mgr_enabled != false))
-        {
-            ret = UCS_RET_ERR_NOT_SUPPORTED;
-        }
+
+    if (ret == UCS_RET_SUCCESS)
+    {
+        ret = Supv_SetMode(&self_->supervisor, mode);
+    }
+
+    return ret;
+}
+
+extern Ucs_Return_t Ucs_Supv_ProgramNode(Ucs_Inst_t *self,  uint16_t node_pos_addr, Ucs_Signature_t *signature_ptr, Ucs_Prg_Command_t *commands_ptr, Ucs_Prg_ReportCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_SUPV_PROGRAM_NODE);
+
+    if (ret == UCS_RET_SUCCESS)
+    {
+        ret = Svp_ProgramNode(&self_->supv_prog, node_pos_addr, signature_ptr, commands_ptr, result_fptr);
+    }
+
+    return ret;
+}
+
+extern Ucs_Return_t Ucs_Supv_ProgramExit(Ucs_Inst_t *self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_SUPV_PROGRAM_EXIT);
+
+    if (ret == UCS_RET_SUCCESS)
+    {
+        ret = Svp_Exit(&self_->supv_prog);
     }
 
     return ret;
@@ -360,7 +396,7 @@ static Ucs_Return_t Ucs_ApiExpect(CUcs *self, bool exp_initialized, bool exp_mgr
 extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, uint16_t list_size)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -373,22 +409,17 @@ extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, 
 extern Ucs_Return_t Ucs_Rm_SetRouteActive(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr, bool active)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
-
-    if ((self_ != NULL) && (route_ptr != NULL))
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_RM_SET_ROUTE_ACTIVE);
+    
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
+        if (active == false)
         {
-            if (active == false)
-            {
-                ret_val = Rtm_DeactivateRoute(&self_->rtm, route_ptr);
-            }
-            else
-            {
-                ret_val = Rtm_ActivateRoute(&self_->rtm, route_ptr);
-            }
+            ret_val = Rtm_DeactivateRoute(&self_->rtm, route_ptr);
+        }
+        else
+        {
+            ret_val = Rtm_ActivateRoute(&self_->rtm, route_ptr);
         }
     }
 
@@ -405,7 +436,7 @@ extern Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self,
                                           Ucs_Xrm_Stream_PortCfgResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_XRM_STREAM_SET_PORT_CFG);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -425,7 +456,7 @@ extern Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t node
                                           Ucs_Xrm_Stream_PortCfgResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_XRM_STREAM_GET_PORT_CFG);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -435,9 +466,35 @@ extern Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t node
     return ret_val;
 }
 
-extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr)
+extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Inst_t *self, Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr)
 {
-    return Rtm_GetAtdValue(route_ptr, atd_value_ptr);
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+        
+    if ((route_ptr != NULL) && (atd_value_ptr != NULL))
+    {
+        ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_RM_GET_ATD_VALUE);
+
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            ret_val = Rtm_GetAtdValue(route_ptr, atd_value_ptr);
+        }
+    }
+
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Rm_BuildResource(Ucs_Inst_t *self, uint16_t node_address, uint8_t index, Ucs_Rm_ReportCb_t result_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Rtm_BuildResources(&self_->rtm, node_address, index, result_fptr);
+    }
+
+    return ret_val;
 }
 
 /*------------------------------------------------------------------------------------------------*/
@@ -446,7 +503,7 @@ extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd
 extern Ucs_Return_t Ucs_Rm_SetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address, bool available)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -473,7 +530,7 @@ extern bool Ucs_Rm_GetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address)
 {
     CUcs *self_ = (CUcs*)(void*)self;
     bool ret_val = false;
-    Ucs_Return_t ret = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret == UCS_RET_SUCCESS)
     {
@@ -494,37 +551,15 @@ extern bool Ucs_Rm_GetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address)
     return ret_val;
 }
 
-/*! \brief   Retrieves the reference(s) of the route(s) currently attached to the given endpoint and stores It into the (external) table provided by user application.
- *  Thus, User application should provide an external reference to an empty routes table where the potential routes will be stored.
- *  That is, user application is responsible to allocate enough space to store the found routes. Refer to the \b Note below for more details.
- *  \param   self               The UNICENS instance pointer.
- *  \param   ep_ptr             Reference to the endpoint instance to be looked for.
- *  \param   ls_found_routes    List to store references to the found routes. It should be allocated by user application.
- *  \param   ls_size            Size of the provided list.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | -------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *
- *  \note    The function will add a \b NULL \b pointer to the external table (provided by user application) to mark the end of the found routes. This can be helpful when user application doesn't exactly known the
- *           number of routes referred to the endpoint. That is, User application should allocate enough space to store the found routes plus the NULL-terminated pointer.
- *           Otherwise, the number of associated routes found will \b precisely \b equal the size of the list.
- */
 extern Ucs_Return_t Ucs_Rm_GetAttachedRoutes(Ucs_Inst_t *self, Ucs_Rm_EndPoint_t *ep_ptr,
                                       Ucs_Rm_Route_t *ls_found_routes[], uint16_t ls_size)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_PARAM;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
-    if (self_ != NULL)
+    if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-        if (self_->init_complete != false)
-        {
-            ret_val = Rtm_GetAttachedRoutes(&self_->rtm, ep_ptr, ls_found_routes, ls_size);
-        }
+        ret_val = Rtm_GetAttachedRoutes(&self_->rtm, ep_ptr, ls_found_routes, ls_size);
     }
 
     return ret_val;
@@ -549,21 +584,23 @@ extern uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *rout
 extern Ucs_Return_t Ucs_Ns_SynchronizeNode(Ucs_Inst_t *self, uint16_t node_address, uint16_t node_pos_addr, Ucs_Rm_Node_t *node_ptr, Ucs_Ns_SynchronizeNodeCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
-
-    if ((node_ptr == NULL) || (node_address != node_ptr->signature_ptr->node_address))
-    {
-        ret_val = UCS_RET_ERR_PARAM;
-    }
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
-        CNode *node_obj_ptr = Nm_CreateNode(&self_->nm, node_address, node_pos_addr, node_ptr);
-        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
-
-        if (node_obj_ptr != NULL)
+        if ((node_ptr != NULL) && (node_address == node_ptr->signature_ptr->node_address))
         {
-            ret_val = Node_Synchronize(node_obj_ptr, &Ucs_OnSynchronizeNodeResult, self_, result_fptr);
+            CNode *node_obj_ptr = Nm_CreateNode(&self_->nm, node_address, node_pos_addr, node_ptr);
+            ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+
+            if (node_obj_ptr != NULL)
+            {
+                ret_val = Node_Synchronize(node_obj_ptr, &Ucs_OnSynchronizeNodeResult, self_, result_fptr);
+            }
+        }
+        else
+        {
+            ret_val = UCS_RET_ERR_PARAM;
         }
     }
 
@@ -591,7 +628,7 @@ static void Ucs_OnSynchronizeNodeResult(void *self, CNode *node_object_ptr, Rsm_
 extern Ucs_Return_t Ucs_Ns_Run(Ucs_Inst_t *self, uint16_t node_address, UCS_NS_CONST Ucs_Ns_Script_t *script_list_ptr, uint8_t script_list_size, Ucs_Ns_ResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -617,7 +654,7 @@ extern Ucs_Return_t Ucs_Ns_Run(Ucs_Inst_t *self, uint16_t node_address, UCS_NS_C
 extern Ucs_Return_t Ucs_Gpio_CreatePort(Ucs_Inst_t *self, uint16_t node_address, uint8_t index, uint16_t debounce_time, Ucs_Gpio_CreatePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -631,7 +668,7 @@ extern Ucs_Return_t Ucs_Gpio_SetPinMode(Ucs_Inst_t *self, uint16_t node_address,
                                         uint8_t pin, Ucs_Gpio_PinMode_t mode, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -644,7 +681,7 @@ extern Ucs_Return_t Ucs_Gpio_SetPinMode(Ucs_Inst_t *self, uint16_t node_address,
 extern Ucs_Return_t Ucs_Gpio_GetPinMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_ConfigPinModeResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -658,7 +695,7 @@ extern Ucs_Return_t Ucs_Gpio_WritePort(Ucs_Inst_t *self, uint16_t node_address, 
                                        uint16_t mask, uint16_t data, Ucs_Gpio_PinStateResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -671,7 +708,7 @@ extern Ucs_Return_t Ucs_Gpio_WritePort(Ucs_Inst_t *self, uint16_t node_address, 
 extern Ucs_Return_t Ucs_Gpio_ReadPort(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_PinStateResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -685,7 +722,7 @@ extern Ucs_Return_t Ucs_I2c_CreatePort(Ucs_Inst_t *self, uint16_t node_address, 
                                 uint8_t i2c_int_mask, Ucs_I2c_CreatePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -700,7 +737,7 @@ extern Ucs_Return_t Ucs_I2c_WritePort(Ucs_Inst_t *self, uint16_t node_address, u
                                Ucs_I2c_WritePortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -715,7 +752,7 @@ extern Ucs_Return_t Ucs_I2c_ReadPort(Ucs_Inst_t *self, uint16_t node_address, ui
                               uint16_t timeout, Ucs_I2c_ReadPortResCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -748,11 +785,11 @@ static void Ucs_InitComponents(CUcs* self)
     Ucs_InitDiag(self);
     Ucs_InitExcComponent(self);
     Ucs_InitDiagFdxComponent(self);
+    Ucs_InitDiagHdxComponent(self);
     Ucs_InitNodeDiscovery(self);
-    Ucs_InitHalfDuplexDiagnosis(self);
     Ucs_InitFbp(self);
     Ucs_InitProgramming(self);
-    Ucs_InitManager(self);      /* shall be called as last one due to re-configuration work */
+    Ucs_InitSupervisor(self);         /* shall be called as last one due to re-configuration work */
 }
 
 /*! \brief Initializes the factory component
@@ -766,6 +803,7 @@ static void Ucs_InitFactoryComponent(CUcs *self)
     fac_init_data.xrmp_ptr = &self->xrmp;
     fac_init_data.icm_transceiver = &self->icm_transceiver;
     fac_init_data.rcm_transceiver = &self->rcm_transceiver;
+    fac_init_data.debug_msg_enable = self->init_data.rm.debug_message_enable;
     Fac_Ctor(&self->factory, &fac_init_data);
 }
 
@@ -886,10 +924,6 @@ static void Ucs_InitPmsComponentConfig(CUcs *self)
         rcm_config.rx_ack_timeout = 0U;         /* Acknowledge timeout: 0 -> infinite */
     }
     Fifo_Ctor(&self->rcm_fifo, &rcm_init, &rcm_config);
-#if 0
-    Fifos_Ctor(&self->fifos, &self->general.base, &self->pmch, &self->icm_fifo, NULL/*MCM*/, &self->rcm_fifo);
-    Pmev_Ctor(&self->pme, &self->general.base, &self->fifos);       /* initialize event handler */
-#endif
 
     /* initialize transceivers and set reference to FIFO instance */
     Trcv_Ctor(&self->icm_transceiver, &self->icm_fifo, MSG_ADDR_EHC_CFG, MSG_LLRBC_ICM, self->ucs_user_ptr, PMP_FIFO_ID_ICM);
@@ -972,10 +1006,10 @@ static void Ucs_InitAtsClass(CUcs *self)
     ats_init_data.base_ptr = &self->general.base;
     ats_init_data.fifos_ptr = &self->fifos;
     ats_init_data.inic_ptr = self->inic.local_inic;
+    ats_init_data.exc_ptr = &self->exc;
     ats_init_data.pme_ptr = &self->pme;
     Ats_Ctor(&self->inic.attach, &ats_init_data);
 }
-
 
 /*! \brief Initializes the diagnosis component
  *  \param self     The instance
@@ -985,8 +1019,8 @@ static void Ucs_InitDiag(CUcs *self)
     Sobs_Ctor(&self->diag.trigger_rbd_obs, self, &Ucs_DiagTriggerRBDResult);
     Sobs_Ctor(&self->diag.rbd_result_obs,  self, &Ucs_DiagRbdResult);
     Sobs_Ctor(&self->diag.diag_fdx_report_obs, self, &Ucs_Diag_FdxReport);
+    Sobs_Ctor(&self->diag.diag_hdx_report_obs, self, &Ucs_Diag_HdxReport);
 }
-
 
 /*! \brief Initializes the FBlock ExtendedNetworkControl API
  *  \param self The instance
@@ -1006,12 +1040,15 @@ static void Ucs_InitDiagFdxComponent(CUcs *self)
     Fdx_Ctor(&self->diag_fdx, self->inic.local_inic, &self->general.base, &self->exc);
 }
 
-
+/*! \brief Initializes the Node Discovery component
+ *
+ * \param  self The instance
+ */
 static void Ucs_InitNodeDiscovery(CUcs *self)
 {
     Nd_InitData_t nd_init_data;
 
-    if (self->init_data.mgr.enabled == false)
+    if (self->init_data.supv.mode == UCS_SUPV_MODE_MANUAL)
     {
         nd_init_data.inst_ptr = self;
         nd_init_data.report_fptr = &Ucs_OnNdReport;
@@ -1019,46 +1056,84 @@ static void Ucs_InitNodeDiscovery(CUcs *self)
     }
     else
     {
-        nd_init_data.inst_ptr = &self->nobs;
-        nd_init_data.report_fptr = &Nobs_OnNdReport;
-        nd_init_data.eval_fptr = &Nobs_OnNdEvaluate;
+        nd_init_data.inst_ptr = &self->supervisor;
+        nd_init_data.report_fptr = &Supv_OnNdReport;
+        nd_init_data.eval_fptr = &Supv_OnNdEvaluate;
     }
 
     Nd_Ctor(&self->nd, self->inic.local_inic, &self->general.base, &self->exc, &nd_init_data);
 
 }
 
-static void Ucs_InitHalfDuplexDiagnosis(CUcs *self)
+/*! \brief Initializes the HalfDuplex Diagnosis
+ *
+ * \param  self The instance
+ */
+static void Ucs_InitDiagHdxComponent(CUcs *self)
 {
     Hdx_Ctor(&self->diag_hdx, self->inic.local_inic, &self->general.base, &self->exc);
 }
 
-
+/*! \brief Initializes the Fallback Protection component
+ *
+ * \param  self The instance
+ */
 static void Ucs_InitFbp(CUcs *self)
 {
     Fbp_Ctor(&self->fbp, self->inic.local_inic, &self->general.base, &self->exc);
+    Sobs_Ctor(&self->fbp_report_sobs, self, &Ucs_Fbp_OnReport);
+    Obs_Ctor(&self->network_alive_obs, self, &Ucs_Network_OnAliveMsg);
 }
 
+/*! \brief Initializes the Programming component
+ *
+ * \param  self The instance
+ */
 static void Ucs_InitProgramming(CUcs *self)
 {
     Prg_Ctor(&self->prg, self->inic.local_inic, &self->general.base, &self->exc);
+    Sobs_Ctor(&self->prg_report_obs, self, &Ucs_PrgReport);
 }
 
-
-/*! \brief      Initializes the Manager class
+/*! \brief      Initializes the Supervisor classes
  *  \details    This function shall be called as the latest initialization function since
  *              it may disable some of the conventional API.
  *  \param self The instance
  */
-static void Ucs_InitManager(CUcs *self)
+static void Ucs_InitSupervisor(CUcs *self)
 {
-    if (self->init_data.mgr.enabled != false)
+    Ucs_Supv_Mode_t intial_mode = UCS_SUPV_MODE_NONE;
+
+    if (self->init_data.supv.mode == UCS_SUPV_MODE_MANUAL)
     {
-        Nts_Ctor(&self->starter, &self->general.base, self->inic.local_inic, &self->net.inst, &self->nd, self->init_data.mgr.packet_bw);
-        Nobs_Ctor(&self->nobs, &self->general.base, &self->starter, &self->nd, &self->rtm, &self->net.inst, &self->nm, &self->init_data.mgr);
+        intial_mode = UCS_SUPV_MODE_MANUAL;
+    }
+
+    Svm_Ctor(&self->supv_mode, &self->general.base, intial_mode);
+
+    if (self->init_data.supv.mode <= UCS_SUPV_MODE_LAST)
+    {
+        Supv_InitData_t supv_init;
+        supv_init.base_ptr = &self->general.base;
+        supv_init.inic_ptr = self->inic.local_inic;
+        supv_init.nd_ptr = &self->nd;
+        supv_init.net_ptr = &self->net.inst;
+        supv_init.starter_ptr = &self->starter;
+        supv_init.nobs_ptr = &self->nobs;
+        supv_init.svp_ptr = &self->supv_prog;
+        supv_init.svm_ptr = &self->supv_mode;
+        supv_init.rtm_ptr = &self->rtm;
+        supv_init.nm_ptr = &self->nm;
+        supv_init.supv_init_data_ptr = &self->init_data.supv;
+
+        Nts_Ctor(&self->starter, &self->general.base, self->inic.local_inic, &self->net.inst, &self->nd, &self->fbp, &self->init_data.supv);
+        Nobs_Ctor(&self->nobs, &self->general.base, &self->starter, &self->nd, &self->rtm, &self->net.inst, &self->nm, &self->init_data.supv);
+        Svd_Ctor(&self->supv_diag, &supv_init, &self->diag_fdx, &self->diag_hdx, &self->rtm);
+        Svp_Ctor(&self->supv_prog, &self->init_data.supv, &self->general.base, self->inic.local_inic, &self->net.inst, &self->nd, &self->prg, 
+                 &self->starter, &self->rtm);
+        Supv_Ctor(&self->supervisor, &supv_init);
     }
 }
-
 
 /*! \brief Callback function which announces the result of the attach process
  *  \param self         The instance
@@ -1085,6 +1160,10 @@ static void Ucs_InitResultCb(void *self, void *result_ptr)
     {
         Ucs_StopAppNotification(self_);
     }
+    else /* success: set API state to complete before notifying the application. */
+    {
+        Ucs_SetInitComplete(self_, true);
+    }
 
     if (self_->init_result_fptr != NULL)
     {
@@ -1094,7 +1173,6 @@ static void Ucs_InitResultCb(void *self, void *result_ptr)
     /* Start notification if initialization succeeded */
     if (*result_ptr_ == UCS_INIT_RES_SUCCESS)
     {
-        self_->init_complete = true;
         Ucs_StartAppNotification(self_);
     }
 }
@@ -1109,7 +1187,7 @@ static void Ucs_UninitResultCb(void *self, void *error_code_ptr)
     uint32_t error_code = *((uint32_t *)error_code_ptr);
     TR_INFO((self_->ucs_user_ptr, "[API]", "Ucs_UninitResultCb(): Ucs_Stop() completed, internal event code: %u", 1U, error_code));
 
-    self_->init_complete = false;
+    Ucs_SetInitComplete(self_, false);
     Eh_DelObsrvInternalEvent(&self_->general.base.eh, &self_->uninit_result_obs);
 
     Ucs_StopAppNotification(self_);
@@ -1300,7 +1378,7 @@ static void Ucs_OnGeneralError(void *self, void *result_ptr)
     CUcs *self_ = (CUcs*)self;
     Ucs_Error_t error_code = *((Ucs_Error_t *)result_ptr);
 
-    self_->init_complete = false;                               /* General error occurred -> Lock UCS API */
+    Ucs_SetInitComplete(self_, false);                          /* General error occurred -> Lock UCS API */
     Ucs_StopAppNotification(self_);
 
     if (self_->general.general_error_fptr != NULL)              /* callback is not assigned during initialization  */
@@ -1355,7 +1433,7 @@ extern Ucs_Return_t Ucs_Network_Startup(Ucs_Inst_t* self, uint16_t packet_bw, ui
                                  Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1387,7 +1465,7 @@ static void Ucs_NetworkStartupResult(void *self, void *result_ptr)
 extern Ucs_Return_t Ucs_Network_Shutdown(Ucs_Inst_t *self, Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1418,7 +1496,7 @@ static void Ucs_NetworkShutdownResult(void *self, void *result_ptr)
 extern Ucs_Return_t Ucs_Network_ForceNotAvailable(Ucs_Inst_t *self, bool force, Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1449,8 +1527,9 @@ static void Ucs_NetworkForceNAResult(void *self, void *result_ptr)
 extern Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t reference, Ucs_Network_FrameCounterCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-    if (self_->init_complete != false)
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_NETWORK_GET_FRAME_CNT);
+
+    if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Inic_NwFrameCounter_Get(self_->inic.local_inic, reference, &self_->net.frame_counter_obs);
         if (ret_val == UCS_RET_SUCCESS)
@@ -1460,7 +1539,6 @@ extern Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t refer
     }
     return ret_val;
 }
-
 
 /*! \brief Callback function which announces the result of Ucs_Network_GetFrameCounter()
  *  \param self         The instance
@@ -1522,16 +1600,30 @@ static void Ucs_NetworkStatus(void *self, void *result_ptr)
     }
 }
 
-extern uint8_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self)
+extern Ucs_Return_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self, uint8_t *count_ptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    return Inic_GetNumberOfNodes(self_->inic.local_inic);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_NETWORK_GET_NODES_CNT);
+    
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (count_ptr != NULL)
+        {
+            *count_ptr = Inic_GetNumberOfNodes(self_->inic.local_inic);
+        }
+        else
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+    }
+
+    return ret_val;
 }
 
 extern Ucs_Return_t Ucs_Network_SetPacketFilterMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t mode, Ucs_StdNodeResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, false, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_ALL);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1550,10 +1642,30 @@ extern Ucs_Return_t Ucs_Network_SetPacketFilterMode(Ucs_Inst_t *self, uint16_t n
 /*------------------------------------------------------------------------------------------------*/
 /* Node Discovery                                                                                 */
 /*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Nd_RegisterCallbacks(Ucs_Inst_t* self, const Ucs_Nd_InitData_t *callbacks_ptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (callbacks_ptr != NULL)
+        {
+            self_->init_data_manual.nd = *callbacks_ptr;
+        }
+        else
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+    }
+    
+    return ret_val;
+}
+
 extern Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1562,11 +1674,10 @@ extern Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t* self)
     return ret_val;
 }
 
-
 extern Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1575,11 +1686,10 @@ extern Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t* self)
     return ret_val;
 }
 
-
 extern Ucs_Return_t Ucs_Nd_InitAll(Ucs_Inst_t* self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1600,9 +1710,9 @@ static Ucs_Nd_CheckResult_t Ucs_OnNdEvaluate(void *self, Ucs_Signature_t *signat
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_Nd_CheckResult_t ret_val = UCS_ND_CHK_UNKNOWN;
 
-    if (self_->init_data.nd.eval_fptr != NULL)
+    if (self_->init_data_manual.nd.eval_fptr != NULL)
     {
-        ret_val = self_->init_data.nd.eval_fptr(signature_ptr, self_->ucs_user_ptr);
+        ret_val = self_->init_data_manual.nd.eval_fptr(signature_ptr, self_->ucs_user_ptr);
     }
 
     return ret_val;
@@ -1617,9 +1727,9 @@ static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *s
 {
     CUcs *self_ = (CUcs*)(void*)self;
 
-    if (self_->init_data.nd.report_fptr != NULL)
+    if (self_->init_data_manual.nd.report_fptr != NULL)
     {
-        self_->init_data.nd.report_fptr(code, signature_ptr, self_->ucs_user_ptr);
+        self_->init_data_manual.nd.report_fptr(code, signature_ptr, self_->ucs_user_ptr);
     }
 }
 
@@ -1627,72 +1737,10 @@ static void Ucs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *s
 /*------------------------------------------------------------------------------------------------*/
 /* HalfDuplex Diagnosis                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-extern Ucs_Return_t Ucs_Diag_StartHdxDiagnosis(Ucs_Inst_t* self, Ucs_Diag_HdxReportCb_t report_fptr)
+extern Ucs_Return_t Ucs_Diag_StartHdxDiagnosis(Ucs_Inst_t* self, Ucs_Diag_HdxReportCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
-
-    if (ret_val == UCS_RET_SUCCESS)
-    {
-        if (report_fptr == NULL)
-        {
-            ret_val = UCS_RET_ERR_PARAM;
-        }
-        else
-        {
-            ret_val = Hdx_Start(&self_->diag_hdx, report_fptr);
-        }
-    }
-    return ret_val;
-}
-
-
-/*------------------------------------------------------------------------------------------------*/
-/* Fallback protection                                                                            */
-/*------------------------------------------------------------------------------------------------*/
-extern Ucs_Return_t Ucs_Fbp_Start(Ucs_Inst_t* self, uint16_t duration, Ucs_Fbp_ReportCb_t report_fptr)
-{
-    CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
-
-    if (ret_val == UCS_RET_SUCCESS)
-    {
-        if (report_fptr == NULL)
-        {
-            ret_val = UCS_RET_ERR_PARAM;
-        }
-        else
-        {
-            Fbp_Start(&self_->fbp, duration, report_fptr);
-        }
-    }
-    return ret_val;
-}
-
-extern Ucs_Return_t Ucs_Fbp_Stop(Ucs_Inst_t* self)
-{
-    CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
-
-    if (ret_val == UCS_RET_SUCCESS)
-    {
-        Fbp_Stop(&self_->fbp);
-    }
-    return ret_val;
-}
-
-
-/*------------------------------------------------------------------------------------------------*/
-/*  Programming service                                                                              */
-/*------------------------------------------------------------------------------------------------*/
-extern Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t *self,
-                            uint16_t node_pos_addr,
-                            Ucs_Signature_t *signature,
-                            Ucs_Prg_Command_t* command_list,
-                            Ucs_Prg_ReportCb_t result_fptr)
-{
-    CUcs *self_          = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1702,21 +1750,237 @@ extern Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t *self,
         }
         else
         {
-            ret_val = Prg_Start(&self_->prg, node_pos_addr, signature, command_list, result_fptr);
+            ret_val = Hdx_StartDiag(&self_->diag_hdx, &self_->diag.diag_hdx_report_obs);
+            if (ret_val == UCS_RET_SUCCESS)
+            {
+                self_->diag.diag_hdx_report_fptr = result_fptr;
+            }
         }
+    }
+    return ret_val;
+}
+
+Ucs_Return_t Ucs_Diag_SetHdxTimers(Ucs_Inst_t* self, Ucs_Hdx_Timers_t timer)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        ret_val = Hdx_SetTimers(&self_->diag_hdx, timer);
+    }
+
+    return ret_val;
+}
+
+static void Ucs_Diag_HdxReport(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+    if (self_->diag.diag_hdx_report_fptr != NULL)
+    {
+        Ucs_Hdx_Report_t  *result_ptr_ = (Ucs_Hdx_Report_t  *)result_ptr;
+
+        self_->diag.diag_hdx_report_fptr(result_ptr_, self_->ucs_user_ptr);
+    }
+}
+
+/*------------------------------------------------------------------------------------------------*/
+/* Fallback protection                                                                            */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Fbp_Start(Ucs_Inst_t* self, uint16_t duration)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        Fbp_Start(&self_->fbp, duration);
+    }
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Fbp_Stop(Ucs_Inst_t* self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        Fbp_Stop(&self_->fbp);
+    }
+    return ret_val;
+}
+
+/*! \brief Callback function which announces the result of Fallback Protection
+ *  \param self         Instance pointer 
+ *  \param result_ptr   Reference to result. Must be casted into Ucs_Fbp_ResCode_t.
+ */
+static void Ucs_Fbp_OnReport(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+
+    if (self_->fbp_report_fptr != NULL)
+    {
+        Ucs_Fbp_ResCode_t  *result_ptr_ = (Ucs_Fbp_ResCode_t  *)result_ptr;
+
+        self_->fbp_report_fptr(*(result_ptr_), self_->ucs_user_ptr);
+    }
+}
+
+extern Ucs_Return_t Ucs_Fbp_RegisterReportCb(Ucs_Inst_t* self, Ucs_Fbp_ReportCb_t report_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+
+    if (self_->fbp_report_fptr == NULL)
+    {
+
+        ret_val = Fbp_RegisterReportObserver(&self_->fbp, &self_->fbp_report_sobs);
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            self_->fbp_report_fptr = report_fptr;
+        }
+    }
+    else
+    {
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
     }
 
     return ret_val;
 }
 
 
-extern Ucs_Return_t Ucs_Prog_IS_RAM(Ucs_Inst_t *self,
-                             Ucs_Signature_t *signature,
-                             Ucs_IdentString_t *ident_string,
-                             Ucs_Prg_ReportCb_t result_fptr)
+extern void Ucs_Fbp_UnRegisterReportCb(Ucs_Inst_t* self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+
+    Fbp_UnRegisterReportObserver(&self_->fbp);
+    self_->fbp_report_fptr = NULL;
+
+}
+
+
+extern Ucs_Return_t Ucs_Network_RegisterAliveCb(Ucs_Inst_t* self, Ucs_Network_AliveCb_t report_fptr)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+
+    if (self_->network_alive_fptr == NULL)
+    {
+
+        ret_val = Exc_RegisterAliveObserver(&self_->exc, &self_->network_alive_obs);
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            self_->network_alive_fptr = report_fptr;
+        }
+    }
+    else
+    {
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return ret_val;
+}
+
+
+extern void Ucs_Network_UnRegisterAliveCb(Ucs_Inst_t* self)
+{
+    CUcs *self_ = (CUcs*)(void*)self;
+
+    (void)Exc_UnRegisterAliveObserver(&self_->exc, &self_->network_alive_obs);
+    self_->network_alive_fptr = NULL;
+
+}
+
+
+/*! \brief Callback function which announces the AliceMessage reports during Fallback Protection
+ *  \param self         Instance pointer 
+ *  \param result_ptr   Reference to result. Must be casted into Exc_AliveMessageStatus_t.
+ */
+static void Ucs_Network_OnAliveMsg(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+
+    if (self_->network_alive_fptr != NULL)
+    {
+        Exc_StdResult_t *result_ptr_ = (Exc_StdResult_t *) result_ptr;
+        
+        if (result_ptr_->result.code == UCS_RES_SUCCESS)
+        {
+            Ucs_Network_AliveStatus_t  result;
+
+            result.welcomed     = (*(Exc_AliveMessageStatus_t *)(result_ptr_->data_info)).welcomed;
+            result.alive_status = (*(Exc_AliveMessageStatus_t *)(result_ptr_->data_info)).alive_status;
+            result.signature    = (*(Exc_AliveMessageStatus_t *)(result_ptr_->data_info)).signature;
+
+            self_->network_alive_fptr(&result, self_->ucs_user_ptr);
+        }
+    }
+}
+
+
+
+
+
+/*------------------------------------------------------------------------------------------------*/
+/*  Programming service                                                                              */
+/*------------------------------------------------------------------------------------------------*/
+extern Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t         *self,
+                                   uint16_t            node_pos_addr,
+                                   Ucs_Signature_t    *signature_ptr,
+                                   Ucs_Prg_Command_t  *command_list_ptr,
+                                   Ucs_Prg_ReportCb_t  result_fptr)
 {
     CUcs *self_          = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
+
+    if (ret_val == UCS_RET_SUCCESS)
+    {
+        if (result_fptr == NULL)
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else if ((node_pos_addr < 0x0400U) || (node_pos_addr > 0x04FFU))
+        {
+            ret_val = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            ret_val = Prg_Start(&self_->prg, node_pos_addr, signature_ptr, command_list_ptr, &self_->prg_report_obs);
+            if (ret_val == UCS_RET_SUCCESS)
+            {
+                self_->prg_report_fptr = result_fptr;
+            }
+        }
+    }
+
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Supv_ProgramCreateIS(Ucs_Inst_t *self, Ucs_IdentString_t *is_ptr, uint8_t *data_ptr, uint8_t data_size, uint8_t *used_size_ptr)
+{
+    CUcs *self_          = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+
+    if (self == NULL)
+    {
+        ret_val = UCS_RET_ERR_PARAM;
+    }
+    else
+    {
+        ret_val = Prg_CreateIdentString(&self_->prg, is_ptr, data_ptr, data_size, used_size_ptr);
+    }
+
+    return ret_val;
+}
+
+extern Ucs_Return_t Ucs_Prog_IS_RAM(Ucs_Inst_t          *self,
+                                    Ucs_Signature_t     *signature,
+                                    Ucs_IdentString_t   *ident_string,
+                                    Ucs_Prg_ReportCb_t   result_fptr)
+{
+    CUcs *self_          = (CUcs*)(void*)self;
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1730,12 +1994,15 @@ extern Ucs_Return_t Ucs_Prog_IS_RAM(Ucs_Inst_t *self,
 
     if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = Prg_IS_RAM(&self_->prg, signature, ident_string, result_fptr);
+        ret_val = Prg_IS_RAM(&self_->prg, signature, ident_string, &self_->prg_report_obs);
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            self_->prg_report_fptr = result_fptr;
+        }
     }
 
     return ret_val;
 }
-
 
 extern Ucs_Return_t Ucs_Prog_IS_ROM(Ucs_Inst_t *self,
                              Ucs_Signature_t *signature,
@@ -1743,7 +2010,7 @@ extern Ucs_Return_t Ucs_Prog_IS_ROM(Ucs_Inst_t *self,
                              Ucs_Prg_ReportCb_t result_fptr)
 {
     CUcs *self_          = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1757,10 +2024,30 @@ extern Ucs_Return_t Ucs_Prog_IS_ROM(Ucs_Inst_t *self,
 
     if (ret_val == UCS_RET_SUCCESS)
     {
-        ret_val = Prg_IS_ROM(&self_->prg, signature, ident_string, result_fptr);
+        ret_val = Prg_IS_ROM(&self_->prg, signature, ident_string, &self_->prg_report_obs);
+        if (ret_val == UCS_RET_SUCCESS)
+        {
+            self_->prg_report_fptr = result_fptr;
+        }
     }
 
     return ret_val;
+}
+
+
+/*! \brief Callback function which announces the result of programming
+ *  \param self         Instance pointer (not used for single instance API)
+ *  \param result_ptr   Reference to result. Must be casted into Ucs_Prg_Report_t.
+ */
+static void Ucs_PrgReport(void *self, void *result_ptr)
+{
+    CUcs *self_ = (CUcs*)self;
+    if (self_->prg_report_fptr != NULL)
+    {
+        Ucs_Prg_Report_t  *result_ptr_ = (Ucs_Prg_Report_t  *)result_ptr;
+
+        self_->prg_report_fptr(result_ptr_, self_->ucs_user_ptr);
+    }
 }
 
 
@@ -1772,7 +2059,7 @@ extern Ucs_Return_t Ucs_Diag_TriggerRbd(Ucs_Inst_t *self,
                                  Ucs_StdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1802,11 +2089,10 @@ static void Ucs_DiagTriggerRBDResult(void *self, void *result_ptr)
     }
 }
 
-
 extern Ucs_Return_t Ucs_Diag_GetRbdResult(Ucs_Inst_t *self, Ucs_Diag_RbdResultCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1826,7 +2112,6 @@ extern Ucs_Return_t Ucs_Diag_GetRbdResult(Ucs_Inst_t *self, Ucs_Diag_RbdResultCb
     return ret_val;
 }
 
-
 /*! \brief Callback function which announces the result of Ucs_Diag_GetRbdResult()
  *  \param self         The instance
  *  \param result_ptr   Reference to result. Must be casted into Inic_StdResult_t and data_info
@@ -1838,7 +2123,7 @@ static void Ucs_DiagRbdResult(void *self, void *result_ptr)
     if (self_->diag.rbd_result_fptr != NULL)
     {
         Inic_StdResult_t *result_ptr_ = (Inic_StdResult_t *)result_ptr;
-        Inic_RbdResult_t rbd_result_data = {UCS_DIAG_RBD_NO_ERROR, 0U, 0xFF, 0x0000};
+        Inic_RbdResult_t rbd_result_data = {UCS_DIAG_RBD_NO_ERROR, 0U, 0xFFU, 0x0000U};
         if (result_ptr_->data_info != NULL)
         {
             rbd_result_data = *(Inic_RbdResult_t *)(result_ptr_->data_info);
@@ -1852,14 +2137,13 @@ static void Ucs_DiagRbdResult(void *self, void *result_ptr)
     }
 }
 
-
 /*------------------------------------------------------------------------------------------------*/
 /*  FullDuplex Diagnosis                                                                              */
 /*------------------------------------------------------------------------------------------------*/
 extern Ucs_Return_t Ucs_Diag_StartFdxDiagnosis(Ucs_Inst_t *self, Ucs_Diag_FdxReportCb_t result_fptr)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1879,22 +2163,10 @@ extern Ucs_Return_t Ucs_Diag_StartFdxDiagnosis(Ucs_Inst_t *self, Ucs_Diag_FdxRep
     return ret_val;
 }
 
-/*! \brief Stops the FullDuplex Diagnosis
- *
- * \param self  The UNICENS instance
- * \return  Possible return values are shown in the table below. 
- *           Value                       | Description 
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
- *           UCS_RET_ERR_NOT_AVAILABLE   | FullDuplex Diagnosis is not running
- * \ingroup G_UCS_FDX_DIAGNOSIS
- */
 extern Ucs_Return_t Ucs_Diag_StopFdxDiagnosis(Ucs_Inst_t *self)
 {
     CUcs *self_ = (CUcs*)(void*)self;
-    Ucs_Return_t ret_val = Ucs_ApiExpect(self_, true, true, false);
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_MANUAL_ONLY);
 
     if (ret_val == UCS_RET_SUCCESS)
     {
@@ -1903,7 +2175,11 @@ extern Ucs_Return_t Ucs_Diag_StopFdxDiagnosis(Ucs_Inst_t *self)
     return ret_val;
 }
 
-
+/*! Callback function which announces the result of the Full Duplex Diagnosis
+ *
+ *  \param self         The instance
+ *  \param result_ptr   Reference to the result. Must be casted into Ucs_Fdx_Report_t.
+ */
 static void Ucs_Diag_FdxReport(void *self, void *result_ptr)
 {
     CUcs *self_ = (CUcs*)self;
@@ -1911,10 +2187,9 @@ static void Ucs_Diag_FdxReport(void *self, void *result_ptr)
     {
         Ucs_Fdx_Report_t  *result_ptr_ = (Ucs_Fdx_Report_t  *)result_ptr;
 
-        self_->diag.diag_fdx_report_fptr(*(result_ptr_), self_->ucs_user_ptr);
+        self_->diag.diag_fdx_report_fptr(result_ptr_, self_->ucs_user_ptr);
     }
 }
-
 
 /*------------------------------------------------------------------------------------------------*/
 /* Message Handling                                                                               */
@@ -1952,10 +2227,6 @@ static void Ucs_InitPmsComponentApp(CUcs *self)
         mcm_config.rx_ack_timeout = 0U;         /* Acknowledge timeout: 0 -> infinite */
     }
     Fifo_Ctor(&self->msg.mcm_fifo,&mcm_init, &mcm_config);
-#if 0
-    Fifos_Ctor(&self->fifos, &self->general.base, &self->pmch, NULL, &self->msg.mcm_fifo, NULL);
-    Pmev_Ctor(&self->pme, &self->general.base, &self->fifos);       /* initialize event handler */
-#endif
 
     /* initialize transceivers and set reference to FIFO instance */
     Trcv_Ctor(&self->msg.mcm_transceiver, &self->msg.mcm_fifo, MSG_ADDR_EHC_APP, MSG_LLRBC_DEFAULT, self->ucs_user_ptr, PMP_FIFO_ID_MCM);
@@ -1995,7 +2266,13 @@ extern Ucs_AmsTx_Msg_t* Ucs_AmsTx_AllocMsg(Ucs_Inst_t *self, uint16_t data_size)
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_AmsTx_Msg_t *ret_ptr = NULL;
 #ifndef UCS_FOOTPRINT_NOAMS
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
+    Ucs_Return_t ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_AMSTX_ALLOC_MSG);
+    if (self_->init_data.ams.enabled == false)
+    {
+        ret_ptr = NULL;
+        ret_val = UCS_RET_ERR_NOT_AVAILABLE;
+    }
+    else if (ret_val == UCS_RET_SUCCESS)
     {
         ret_ptr = Ams_TxGetMsg(&self_->msg.ams, data_size);
     }
@@ -2012,8 +2289,12 @@ extern Ucs_Return_t Ucs_AmsTx_SendMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr
     CUcs *self_ = (CUcs*)(void*)self;
     Ucs_Return_t ret_val = UCS_RET_ERR_NOT_AVAILABLE;
 #ifndef UCS_FOOTPRINT_NOAMS
-    ret_val = UCS_RET_ERR_NOT_INITIALIZED;
-    if ((self_->init_complete != false) && (self_->init_data.ams.enabled != false))
+    ret_val = Svm_CheckApiAccess(&self_->supv_mode, self, SVM_IDX_AMSTX_SEND_MSG);
+    if (self_->init_data.ams.enabled == false)
+    {
+        ret_val = UCS_RET_ERR_NOT_AVAILABLE;
+    }
+    else if (ret_val == UCS_RET_SUCCESS)
     {
         ret_val = Ams_TxSendMsg(&self_->msg.ams, msg_ptr, NULL, tx_complete_fptr, self_->ucs_user_ptr);
     }

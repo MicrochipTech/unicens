@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -97,7 +97,11 @@ Example for Ucs_Gpio_CreatePort</h1>
 <div class="fragment"><div class="line"><span class="comment">// Main function</span></div>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_gaf4f73584f8e7070f74dfce863ccbdf35.html#gaf4f73584f8e7070f74dfce863ccbdf35" title="Creates the GPIO port with its associated port instance identifier.">Ucs_Gpio_CreatePort</a>(<a class="code" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56" title="Defines the address of the local device.">UCS_ADDR_LOCAL_NODE</a>, 0x00U, 0x0003U, &amp;App_GpioCreatePortResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_gaf4f73584f8e7070f74dfce863ccbdf35.html#gaf4f73584f8e7070f74dfce863ccbdf35" title="Creates the GPIO port with its associated port instance identifier.">Ucs_Gpio_CreatePort</a>(running_inst_ptr,</div>
+<div class="line">                                              <a class="code" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56" title="Defines the address of the local device.">UCS_ADDR_LOCAL_NODE</a>,</div>
+<div class="line">                                              0x00U,</div>
+<div class="line">                                              0x0003U,</div>
+<div class="line">                                              &amp;App_GpioCreatePortResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">// Error handling here</span></div>
@@ -106,7 +110,10 @@ Example for Ucs_Gpio_CreatePort</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The GPIO CreatePort event handler function</span></div>
 <div class="line"><span class="comment">// Handle GpioCreatePort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioCreatePortResCb(uint16_t device_id, uint16_t port_handle, <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioCreatePortResCb(uint16_t device_id,</div>
+<div class="line">                                    uint16_t port_handle,</div>
+<div class="line">                                    <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result,</div>
+<div class="line">                                    <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___gpio___result__t_a5a25ac28b5135e04a465fdead03df796.html#a5a25ac28b5135e04a465fdead03df796" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga7432b6d95eb2af7bce5fe5809b08d88b.html#gga7432b6d95eb2af7bce5fe5809b08d88ba00b6d2bbc409c15ce1f4bbdd53dab993" title="GPIO command succeeded.">UCS_GPIO_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -123,7 +130,12 @@ Example for Ucs_Gpio_SetPinMode</h1>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
 <div class="line">    <span class="comment">// Set configuration of GPIO pin no. 3</span></div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga70b6249848c50f130f84a3fae18997f1.html#ga70b6249848c50f130f84a3fae18997f1" title="Configures the pin mode of the given GPIO port.">Ucs_Gpio_SetPinMode</a>(0x221U, 0x1D00, 0x03U, <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_gacfcf034325bd7eff2f6fc78e8696ed49.html#ggacfcf034325bd7eff2f6fc78e8696ed49a97eb6c69f81b2438926688ef447bf7ee" title="OutputDefaultLow Mode.">UCS_GPIO_OUT_DEFAULT_LOW</a>, &amp;App_GpioConfigPinModeResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga70b6249848c50f130f84a3fae18997f1.html#ga70b6249848c50f130f84a3fae18997f1" title="Configures the pin mode of the given GPIO port.">Ucs_Gpio_SetPinMode</a>(running_inst_ptr,</div>
+<div class="line">                                              0x221U,</div>
+<div class="line">                                              0x1D00,</div>
+<div class="line">                                              0x03U,</div>
+<div class="line">                                              <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_gacfcf034325bd7eff2f6fc78e8696ed49.html#ggacfcf034325bd7eff2f6fc78e8696ed49a97eb6c69f81b2438926688ef447bf7ee" title="OutputDefaultLow Mode.">UCS_GPIO_OUT_DEFAULT_LOW</a>,</div>
+<div class="line">                                              &amp;App_GpioConfigPinModeResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">       <span class="comment">// Error handling here</span></div>
@@ -132,7 +144,12 @@ Example for Ucs_Gpio_SetPinMode</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle GpioConfigPinMode event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioConfigPinModeResCb(uint16_t device_id, uint16_t port_handle, <a class="code" href="struct_ucs___gpio___pin_configuration__t.html" title="This structure contains information on the GPIO pin configuration.">Ucs_Gpio_PinConfiguration_t</a> pin_cfg_list[], uint8_t list_sz, <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioConfigPinModeResCb(uint16_t device_id,</div>
+<div class="line">                                       uint16_t port_handle,</div>
+<div class="line">                                       <a class="code" href="struct_ucs___gpio___pin_configuration__t.html" title="This structure contains information on the GPIO pin configuration.">Ucs_Gpio_PinConfiguration_t</a> pin_cfg_list[],</div>
+<div class="line">                                       uint8_t list_sz,</div>
+<div class="line">                                       <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result,</div>
+<div class="line">                                       <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___gpio___result__t_a5a25ac28b5135e04a465fdead03df796.html#a5a25ac28b5135e04a465fdead03df796" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga7432b6d95eb2af7bce5fe5809b08d88b.html#gga7432b6d95eb2af7bce5fe5809b08d88ba00b6d2bbc409c15ce1f4bbdd53dab993" title="GPIO command succeeded.">UCS_GPIO_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -158,7 +175,10 @@ Example for Ucs_Gpio_GetPinMode</h1>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
 <div class="line">    <span class="comment">// Read configuration of GPIO pins</span></div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_gad7cfd9f8b8e7c5b4f7675f0603cca756.html#gad7cfd9f8b8e7c5b4f7675f0603cca756" title="Retrieves the pin mode configuration of the given GPIO port.">Ucs_Gpio_GetPinMode</a>(0x222U, 0x1D00, &amp;App_GpioConfigPinModeResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_gad7cfd9f8b8e7c5b4f7675f0603cca756.html#gad7cfd9f8b8e7c5b4f7675f0603cca756" title="Retrieves the pin mode configuration of the given GPIO port.">Ucs_Gpio_GetPinMode</a>(running_inst_ptr,</div>
+<div class="line">                                              0x222U,</div>
+<div class="line">                                              0x1D00,</div>
+<div class="line">                                              &amp;App_GpioConfigPinModeResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">// Error handling here</span></div>
@@ -167,7 +187,12 @@ Example for Ucs_Gpio_GetPinMode</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle GpioConfigPinMode event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioConfigPinModeResCb(uint16_t device_id, uint16_t port_handle, <a class="code" href="struct_ucs___gpio___pin_configuration__t.html" title="This structure contains information on the GPIO pin configuration.">Ucs_Gpio_PinConfiguration_t</a> pin_cfg_list[], uint8_t list_sz, <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioConfigPinModeResCb(uint16_t device_id,</div>
+<div class="line">                                       uint16_t port_handle,</div>
+<div class="line">                                       Ucs_Gpio_PinConfiguration_tpin_cfg_list[],</div>
+<div class="line">                                       uint8_t list_sz,</div>
+<div class="line">                                       <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result,</div>
+<div class="line">                                       <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___gpio___result__t_a5a25ac28b5135e04a465fdead03df796.html#a5a25ac28b5135e04a465fdead03df796" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga7432b6d95eb2af7bce5fe5809b08d88b.html#gga7432b6d95eb2af7bce5fe5809b08d88ba00b6d2bbc409c15ce1f4bbdd53dab993" title="GPIO command succeeded.">UCS_GPIO_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -188,7 +213,12 @@ Example for Ucs_Gpio_WritePort</h1>
 <div class="fragment"><div class="line"> <span class="comment">// Main function</span></div>
 <div class="line"> <span class="keywordtype">void</span> main()</div>
 <div class="line"> {</div>
-<div class="line">     <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga9cf147f951d36a1a94588f1f1cce0ce9.html#ga9cf147f951d36a1a94588f1f1cce0ce9" title="Writes data to the given GPIO port.">Ucs_Gpio_WritePort</a>(0x555U, 0x1D00, 0x0039U, 0x0038U, &amp;App_GpioWritePortResCb);</div>
+<div class="line">     <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga9cf147f951d36a1a94588f1f1cce0ce9.html#ga9cf147f951d36a1a94588f1f1cce0ce9" title="Writes data to the given GPIO port.">Ucs_Gpio_WritePort</a>(running_inst_ptr,</div>
+<div class="line">                                              0x555U,</div>
+<div class="line">                                              0x1D00,</div>
+<div class="line">                                              0x0039U,</div>
+<div class="line">                                              0x0038U,</div>
+<div class="line">                                              &amp;App_GpioWritePortResCb);</div>
 <div class="line">     <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">     {</div>
 <div class="line">         <span class="comment">// Error handling here</span></div>
@@ -197,7 +227,12 @@ Example for Ucs_Gpio_WritePort</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle GpioWritePort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioWritePortResCb(uint16_t device_id, uint16_t port_handle, uint16_t current_state, uint16_t sticky_state, <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioWritePortResCb(uint16_t device_id,</div>
+<div class="line">                                   uint16_t port_handle,</div>
+<div class="line">                                   uint16_t current_state,</div>
+<div class="line">                                   uint16_t sticky_state,</div>
+<div class="line">                                   <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result,</div>
+<div class="line">                                   <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___gpio___result__t_a5a25ac28b5135e04a465fdead03df796.html#a5a25ac28b5135e04a465fdead03df796" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga7432b6d95eb2af7bce5fe5809b08d88b.html#gga7432b6d95eb2af7bce5fe5809b08d88ba00b6d2bbc409c15ce1f4bbdd53dab993" title="GPIO command succeeded.">UCS_GPIO_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -223,7 +258,10 @@ Example for Ucs_Gpio_ReadPort</h1>
 <div class="fragment"><div class="line"><span class="comment">// Main function</span></div>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga0a851f26c08dcd023544d12d2045d52d.html#ga0a851f26c08dcd023544d12d2045d52d" title="Reads the pin state of the given GPIO port.">Ucs_Gpio_ReadPort</a>(<a class="code" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56" title="Defines the address of the local device.">UCS_ADDR_LOCAL_NODE</a>, 0x1D00, &amp;App_GpioReadPortResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___g_p_i_o_ga0a851f26c08dcd023544d12d2045d52d.html#ga0a851f26c08dcd023544d12d2045d52d" title="Reads the pin state of the given GPIO port.">Ucs_Gpio_ReadPort</a>(running_inst_ptr,</div>
+<div class="line">                                            <a class="code" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56" title="Defines the address of the local device.">UCS_ADDR_LOCAL_NODE</a>,</div>
+<div class="line">                                            0x1D00, </div>
+<div class="line">                                            &amp;App_GpioReadPortResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">// Error handling here</span></div>
@@ -232,7 +270,11 @@ Example for Ucs_Gpio_ReadPort</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle GpioReadPort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioReadPortResCb(uint16_t device_id, uint16_t port_handle, uint16_t current_state, uint16_t sticky_state, <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_GpioReadPortResCb(uint16_t device_id,</div>
+<div class="line">                                  uint16_t port_handle,</div>
+<div class="line">                                  uint16_t current_state,</div>
+<div class="line">                                  uint16_t sticky_state,</div>
+<div class="line">                                  <a class="code" href="struct_ucs___gpio___result__t.html" title="Result structure of the GPIO Module.">Ucs_Gpio_Result_t</a> result)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___gpio___result__t_a5a25ac28b5135e04a465fdead03df796.html#a5a25ac28b5135e04a465fdead03df796" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___g_p_i_o___t_y_p_e_s_ga7432b6d95eb2af7bce5fe5809b08d88b.html#gga7432b6d95eb2af7bce5fe5809b08d88ba00b6d2bbc409c15ce1f4bbdd53dab993" title="GPIO command succeeded.">UCS_GPIO_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -269,7 +311,12 @@ Example for Ucs_I2c_CreatePort</h1>
 <div class="line"><span class="comment">// Main function</span></div>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_gafc78ccf84ef8c06e4ebab4a8602c1ed4.html#gafc78ccf84ef8c06e4ebab4a8602c1ed4" title="Creates an I2C Port with its associated parameter.">Ucs_I2c_CreatePort</a>(0x556U, 0x00U, <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga8492cc027b5b9e2f436a172e526e1d5e.html#gga8492cc027b5b9e2f436a172e526e1d5ea577d5efdff88c202f2e2f43aed2b0391" title="Speed grade of the port is 400 kHz.">UCS_I2C_FAST_MODE</a>, I2C_INT_PIN_MASK, &amp;App_I2cCreatePortResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_gafc78ccf84ef8c06e4ebab4a8602c1ed4.html#gafc78ccf84ef8c06e4ebab4a8602c1ed4" title="Creates an I2C Port with its associated parameter.">Ucs_I2c_CreatePort</a>(running_inst_ptr,</div>
+<div class="line">                                             0x556U,</div>
+<div class="line">                                             0x00U,</div>
+<div class="line">                                             <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga8492cc027b5b9e2f436a172e526e1d5e.html#gga8492cc027b5b9e2f436a172e526e1d5ea577d5efdff88c202f2e2f43aed2b0391" title="Speed grade of the port is 400 kHz.">UCS_I2C_FAST_MODE</a>,</div>
+<div class="line">                                             I2C_INT_PIN_MASK,</div>
+<div class="line">                                             &amp;App_I2cCreatePortResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">// Error handling here</span></div>
@@ -277,7 +324,10 @@ Example for Ucs_I2c_CreatePort</h1>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// Handle I2cCreatePort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cCreatePortResCb(uint16_t device_id, uint16_t port_handle, <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cCreatePortResCb( uint16_t device_id,</div>
+<div class="line">                                    uint16_t port_handle,</div>
+<div class="line">                                    <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result,</div>
+<div class="line">                                    <span class="keywordtype">void</span> * user_ptr )</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___i2c___result__t_aacd0e1eabaa18a3fe226a2b4f849832b.html#aacd0e1eabaa18a3fe226a2b4f849832b" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga930e829c3c689b8ead8f9fbf7f2ca237.html#gga930e829c3c689b8ead8f9fbf7f2ca237a1f0bb0636d1fbe3a3c94541d3725b864" title="I2C command succeeded.">UCS_I2C_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -295,7 +345,16 @@ Example for Ucs_I2c_WritePort</h1>
 <div class="line"><span class="comment">// Main function</span></div>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_ga49cfb9360be273a6c553190f08e73095.html#ga49cfb9360be273a6c553190f08e73095" title="Writes a block of bytes to an I2C device at a specified I2C address.">Ucs_I2c_WritePort</a>(0x15U, 0x0F00U, <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga631c2b70299a4c07ac77b6741b5b5e44.html#gga631c2b70299a4c07ac77b6741b5b5e44a3380b0b2a253a389aec424ef348a34b7" title="Burst mode of the I2C write transfer.">UCS_I2C_BURST_MODE</a>, 4U, 0x20U, 0x0FU, 12U, myData, &amp;App_I2cWritePortResCb);</div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_ga49cfb9360be273a6c553190f08e73095.html#ga49cfb9360be273a6c553190f08e73095" title="Writes a block of bytes to an I2C device at a specified I2C address.">Ucs_I2c_WritePort</a>(running_inst_ptr,</div>
+<div class="line">                                            0x15U,</div>
+<div class="line">                                            0x0F00U,</div>
+<div class="line">                                            <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga631c2b70299a4c07ac77b6741b5b5e44.html#gga631c2b70299a4c07ac77b6741b5b5e44a3380b0b2a253a389aec424ef348a34b7" title="Burst mode of the I2C write transfer.">UCS_I2C_BURST_MODE</a>,</div>
+<div class="line">                                            4U,</div>
+<div class="line">                                            0x20U,</div>
+<div class="line">                                            0x0FU,</div>
+<div class="line">                                            12U,</div>
+<div class="line">                                            myData,</div>
+<div class="line">                                            &amp;App_I2cWritePortResCb);</div>
 <div class="line">    <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">// Error handling here</span></div>
@@ -304,7 +363,12 @@ Example for Ucs_I2c_WritePort</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle I2cWritePort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cWritePortResCb(uint16_t device_id, uint16_t port_handle, uint8_t i2c_slave_address, uint8_t data_len, <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cWritePortResCb(uint16_t device_id,</div>
+<div class="line">                                  uint16_t port_handle,</div>
+<div class="line">                                  uint8_t i2c_slave_address,</div>
+<div class="line">                                  uint8_t data_len,</div>
+<div class="line">                                  <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result,</div>
+<div class="line">                                  <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___i2c___result__t_aacd0e1eabaa18a3fe226a2b4f849832b.html#aacd0e1eabaa18a3fe226a2b4f849832b" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga930e829c3c689b8ead8f9fbf7f2ca237.html#gga930e829c3c689b8ead8f9fbf7f2ca237a1f0bb0636d1fbe3a3c94541d3725b864" title="I2C command succeeded.">UCS_I2C_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -330,7 +394,14 @@ Example for Ucs_I2c_ReadPort</h1>
 <div class="fragment"><div class="line"><span class="comment">// Main function</span></div>
 <div class="line"><span class="keywordtype">void</span> main()</div>
 <div class="line">{</div>
-<div class="line">   <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_ga597f215c92d566466cfdab1c733cfc5c.html#ga597f215c92d566466cfdab1c733cfc5c" title="Reads a block of bytes from an I2C device at a specified I2C address.">Ucs_I2c_ReadPort</a>(0x14U, 0x0F00U, 0x20U, 5U, 0x0FU, &amp;App_I2cReadPortResCb);</div>
+<div class="line">   <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> result = <a class="code" href="group___g___u_c_s___i2_c_ga597f215c92d566466cfdab1c733cfc5c.html#ga597f215c92d566466cfdab1c733cfc5c" title="Reads a block of bytes from an I2C device at a specified I2C address.">Ucs_I2c_ReadPort</a>(running_inst_ptr,</div>
+<div class="line">                                          0x14U,</div>
+<div class="line">                                          0x0F00U,</div>
+<div class="line">                                          0x20U,</div>
+<div class="line">                                          5U,</div>
+<div class="line">                                          0x0FU,</div>
+<div class="line">                                          &amp;App_I2cReadPortResCb);</div>
+<div class="line"></div>
 <div class="line">   <span class="keywordflow">if</span> (result != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">   {</div>
 <div class="line">       <span class="comment">// Error handling here</span></div>
@@ -339,7 +410,13 @@ Example for Ucs_I2c_ReadPort</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">// The event handler function</span></div>
 <div class="line"><span class="comment">// Handle I2cReadPort event</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cReadPortResCb(uint16_t device_id, uint16_t port_handle, uint8_t slave_address, uint8_t data_len, uint8_t data_ptr[], <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result, <span class="keywordtype">void</span> * user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_I2cReadPortResCb(uint16_t device_id,</div>
+<div class="line">                                 uint16_t port_handle,</div>
+<div class="line">                                 uint8_t slave_address,</div>
+<div class="line">                                 uint8_t data_len,</div>
+<div class="line">                                 uint8_t data_ptr[],</div>
+<div class="line">                                 <a class="code" href="struct_ucs___i2c___result__t.html" title="Result structure of the I2C Module.">Ucs_I2c_Result_t</a> result,</div>
+<div class="line">                                 <span class="keywordtype">void</span> * user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (result.<a class="code" href="struct_ucs___i2c___result__t_aacd0e1eabaa18a3fe226a2b4f849832b.html#aacd0e1eabaa18a3fe226a2b4f849832b" title="Result code.">code</a> == <a class="code" href="group___g___u_c_s___i2_c___t_y_p_e_s_ga930e829c3c689b8ead8f9fbf7f2ca237.html#gga930e829c3c689b8ead8f9fbf7f2ca237a1f0bb0636d1fbe3a3c94541d3725b864" title="I2C command succeeded.">UCS_I2C_RES_SUCCESS</a>)</div>
 <div class="line">    {</div>
@@ -368,12 +445,12 @@ Example for Ucs_I2c_InitData_</h1>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

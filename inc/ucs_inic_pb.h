@@ -62,16 +62,6 @@ extern "C"
 #define UCS_EXC_SIGNATURE_VERSION_LIMIT         1U
 
 
-/*! \brief No evaluable segment information available for HalfDuplex Diagnosis.
- *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
- */
-#define UCS_HDX_DUMMY_POS                       0xFFU
-
-/*! \brief No evaluable cable diagnosis information available for HalfDuplex Diagnosis.
- *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
- */
-#define UCS_HDX_DUMMY_CABLE_DIAG_RESULT         0xFFU
-
 /*------------------------------------------------------------------------------------------------*/
 /* Enumerators                                                                                    */
 /*------------------------------------------------------------------------------------------------*/
@@ -163,6 +153,8 @@ typedef enum Ucs_Network_AvailInfo_
      *         Ucs_Network_ForceNotAvailable(). Also see Ucs_Network_Startup().
      */
     UCS_NW_AVAIL_INFO_FORCED_NA     = 0x06U,
+    /*! \brief Network is not available. Fallback mode is active. */
+    UCS_NW_AVAIL_INFO_FALLBACK      = 0x07U,
     /*! \brief Network is available. Unlocks have been detected. */
     UCS_NW_AVAIL_INFO_UNSTABLE      = 0x10U,
     /*! \brief Network is available. Network is in Stable Lock. */
@@ -401,12 +393,10 @@ typedef enum Ucs_Stream_PortClockDataDelay_
  */
 typedef enum Ucs_Stream_PortClockConfig_
 {
-    /*! \brief 8 x Fs. All data pins must be configured for sequential routing. */
-    UCS_STREAM_PORT_CLK_CFG_8FS   = 0x00U,
-    /*! \brief 16 x Fs. All data pins must be configured for sequential routing. */
-    UCS_STREAM_PORT_CLK_CFG_16FS  = 0x01U,
-    /*! \brief 32 x Fs. All data pins must be configured for sequential routing. */
-    UCS_STREAM_PORT_CLK_CFG_32FS  = 0x02U,
+    /*! \brief Streaming Port clock config is not configured.
+    Only intended as default value for the ATD calculation structure.
+    Do not set this value in the streaming port description or when ATD feature is use. */
+    UCS_STREAM_PORT_CLK_CFG_NONE  = 0x00U,
     /*! \brief 64 x Fs */
     UCS_STREAM_PORT_CLK_CFG_64FS  = 0x03U,
     /*! \brief 128 x Fs */
@@ -415,7 +405,7 @@ typedef enum Ucs_Stream_PortClockConfig_
     UCS_STREAM_PORT_CLK_CFG_256FS = 0x05U,
     /*! \brief 512 x Fs */
     UCS_STREAM_PORT_CLK_CFG_512FS = 0x06U,
-    /*! \brief Wildcard */
+    /*! \brief Wildcard. Do not set this value for the ATD calculation.*/
     UCS_STREAM_PORT_CLK_CFG_WILD  = 0xFFU
 
 } Ucs_Stream_PortClockConfig_t;
@@ -543,7 +533,7 @@ typedef enum Ucs_Gpio_PinMode_
 } Ucs_Gpio_PinMode_t;
 
 /*! \brief Type of FullDuplex Diagnosis Report.
- *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_FDX_DIAGNOSIS
  */
 typedef enum Ucs_Fdx_ResCode_
 {
@@ -556,7 +546,7 @@ typedef enum Ucs_Fdx_ResCode_
 } Ucs_Fdx_ResCode_t;
 
 /*! \brief Type of FullDuplex Diagnosis Error Codes.
- *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_FDX_DIAGNOSIS
  */
 typedef enum Ucs_Fdx_ErrCode_
 {
@@ -578,7 +568,6 @@ typedef enum Ucs_Fdx_ErrCode_
 } Ucs_Fdx_ErrCode_t;
 
 
-
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
@@ -587,16 +576,16 @@ typedef enum Ucs_Fdx_ErrCode_
  */
 typedef struct Ucs_Inic_Version_
 {
-    uint32_t product_identifier; /*!< \brief Unique identifier that represents the product name.\mns_name_inic{ProductIdentifier} */
-    uint32_t build_version;      /*!< \brief Firmware build version number.\mns_name_inic{BuildVersion}  */
-    uint8_t  major_version;      /*!< \brief Firmware major version number.\mns_name_inic{MajorVersion} */
-    uint8_t  minor_version;      /*!< \brief Firmware build version number.\mns_name_inic{MinorVersion} */
-    uint8_t  release_version;    /*!< \brief Firmware release version number.\mns_name_inic{ReleaseVersion} */
-    uint8_t  hw_revision;        /*!< \brief Chip revision number.\mns_name_inic{HardwareRevision} */
-    uint16_t diagnosis_id;       /*!< \brief Diagnosis identifier of the INIC.\mns_name_inic{DiagnosisID} */
-    uint8_t  cs_major_version;   /*!< \brief Configuration String major version number.\mns_name_inic{ExtMajorVersion} */
-    uint8_t  cs_minor_version;   /*!< \brief Configuration String minor version number.\mns_name_inic{ExtMinorVersion} */
-    uint8_t  cs_release_version; /*!< \brief Configuration String release version number.\mns_name_inic{ExtReleaseVersion} */
+    uint32_t product_identifier; /*!< \brief Unique identifier that represents the product name.\dox_name_inic{ProductIdentifier} */
+    uint32_t build_version;      /*!< \brief Firmware build version number.\dox_name_inic{BuildVersion}  */
+    uint8_t  major_version;      /*!< \brief Firmware major version number.\dox_name_inic{MajorVersion} */
+    uint8_t  minor_version;      /*!< \brief Firmware build version number.\dox_name_inic{MinorVersion} */
+    uint8_t  release_version;    /*!< \brief Firmware release version number.\dox_name_inic{ReleaseVersion} */
+    uint8_t  hw_revision;        /*!< \brief Chip revision number.\dox_name_inic{HardwareRevision} */
+    uint16_t diagnosis_id;       /*!< \brief Diagnosis identifier of the INIC.\dox_name_inic{DiagnosisID} */
+    uint8_t  cs_major_version;   /*!< \brief Configuration String major version number.\dox_name_inic{ExtMajorVersion} */
+    uint8_t  cs_minor_version;   /*!< \brief Configuration String minor version number.\dox_name_inic{ExtMinorVersion} */
+    uint8_t  cs_release_version; /*!< \brief Configuration String release version number.\dox_name_inic{ExtReleaseVersion} */
 
 } Ucs_Inic_Version_t;
 
@@ -619,7 +608,7 @@ typedef struct Ucs_Gpio_PinConfiguration_
  *           It supports the signature v1 only.
  *  \ingroup G_UCS_INIC_TYPES
  */
-typedef struct Ucs_Signature_t_
+typedef struct Ucs_Signature_
 {
     uint16_t node_address;      /*!< \brief NodeAddress */
     uint16_t group_address;     /*!< \brief GroupAddress */
@@ -637,16 +626,14 @@ typedef struct Ucs_Signature_t_
     uint8_t  cs_major;          /*!< \brief CSVersion_Major */
     uint8_t  cs_minor;          /*!< \brief CSVersion_Minor */
     uint8_t  cs_release;        /*!< \brief CSVersion_Release */
-/*    uint8_t  uid_persistency;*/   /*!< \brief UIDPersistency */
-/*    uint32_t uid;*/               /*!< \brief UID */
 
 } Ucs_Signature_t;
 
 
-/*! \brief   This structure holds the elements of an IdentString.
+/*! \brief   This structure holds the elements of an identification string.
  *  \ingroup G_UCS_INIC_TYPES
  */
-typedef struct Ucs_IdentString_t_
+typedef struct Ucs_IdentString_
 {
     uint16_t node_address;      /*!< \brief NodeAddress */
     uint16_t group_address;     /*!< \brief GroupAddress */
@@ -657,121 +644,37 @@ typedef struct Ucs_IdentString_t_
 } Ucs_IdentString_t;
 
 
-
 /*------------------------------------------------------------------------------------------------*/
 /*  FullDuplex Diagnosis                                                                              */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   This structure holds the segment information of the FullDuplex Diagnosis
- *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_FDX_DIAGNOSIS
  */
-typedef struct Ucs_Fdx_Segment_t_
+typedef struct Ucs_Fdx_Segment_
 {
     uint8_t branch;             /*!< \brief Number of the currently tested branch. Numbering starts
                                             with 0 and corresponds to the port number if the Timing
                                             Master is a multi port INIC */
     uint8_t num;                /*!< \brief Segment number inside the tested branch. Numbering starts with 1 */
     Ucs_Signature_t source;     /*!< \brief Signature of the first node of the segment
-                                            \mns_param_inic{Signature,Hello,MNSH2-Hello200} */
+                                            \dox_param_inic{Signature,Hello,MNSH2-Hello200} */
     Ucs_Signature_t target;     /*!< \brief Signature of the second node of the segment
-                                            \mns_param_exc{Signature,Hello,MNSH2-Hello200} */
+                                            \dox_param_exc{Signature,Hello,MNSH2-Hello200} */
 } Ucs_Fdx_Segment_t;
 
 
 /*! \brief   This structure holds the results of the FullDuplex Diagnosis
- *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_FDX_DIAGNOSIS
  */
-typedef struct Ucs_Fdx_Report_t_
+typedef struct Ucs_Fdx_Report_
 {
     Ucs_Fdx_ResCode_t code;      /*!< \brief Result code */
     Ucs_Fdx_Segment_t segment;   /*!< \brief Information about tested segment */
-    uint8_t cable_link_info;    /*!< \brief Result of a cable link diagnosis.
-                                            \mns_param_exc{Result,CableLinkDiagnosis,MNSH2-CableLinkDiagnosis211} */
+    uint8_t cable_link_info;     /*!< \brief Result of a cable link diagnosis.
+                                            \dox_param_exc{Result,CableLinkDiagnosis,MNSH2-CableLinkDiagnosis211} */
     Ucs_Fdx_ErrCode_t err_info;  /*!< \brief Error codes, values are defined in Ucs_Fdx_ErrCode_t */
 
 } Ucs_Fdx_Report_t ;
-
-
-
-/*------------------------------------------------------------------------------------------------*/
-/*  Node Discovery                                                                                */
-/*------------------------------------------------------------------------------------------------*/
-
-
-/*! \brief Result values of the Node Discovery service.
- *  \ingroup G_UCS_NODE_DISCOVERY_TYPES
- */
-typedef enum Ucs_Nd_ResCode_t_
-{
-    UCS_ND_RES_WELCOME_SUCCESS   = 0x01U,    /*!< \brief Node was successfully added to the network. */
-    UCS_ND_RES_UNKNOWN           = 0x02U,    /*!< \brief Node signature is unknown to the application, node will be ignored. */
-    UCS_ND_RES_MULTI             = 0x03U,    /*!< \brief A node with the same signature is already part of the system. The new node will be ignored. */
-    UCS_ND_RES_STOPPED           = 0x04U,    /*!< \brief The Node Discovery service was stopped by API function Ucs_Nd_Stop(). Ucs_Nd_Start() has to be called to start again. */
-    UCS_ND_RES_NETOFF            = 0x05U,    /*!< \brief The Node Discovery service detected a NetOff event and pauses . It resumes automatically as soon as NetOn occurs. */
-    UCS_ND_RES_ERROR             = 0x06U     /*!< \brief An unexpected error occurred. Node Discovery service was stopped. Ucs_Nd_Start() has to be called to start again. */
-
-} Ucs_Nd_ResCode_t;
-
-/*! \brief   Result values of the application's evaluation function (type \ref Ucs_Nd_EvalCb_t).
- *  \ingroup G_UCS_NODE_DISCOVERY_TYPES
- */
-typedef enum Ucs_Nd_CheckResult_t_
-{
-    UCS_ND_CHK_WELCOME              = 0x01U,    /*!< \brief Node is ok, try to add it to the network. */
-    UCS_ND_CHK_UNIQUE               = 0x02U,    /*!< \brief Test if this node is unique. */
-    UCS_ND_CHK_UNKNOWN              = 0x03U     /*!< \brief The node is unknown, no further action. */
-
-} Ucs_Nd_CheckResult_t;
-
-
-/*! \brief Function signature of node evaluation callback used by Node Discovery service.
- *
- *  The Node Discovery service announces the signature of each node it has found to the
- *  application via the evaluation function. In this function the application
- *  decides how the Node Discovery service shall proceed with the node.
- *  The application maintains two lists:
- *
- *  <dl>
- *      <dt> *set_list* </dt>
- *      <dd> Contains the signatures of the nodes the system shall contain
- *
- *      <dt> *device_list* </dt>
- *      <dd> Contains the signatures of the nodes detected in the system
- *  </dl>
- *
- *  The evaluation has to follow these rules:
- *  - If the node is not part of the *set_list*, it is regarded as unknown (\ref UCS_ND_CHK_UNKNOWN)
- *    and will be ignored.
- *  - If the node is part of the *set_list* and is not yet in the *device_list*, the Node Discovery
- *    Service shall try to add the node to network (\ref UCS_ND_CHK_WELCOME).
- *  - If the node is already part of the *device_list*, there are two possibilities: the node in the
- *    *device_list* experienced a reset or there are two nodes with the same signature. Evaluation
- *    result is \ref UCS_ND_CHK_UNIQUE. The Node Discovery service will perform further tests.
- *
- *  \param    signature   Signature of the respective node
- *  \param    user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \returns  UCS_ND_CHK_WELCOME  Node is ok, try to add it to the network.
- *  \returns  UCS_ND_CHK_UNIQUE   Test if this node is unique.
- *  \returns  UCS_ND_CHK_UNKNOWN  Node is unknown, no further action.
- *  \ingroup G_UCS_NODE_DISCOVERY
- */
-typedef Ucs_Nd_CheckResult_t(*Ucs_Nd_EvalCb_t)(Ucs_Signature_t *signature, void *user_ptr);
-
-/*! \brief Function signature of result callback used by Node Discovery service.
- *
- *  The Node Discovery service reports the result of each node and some system events by
- *  this callback function.
- *
- *  \note The parameter <b>signature</b> will be NULL, if parameter <b>code</b> is
- *  \ref UCS_ND_RES_STOPPED, \ref UCS_ND_RES_NETOFF or \ref UCS_ND_RES_ERROR.
- *
- *  \param   code         Result code
- *  \param   signature    Signature of the respective node
- *  \param   user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \ingroup G_UCS_NODE_DISCOVERY
- */
-typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code,
-                                  Ucs_Signature_t *signature,
-                                  void *user_ptr);
 
 
 /*------------------------------------------------------------------------------------------------*/
@@ -779,22 +682,19 @@ typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code,
 /*------------------------------------------------------------------------------------------------*/
 
 /*! \brief Defines the set of MemIDs and the memory access types.
- *  \ingroup G_UCS_PROG_MODE_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
 typedef enum Ucs_Prg_SessionType_
 {
     UCS_PRG_ST_CS          = 0x01U,    /*!< \brief Writes to configuration string */
     UCS_PRG_ST_IS          = 0x02U,    /*!< \brief Writes to identification string */
-    UCS_PRG_ST_CS_IS       = 0x04U,    /*!< \brief Writes to configuration and identification string  */
-    UCS_PRG_ST_ERASE_EM    = 0x08U,    /*!< \brief Erases the error memory */
-    UCS_PRG_ST_CFG_READ    = 0x10U,    /*!< \brief Reads data from all configuration memories */
     UCS_PRG_ST_PS          = 0x40U     /*!< \brief Writes patch string */
 
 } Ucs_Prg_SessionType_t;
 
 
 /*! \brief Represents the memory resource to be written.
- *  \ingroup G_UCS_PROG_MODE_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
 typedef enum Ucs_Prg_MemId_
 {
@@ -808,7 +708,7 @@ typedef enum Ucs_Prg_MemId_
 } Ucs_Prg_MemId_t;
 
 /*! \brief Represents a programming task.
- *  \ingroup G_UCS_PROG_MODE_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
 typedef struct Ucs_Prg_Command_
 {
@@ -819,15 +719,15 @@ typedef struct Ucs_Prg_Command_
     uint8_t                 unit_size;      /*!< \brief Number of bytes per memory unit.
                                                         Memory units can be unsigned bytes, unsigned words
                                                         or unsigned masked data depending on the memory type. */
-    uint16_t                data_length;    /*!< \brief Length of data in Bytes */
-    uint8_t                *data;           /*!< \brief Contains the actual data written to the memory
+    uint16_t                data_size;      /*!< \brief Length of data in Bytes */
+    uint8_t                *data_ptr;       /*!< \brief Contains the actual data written to the memory
                                                         resource and formatted as memory units. */
 } Ucs_Prg_Command_t;
 
 /*! \brief Result values of the Programming service.
- *  \ingroup G_UCS_PROG_MODE_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
-typedef enum Ucs_Prg_ResCode_t_
+typedef enum Ucs_Prg_ResCode_
 {
     UCS_PRG_RES_SUCCESS     = 0x01U,    /*!< \brief Node was successfully programmed. */
     UCS_PRG_RES_TIMEOUT     = 0x02U,    /*!< \brief Node did not answer timely. */
@@ -835,15 +735,15 @@ typedef enum Ucs_Prg_ResCode_t_
     UCS_PRG_RES_FKT_SYNCH   = 0x04U,    /*!< \brief The call of the internal API function returned an error,
                                                     so the command was not sent to the node.*/
     UCS_PRG_RES_FKT_ASYNCH  = 0x05U,    /*!< \brief Node returned an error message as result. */
-    UCS_PRG_RES_ERROR       = 0x06U,    /*!< \brief An unexcpected error occurred. Programming service was stopped. */
+    UCS_PRG_RES_ERROR       = 0x06U,    /*!< \brief An unexpected error occurred. Programming service was stopped. */
     UCS_PRG_RES_PARAM       = 0x07U     /*!< \brief Parameter error on calling  */
 
 } Ucs_Prg_ResCode_t;
 
 /*! \brief Denotes the function where an error occurred.
- *  \ingroup G_UCS_PROG_MODE_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
-typedef enum Ucs_Prg_Func_t_
+typedef enum Ucs_Prg_Func_
 {
     UCS_PRG_FKT_DUMMY               = 0x00U,    /*!< \brief Dummy value, used in case of UCS_PRG_RES_SUCCESS */
     UCS_PRG_FKT_WELCOME             = 0x01U,    /*!< \brief Error occurred in the context of function Welcome */
@@ -856,34 +756,35 @@ typedef enum Ucs_Prg_Func_t_
 
 } Ucs_Prg_Func_t;
 
+/*! \brief Structure containing the programming report.
+ *  \ingroup G_UCS_SUPV_TYPES
+ */
+typedef struct Ucs_Prg_Report_
+{
+    Ucs_Prg_ResCode_t code;     /*!< \brief Result values of the Programming service */
+    Ucs_Prg_Func_t function;    /*!< \brief Function where an error occurred. */
+    uint8_t error_size;         /*!< \brief Length of the error parameter field error_ptr. It is 0 if no error occurred. */
+    uint8_t *error_ptr;         /*!< \brief Pointer to the parameters of a potential error message. */
+} Ucs_Prg_Report_t;
+
 /*! \brief Function signature of result callback used by Programming service.
  *
  *  The Programming service reports the result of programming a certain device by
  *  this callback function.
  *
- *
- *  \param   code         Result values of the Programming service
- *  \param   function     Function where an error occurred.
- *  \param   ret_len      Length of the error parameter field parm. It is 0 if no error occurred.
- *  \param   parm         Pointer to the parameters of a potential error message.
+ *  \param   result       Pointer to the result of the programming task.
  *  \param   user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \ingroup G_UCS_PROG_MODE
+ *  \ingroup G_UCS_SUPV_TYPES
  */
-typedef void (*Ucs_Prg_ReportCb_t)(Ucs_Prg_ResCode_t code,
-                                   Ucs_Prg_Func_t function,
-                                   uint8_t ret_len,
-                                   uint8_t parm[],
-                                   void *user_ptr);
-
+typedef void (*Ucs_Prg_ReportCb_t)(Ucs_Prg_Report_t *result_ptr, void *user_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
-/*  HalfDuplex Diagnosis                                                                         */
+/*  HalfDuplex Diagnosis                                                                          */
 /*------------------------------------------------------------------------------------------------*/
-
 /*! \brief Result values of the HalfDuplex Diagnosis.
- *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
  */
-typedef enum Ucs_Hdx_ResCode_t_
+typedef enum Ucs_Hdx_ResCode_
 {
     UCS_HDX_RES_SUCCESS         = 0x00U,    /*!< \brief current node is reachable. */
     UCS_HDX_RES_SLAVE_WRONG_POS = 0x01U,    /*!< \brief Answer from wrong position. */
@@ -897,71 +798,95 @@ typedef enum Ucs_Hdx_ResCode_t_
 } Ucs_Hdx_ResCode_t;
 
 /*! \brief Report values of the HalfDuplex Diagnosis.
- *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
  */
-typedef struct Ucs_Hdx_Report_t_
+typedef struct Ucs_Hdx_Report_
 {
     Ucs_Hdx_ResCode_t code;                 /*!< \brief Result code */
     uint8_t cable_diag_result;              /*!< \brief Result of the cable diagnosis from the tester device */
     uint8_t position;                       /*!< \brief Number of the segment to be inspected. Numbering starts with 1. */
-    Ucs_Signature_t *signature;              /*!< \brief Signature of the inspected node. */
+    Ucs_Signature_t *signature_ptr;         /*!< \brief Signature of the inspected node. */
 } Ucs_Hdx_Report_t;
 
-
-
+/*------------------------------------------------------------------------------------------------*/
+/*  Network Fallback                                                                              */
+/*------------------------------------------------------------------------------------------------*/
 /*! \brief Result values of the Fallback Protection.
- *  \ingroup G_UCS_FALLBACK_TYPES
+ *  \ingroup G_UCS_SUPV_TYPES
  */
-typedef enum Ucs_Fbp_ResCode_t_
+typedef enum Ucs_Fbp_ResCode_
 {
     UCS_FBP_RES_SUCCESS     = 0x00U,    /*!< \brief Fallback Protection mode successfully activated. */
     UCS_FBP_RES_NOSUCCESS   = 0x01U,    /*!< \brief unused value */
-    UCS_FBP_RES_ALIVE       = 0xA0U,    /*!< \brief Alive message was received. */
-    UCS_FBP_RES_END         = 0xEEU,    /*!< \brief Fallback Protection stopped by command. */
+    UCS_FBP_RES_END         = 0xEEU,    /*!< \brief Fallback Protection stopped by command or timeout. */
     UCS_FBP_RES_ERROR       = 0xFDU,    /*!< \brief Fallback Protection stopped due to an error. */
     UCS_FBP_RES_TIMEOUT     = 0xFEU,    /*!< \brief Command timeout occurred. */
     UCS_FBP_RES_NORESULT    = 0xFFU     /*!< \brief unused value */
 
 } Ucs_Fbp_ResCode_t;
 
-
 /*! \brief Report function for Fallback Protection.
- *
- * \param result      Result value
- * \param user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \ingroup G_UCS_FALLBACK
+ *  \param result      The result value
+ *  \param user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \ingroup G_UCS_SUPV_TYPES
  */
 typedef void (*Ucs_Fbp_ReportCb_t)(Ucs_Fbp_ResCode_t result,
                                    void *user_ptr);
 
+/*! \brief   Type of the AliveMessage.AliveStatus.Welcomed value.
+ *  \ingroup G_UCS_NET  */
+typedef enum Ucs_Welcomed_
+{
+    /*! \brief The device is not welcomed in the network. */
+    UCS_NOT_WELCOMED = 0x0U,
+    /*! \brief The device is welcomed in the network. */
+    UCS_WELCOMED     = 0x1U
 
+} Ucs_Welcomed_t;
 
+/*! \brief   Type of the AliveMessage.AliveStatus values.
+ *  \ingroup G_UCS_NET  */
+typedef struct Ucs_Network_AliveStatus_
+{
+    /*! \brief Indicates if the device is welcomed in the network. By entering the Fallback mode, 
+     *         a device gets automatically welcomed. 
+     */
+    Ucs_Welcomed_t welcomed;
+    /*! \brief Indicates the current state of the GPIO pin. */
+    uint16_t alive_status;
+    /*! \brief Signature of the node which has sent the Alive message. */
+    Ucs_Signature_t signature;
 
+} Ucs_Network_AliveStatus_t;
 
+/*! \brief Report function for Alive Status message.
+ *
+ * \param result_ptr  Reference to the alive status value.
+ * \param user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \ingroup G_UCS_NET
+ */
+typedef void (*Ucs_Network_AliveCb_t)(Ucs_Network_AliveStatus_t *result_ptr,
+                                  void *user_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /*  Network functions                                                                             */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Function signature of result callback used by Ucs_Network_GetFrameCounter().
- *  \mns_res_inic{NetworkFrameCounter,MNSH3-NetworkFrameCounter523}
- *  \mns_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
- *  \param frame_counter    The network frame count.\mns_name_inic{FrameCounter}
- *  \param reference        The reference value that was passed to Ucs_Network_GetFrameCounter().\mns_name_inic{Reference}
+ *  \dox_res_inic{NetworkFrameCounter,MNSH3-NetworkFrameCounter523}
+ *  \dox_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
+ *  \param frame_counter    The network frame count.\dox_name_inic{FrameCounter}
+ *  \param reference        The reference value that was passed to Ucs_Network_GetFrameCounter().\dox_name_inic{Reference}
  *  \param lock             Indicates if the TimingSlave device is locked to the network. For a
                             TimingMaster device this value is always True.
  *  \param result           Returned result of the operation
- *  \param user_pter     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \param user_ptr         User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  *  \ingroup G_UCS_NET
  */
 typedef void (*Ucs_Network_FrameCounterCb_t)(uint32_t reference,
                                              uint32_t frame_counter,
                                              bool     frame_lock,
                                              Ucs_StdResult_t result,
-                                             void * user_pointer);
-
-
-
-
+                                             void *user_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

@@ -145,7 +145,9 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
       [ "UCS_XRM_RC_TYPE_COMBINER", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca7224e84dd09ec73062bfaf395d645669", null ],
       [ "UCS_XRM_RC_TYPE_SPLITTER", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccade63ac4286473169114caa4b890c5a65", null ],
       [ "UCS_XRM_RC_TYPE_AVP_CON", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36cccad0ca5b1fdc6b922e235ba53c5e09b8fb", null ],
-      [ "UCS_XRM_RC_TYPE_QOS_CON", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca23a015384da5963bcd03626084acd531", null ]
+      [ "UCS_XRM_RC_TYPE_QOS_CON", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca23a015384da5963bcd03626084acd531", null ],
+      [ "UCS_XRM_RC_TYPE_DC_SOCKET", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca8e825407e437df508c2e7d3567354d2d", null ],
+      [ "UCS_XRM_RC_TYPE_DC_CON", "group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca7abfa3e945fbef047b0a89db4db59874", null ]
     ] ],
     [ "Ucs_Xrm_ResultCode_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga60bd3f9fa02e15fb8841236470502939.html#ga60bd3f9fa02e15fb8841236470502939", [
       [ "UCS_XRM_RES_SUCCESS_BUILD", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga60bd3f9fa02e15fb8841236470502939.html#gga60bd3f9fa02e15fb8841236470502939a87626ffba05e93e00d937e02ffa6f11f", null ],
@@ -162,5 +164,9 @@ var group___g___u_c_s___x_r_m___t_y_p_e_s =
       [ "UCS_XRM_RESULT_TYPE_INT", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga80967b5f9bca0e603511f6ae4f8ac80d.html#gga80967b5f9bca0e603511f6ae4f8ac80da5b4112471bfa589121d71a7a4a615488", null ],
       [ "UCS_XRM_RESULT_TYPE_TGT", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga80967b5f9bca0e603511f6ae4f8ac80d.html#gga80967b5f9bca0e603511f6ae4f8ac80daf7685915f03d5f4d71146c0802ec0ca3", null ],
       [ "UCS_XRM_RESULT_TYPE_TX", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga80967b5f9bca0e603511f6ae4f8ac80d.html#gga80967b5f9bca0e603511f6ae4f8ac80da5697459fe3277c55bcd1a733339bea9b", null ]
+    ] ],
+    [ "Ucs_Xrm_SocketType_t", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga6f9842e71997684b6f117e6fba2f14bf.html#ga6f9842e71997684b6f117e6fba2f14bf", [
+      [ "UCS_XRM_SOCKET_TYPE_NW", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga6f9842e71997684b6f117e6fba2f14bf.html#gga6f9842e71997684b6f117e6fba2f14bfa75ba1b9de8f8502d0f7696c11113d79c", null ],
+      [ "UCS_XRM_SOCKET_TYPE_STR", "group___g___u_c_s___x_r_m___t_y_p_e_s_ga6f9842e71997684b6f117e6fba2f14bf.html#gga6f9842e71997684b6f117e6fba2f14bfaa3225bbbda8fda2316d020aa4a8ebfb0", null ]
     ] ]
 ];

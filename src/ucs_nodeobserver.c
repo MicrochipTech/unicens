@@ -55,17 +55,19 @@ static const uint8_t     NOBS_SRV_PRIO       = 247U; /* parasoft-suppress  MISRA
 /*! \brief Event which triggers the script execution */
 static const Srv_Event_t NOBS_EV_SCRIPTING   = 1U;
 
-#ifndef UCS_MGR_PARALLEL_PROCESSING
+#ifndef UCS_SUPV_PARALLEL_PROCESSING
 # define NOBS_ALTERNATE_PROCESSING
 #endif
 
 #define NOBS_ADDR_ADMIN_MIN         0xF80U  /*!< \brief Start of address range to park unknown devices */
 #define NOBS_ADDR_ADMIN_MAX         0xFDFU  /*!< \brief End of address range to park unknown devices */
 
-#define NOBS_ADDR_RANGE1_MIN        0x200U  /*!< \brief Start of first static address range */
-#define NOBS_ADDR_RANGE1_MAX        0x2FFU  /*!< \brief End of first static address range */
-#define NOBS_ADDR_RANGE2_MIN        0x500U  /*!< \brief Start of second static address range */
-#define NOBS_ADDR_RANGE2_MAX        0xEFFU  /*!< \brief End of second static address range */
+#define NOBS_ADDR_RANGE1_MIN        0x010U  /*!< \brief Start of first static address range */
+#define NOBS_ADDR_RANGE1_MAX        0x0FFU  /*!< \brief End of first static address range */
+#define NOBS_ADDR_RANGE2_MIN        0x140U  /*!< \brief Start of second static address range */
+#define NOBS_ADDR_RANGE2_MAX        0x2FFU  /*!< \brief End of second static address range */
+#define NOBS_ADDR_RANGE3_MIN        0x500U  /*!< \brief Start of third static address range */
+#define NOBS_ADDR_RANGE3_MAX        0xEFFU  /*!< \brief End of third static address range */
 
 #define NOBS_JOIN_NO                0x00U
 #define NOBS_JOIN_WAIT              0x01U
@@ -82,6 +84,9 @@ static const Srv_Event_t NOBS_EV_SCRIPTING   = 1U;
 #define NOBS_SETUP_SCRIPT_DONE      0x08U
 #define NOBS_SETUP_END_SUCCESS      0x09U
 #define NOBS_SETUP_END_ERROR        0xFFU
+#define NOBS_SETUP_UNSYNC_START     0xF0U
+#define NOBS_SETUP_UNSYNC_WAIT      0xF1U
+#define NOBS_SETUP_UNSYNC_STOP      0xF2U
 
 #define NOBS_WAIT_TIME              200U    /*!< \brief Wait time between node not_available -> available */
 #define NOBS_GUARD_TIME            1000U    /*!< \brief Periodic timer for node guard */
@@ -91,15 +96,16 @@ static const Srv_Event_t NOBS_EV_SCRIPTING   = 1U;
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-static void Nobs_OnInitComplete(void *self, void *error_code_ptr);
+static void Nobs_Start(CNodeObserver *self);
+static void Nobs_Terminate(CNodeObserver *self);
 static void Nobs_OnMgrStateChange(void *self, void *data_ptr);
 static void Nobs_OnWakeupTimer(void *self);
 static bool Nobs_CheckAddrRange(CNodeObserver *self, Ucs_Signature_t *signature_ptr);
 static void Nobs_InitAllNodes(CNodeObserver *self);
 static void Nobs_InvalidateAllNodes(CNodeObserver *self);
-static void Nobs_InvalidateNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr);
+static void Nobs_InvalidateNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool keep_joined);
 static Ucs_Rm_Node_t* Nobs_GetNodeBySignature(CNodeObserver *self, Ucs_Signature_t *signature_ptr);
-static void Nobs_NotifyApp(CNodeObserver *self, Ucs_MgrReport_t code, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr);
+static void Nobs_NotifyApp(CNodeObserver *self, Ucs_Supv_Report_t code, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr);
 static void Nobs_NotifyNodeJoined(CNodeObserver *self, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr);
 static void Nobs_Service(void *self);
 static void Nobs_CheckNodes(CNodeObserver *self);
@@ -107,8 +113,8 @@ static uint8_t Nobs_CheckNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr);
 static void Nobs_OnSyncResult(void *self, CNode *node_object_ptr, Rsm_Result_t result, Ucs_Ns_SynchronizeNodeCb_t api_fptr);
 static void Nobs_OnScriptResult(void *user_ptr, Nsm_Result_t result);
 static void Nobs_OnGuardTimer(void *self);
-static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr);
-static bool Nobs_IsNodeSuspicious(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr);
+static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool is_last_checked);
+static bool Nobs_IsNodeSuspicious(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool is_last_checked);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Class methods                                                                                  */
@@ -125,7 +131,7 @@ static bool Nobs_IsNodeSuspicious(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr);
  */
 void Nobs_Ctor(CNodeObserver *self, CBase *base_ptr, CNetStarter *nts_ptr, CNodeDiscovery *nd_ptr,
                CRouteManagement *rtm_ptr, CNetworkManagement *net_ptr, CNodeManagement *nm_ptr,
-               Ucs_Mgr_InitData_t *init_ptr)
+               Ucs_Supv_InitData_t *init_ptr)
 {
     MISC_MEM_SET(self, 0, sizeof(*self));
     self->base_ptr = base_ptr;
@@ -140,54 +146,48 @@ void Nobs_Ctor(CNodeObserver *self, CBase *base_ptr, CNetStarter *nts_ptr, CNode
 
     Nobs_InitAllNodes(self);
     T_Ctor(&self->wakeup_timer);
-
-    Mobs_Ctor(&self->event_observer, self, EH_E_INIT_SUCCEEDED, &Nobs_OnInitComplete);
-    Eh_AddObsrvInternalEvent(&self->base_ptr->eh, &self->event_observer);
-
+    T_Ctor(&self->guard_timer);
     Obs_Ctor(&self->mgr_obs, self, &Nobs_OnMgrStateChange);
     Nts_AssignStateObs(nts_ptr, &self->mgr_obs);
 
     Srv_Ctor(&self->service, NOBS_SRV_PRIO, self, &Nobs_Service);             /* register service */
     (void)Scd_AddService(&self->base_ptr->scd, &self->service);
-
-    T_Ctor(&self->guard_timer);
-    Tm_SetTimer(&self->base_ptr->tm,
-                &self->guard_timer,
-                &Nobs_OnGuardTimer,
-                self,
-                NOBS_GUARD_TIME,
-                NOBS_GUARD_TIME);
 }
 
-/*! \brief  Callback function which is invoked if the initialization is complete
- *  \param  self            The instance
- *  \param  error_code_ptr  Reference to the error code
- */
-static void Nobs_OnInitComplete(void *self, void *error_code_ptr)
+static void Nobs_Start(CNodeObserver *self)
 {
-    CNodeObserver *self_ = (CNodeObserver*)self;
-    MISC_UNUSED(error_code_ptr);
-
-    (void)Rtm_StartProcess(self_->rtm_ptr, self_->init_data.routes_list_ptr, self_->init_data.routes_list_size);
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_Start()", 0U));
+    (void)Nd_Start(self->nd_ptr);
+    Tm_SetTimer(&self->base_ptr->tm, &self->guard_timer, &Nobs_OnGuardTimer,
+                self, NOBS_GUARD_TIME, NOBS_GUARD_TIME);
 }
 
-/*! \brief  Callback function which is invoked if Manager state is changed
+static void Nobs_Terminate(CNodeObserver *self)
+{
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_Terminate()", 0U));
+    Tm_ClearTimer(&self->base_ptr->tm, &self->guard_timer);
+    (void)Nd_Stop(self->nd_ptr);
+    Nobs_InvalidateAllNodes(self);
+}
+
+/*! \brief  Callback function which is invoked if NetStarter state is changed
  *  \param  self            The instance
- *  \param  data_ptr        Reference to the new state
+ *  \param  data_ptr        Reference to Nts_Status_t structure
  */
 static void Nobs_OnMgrStateChange(void *self, void *data_ptr)
 {
     CNodeObserver *self_ = (CNodeObserver*)self;
-    Nts_State_t   *state_ptr = (Nts_State_t *)data_ptr;
+    Nts_Status_t  *status_ptr = (Nts_Status_t *)data_ptr;
 
-    if (*state_ptr == NTS_ST_READY)
+    if ((status_ptr->mode == UCS_SUPV_MODE_NORMAL) && (status_ptr->state == NTS_ST_READY))
     {
-        (void)Nd_Start(self_->nd_ptr);
+        Nobs_Start(self_);
+        self_->started = true;
     }
-    else 
+    else if (self_->started != false)   /* stop node discovery for all other states and modes */
     {
-        Nobs_InvalidateAllNodes(self_);
-        (void)Nd_Stop(self_->nd_ptr);
+        Nobs_Terminate(self_);
+        self_->started = false;
     }
 }
 
@@ -199,7 +199,7 @@ static void Nobs_OnMgrStateChange(void *self, void *data_ptr)
  *  \param  signature_ptr   Signature of the discovered node
  *  \return Returns the action to be run by the NodeDescovery.
  */
-Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_ptr)
+Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(CNodeObserver *self, Ucs_Signature_t *signature_ptr)
 {
     CNodeObserver *self_ = (CNodeObserver*)self;
     Ucs_Rm_Node_t *node_ptr = NULL;
@@ -241,7 +241,7 @@ Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_pt
 
     if ((ret == UCS_ND_CHK_UNKNOWN) && (signature_ptr != NULL))                      /* notify unknown node */
     {
-        Nobs_NotifyApp(self_, UCS_MGR_REP_IGNORED_UNKNOWN, signature_ptr, NULL);
+        Nobs_NotifyApp(self_, UCS_SUPV_REP_IGNORED_UNKNOWN, signature_ptr, NULL);
     }
 
     return ret;
@@ -252,7 +252,7 @@ Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_pt
  *  \param  code            The result of the NodeDiscovery action
  *  \param  signature_ptr   Signature of the discovered node
  */
-void Nobs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr)
+void Nobs_OnNdReport(CNodeObserver *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr)
 {
     CNodeObserver *self_ = (CNodeObserver*)self;
     Ucs_Rm_Node_t *node_ptr = NULL;
@@ -290,8 +290,8 @@ void Nobs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signatu
     {
         TR_INFO((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnNdReport(): welcome of existing node=0x%03X (RESET -> not_available)", 1U, signature_ptr->node_address));
         node_ptr->internal_infos.mgr_joined = NOBS_JOIN_WAIT;
-        (void)Rtm_SetNodeAvailable(self_->rtm_ptr, node_ptr, false);/* $TJA$ */
-        Nobs_NotifyApp(self_, UCS_MGR_REP_NOT_AVAILABLE, signature_ptr, node_ptr);
+        (void)Rtm_SetNodeAvailable(self_->rtm_ptr, node_ptr, false);
+        Nobs_NotifyApp(self_, UCS_SUPV_REP_NOT_AVAILABLE, signature_ptr, node_ptr);
         (void)Nd_Stop(self_->nd_ptr);                                                               /* stop node discovery and restart after timeout, */
         Tm_SetTimer(&self_->base_ptr->tm, &self_->wakeup_timer, &Nobs_OnWakeupTimer,                /* transition from node not_available -> available */
                     self,                                                                           /* needs some time and no callback is provided. */
@@ -303,7 +303,7 @@ void Nobs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signatu
     {
         /* just ignore */
         TR_INFO((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnNdReport(): ignoring duplicate node=0x%03X", 1U, signature_ptr->node_address));
-        Nobs_NotifyApp(self_, UCS_MGR_REP_IGNORED_DUPLICATE, signature_ptr, NULL);
+        Nobs_NotifyApp(self_, UCS_SUPV_REP_IGNORED_DUPLICATE, signature_ptr, NULL);
     }
     else if (code == UCS_ND_RES_UNKNOWN)
     {
@@ -352,7 +352,8 @@ static bool Nobs_CheckAddrRange(CNodeObserver *self, Ucs_Signature_t *signature_
     bool ret = false;
 
     if (((signature_ptr->node_address >= NOBS_ADDR_RANGE1_MIN) && (signature_ptr->node_address <= NOBS_ADDR_RANGE1_MAX)) ||
-        ((signature_ptr->node_address >= NOBS_ADDR_RANGE2_MIN) && (signature_ptr->node_address <= NOBS_ADDR_RANGE2_MAX)))
+        ((signature_ptr->node_address >= NOBS_ADDR_RANGE2_MIN) && (signature_ptr->node_address <= NOBS_ADDR_RANGE2_MAX)) ||
+        ((signature_ptr->node_address >= NOBS_ADDR_RANGE3_MIN) && (signature_ptr->node_address <= NOBS_ADDR_RANGE3_MAX)))
     {
         ret = true;
     }
@@ -393,7 +394,7 @@ static void Nobs_InvalidateAllNodes(CNodeObserver *self)
 
         for (cnt = 0U; cnt < self->init_data.nodes_list_size; cnt++)
         {
-            Nobs_InvalidateNode(self, &self->init_data.nodes_list_ptr[cnt]);
+            Nobs_InvalidateNode(self, &self->init_data.nodes_list_ptr[cnt], false);
         }
     }
 
@@ -405,13 +406,14 @@ static void Nobs_InvalidateAllNodes(CNodeObserver *self)
  *              a notification automatically.
  *  \param      self           The instance
  *  \param      node_ptr       Reference to the node.
+ *  \param      keep_joined    If \c true, all counts and joined state are preserved.
+ *                             If \c false, all counts and states are reset.
  */
-static void Nobs_InvalidateNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
+static void Nobs_InvalidateNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool keep_joined)
 {
     if (node_ptr->internal_infos.mgr_joined == NOBS_JOIN_YES)       /* notify welcomed nodes as invalid */
     {
         CNode *node_obj_ptr = NULL;
-        Nobs_NotifyApp(self, UCS_MGR_REP_NOT_AVAILABLE, NULL/*signature unknown*/, node_ptr);
         (void)Rtm_SetNodeAvailable(self->rtm_ptr, node_ptr, false); 
         node_obj_ptr = Nm_FindNode(self->nm_ptr, node_ptr->signature_ptr->node_address);
         TR_ASSERT(self->base_ptr->ucs_user_ptr, "[NOBS]", node_obj_ptr != NULL);
@@ -421,10 +423,17 @@ static void Nobs_InvalidateNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
         }
     }
 
-    node_ptr->internal_infos.mgr_joined = NOBS_JOIN_NO;
-    node_ptr->internal_infos.script_state = NOBS_SETUP_IDLE;
-    node_ptr->internal_infos.guard_cnt = 0U;
-    node_ptr->internal_infos.guard_retries = 0U;
+    if (keep_joined == false)
+    {
+        if (node_ptr->internal_infos.mgr_joined == NOBS_JOIN_YES)
+        {   /* notify application only for nodes previously welcomed and when "leaving normal" or "reset" */
+            Nobs_NotifyApp(self, UCS_SUPV_REP_NOT_AVAILABLE, NULL/*signature unknown*/, node_ptr);
+        }
+        node_ptr->internal_infos.mgr_joined = NOBS_JOIN_NO;
+        node_ptr->internal_infos.script_state = NOBS_SETUP_IDLE;
+        node_ptr->internal_infos.guard_cnt = 0U;
+        node_ptr->internal_infos.guard_retries = 0U;
+    }
     /* RoutingManagement individually cares for network-not-available event */
 }
 
@@ -468,12 +477,12 @@ static Ucs_Rm_Node_t* Nobs_GetNodeBySignature(CNodeObserver *self, Ucs_Signature
  *                             when a node is welcomed (\see Nobs_NotifyNodeJoined()).
  *  \param      node_ptr       Reference to the node within the nodes list. The \c node_ptr is 
  *                             allowed to be \c NULL if a node is notified with code 
- *                             \c UCS_MGR_REP_IGNORED_UNKNOWN or \c UCS_MGR_REP_IGNORED_DUPLICATE.
+ *                             \c UCS_SUPV_REP_IGNORED_UNKNOWN or \c UCS_SUPV_REP_IGNORED_DUPLICATE.
  *                             Then it is not possible to lookup the node object within the nodes list.
  */
-static void Nobs_NotifyApp(CNodeObserver *self, Ucs_MgrReport_t code, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr)
+static void Nobs_NotifyApp(CNodeObserver *self, Ucs_Supv_Report_t code, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr)
 {
-    TR_ASSERT(self->base_ptr->ucs_user_ptr, "[NOBS]", ((node_ptr != NULL)||(code == UCS_MGR_REP_IGNORED_UNKNOWN)||(code == UCS_MGR_REP_IGNORED_DUPLICATE)));
+    TR_ASSERT(self->base_ptr->ucs_user_ptr, "[NOBS]", ((node_ptr != NULL)||(code == UCS_SUPV_REP_IGNORED_UNKNOWN)||(code == UCS_SUPV_REP_IGNORED_DUPLICATE)));
 
     if (signature_ptr == NULL)
     {
@@ -483,7 +492,7 @@ static void Nobs_NotifyApp(CNodeObserver *self, Ucs_MgrReport_t code, Ucs_Signat
         }
     }
 
-    if (code != UCS_MGR_REP_WELCOMED)       /* invalidate node_ptr when the application is not allowed to access it */
+    if (code != UCS_SUPV_REP_WELCOMED)      /* invalidate node_ptr when the application is not allowed to access it */
     {                                       /* use case: Only when 'welcome' is notified the application may assign */
         node_ptr = NULL;                    /*           the init script of a node. */
     }
@@ -505,7 +514,7 @@ static void Nobs_NotifyApp(CNodeObserver *self, Ucs_MgrReport_t code, Ucs_Signat
  *                             when a node is welcomed (\see Nobs_NotifyNodeJoined()).
  *  \param      node_ptr       Reference to the node within the nodes list. The \c node_ptr is 
  *                             allowed to be \c NULL if a node is notified with code 
- *                             \c UCS_MGR_REP_IGNORED_UNKNOWN or \c UCS_MGR_REP_IGNORED_DUPLICATE.
+ *                             \c UCS_SUPV_REP_IGNORED_UNKNOWN or \c UCS_SUPV_REP_IGNORED_DUPLICATE.
  *                             Then it is not possible to lookup the node object within the nodes list.
  */
 static void Nobs_NotifyNodeJoined(CNodeObserver *self, Ucs_Signature_t *signature_ptr, Ucs_Rm_Node_t *node_ptr)
@@ -522,12 +531,11 @@ static void Nobs_NotifyNodeJoined(CNodeObserver *self, Ucs_Signature_t *signatur
             Addr_NotifyOwnAddress(&self->base_ptr->addr, signature_ptr->node_address);
         }
 
-        node_ptr->internal_infos.script_state = NOBS_SETUP_SYNC;                /* trigger script execution */
+        node_ptr->internal_infos.script_state = NOBS_SETUP_SYNC;                /* trigger synchronization */
         node_ptr->internal_infos.guard_cnt = 0U;
         node_ptr->internal_infos.guard_retries = 0U;
-        /* node_ptr->internal_infos.available = 0U; */                          
         Srv_SetEvent(&self->service, NOBS_EV_SCRIPTING);
-        Nobs_NotifyApp(self, UCS_MGR_REP_WELCOMED, signature_ptr, node_ptr);
+        Nobs_NotifyApp(self, UCS_SUPV_REP_WELCOMED, signature_ptr, node_ptr);
     }
 }
 
@@ -544,11 +552,12 @@ uint8_t Nobs_GetSuspiciousNodesCnt(CNodeObserver *self)
 
     if (self->init_data.nodes_list_ptr != NULL)
     {
-        uint32_t cnt = 0U;
+        uint16_t cnt = 0U;
 
         for (cnt = 0U; cnt < self->init_data.nodes_list_size; cnt++)
         {                                                               /* node discovery is successful for this node? */
-            if (Nobs_IsNodeSuspicious(self, &self->init_data.nodes_list_ptr[cnt]) != false)
+            bool is_last_checked = (self->last_node_checked == cnt) ? true : false;
+            if (Nobs_IsNodeSuspicious(self, &self->init_data.nodes_list_ptr[cnt], is_last_checked) != false)
             {
                 TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_GetSuspiciousNodesCnt() found node=0x%03X", 1U,  self->init_data.nodes_list_ptr[cnt].signature_ptr->node_address));
                 ret++;
@@ -638,7 +647,13 @@ static uint8_t Nobs_CheckNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
     {
         case NOBS_SETUP_SYNC:
             node_object_ptr = Nm_CreateNode(self->nm_ptr, node_ptr->internal_infos.signature.node_address, node_ptr->internal_infos.signature.node_pos_addr, node_ptr);
-            if (node_object_ptr != NULL)
+            
+            if ((node_object_ptr != NULL) && (node_ptr->remote_attach_disabled != 0U))
+            {
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_SYNC skip sync", 1U, node_ptr->signature_ptr->node_address));
+                node_ptr->internal_infos.script_state = NOBS_SETUP_SCRIPT_DONE; /* do not synchronize, just notify available */
+            }
+            else if (node_object_ptr != NULL)
             {
                 Ucs_Return_t ret = Node_Synchronize(node_object_ptr, &Nobs_OnSyncResult, self, NULL);
                 if (ret == UCS_RET_SUCCESS)
@@ -670,11 +685,18 @@ static uint8_t Nobs_CheckNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
                     {
                         node_ptr->internal_infos.script_state = NOBS_SETUP_SCRIPT_RUNNING;
                     }
+                    else
+                    {
+                        TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, cannot start script, code=0x%02X", 2U, node_ptr->signature_ptr->node_address, ret));
+                    }
+                }
+                else
+                {
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, scripting cannot find node", 1U, node_ptr->signature_ptr->node_address));
                 }
 
                 if (node_ptr->internal_infos.script_state != NOBS_SETUP_SCRIPT_RUNNING)
                 {
-                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, scripting cannot find node or start", 1U, node_ptr->signature_ptr->node_address));
                     node_ptr->internal_infos.script_state = NOBS_SETUP_END_ERROR;
                 }
             }
@@ -685,12 +707,12 @@ static uint8_t Nobs_CheckNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
             break;
         case NOBS_SETUP_SCRIPT_SUCCESS:
             TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_SCRIPT_SUCCESS", 1U, node_ptr->signature_ptr->node_address));
-            Nobs_NotifyApp(self, UCS_MGR_REP_SCRIPT_SUCCESS, NULL/*signature unknown*/, node_ptr);
+            Nobs_NotifyApp(self, UCS_SUPV_REP_SCRIPT_SUCCESS, NULL/*signature unknown*/, node_ptr);
             node_ptr->internal_infos.script_state = NOBS_SETUP_SCRIPT_DONE;
             break;
         case NOBS_SETUP_SCRIPT_FAILED:
             TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_SCRIPT_FAILED", 1U, node_ptr->signature_ptr->node_address));
-            Nobs_NotifyApp(self, UCS_MGR_REP_SCRIPT_FAILURE, NULL/*signature unknown*/, node_ptr);
+            Nobs_NotifyApp(self, UCS_SUPV_REP_SCRIPT_FAILURE, NULL/*signature unknown*/, node_ptr);
             node_ptr->internal_infos.script_state = NOBS_SETUP_END_ERROR;
             break;
         case NOBS_SETUP_SCRIPT_MISSING:
@@ -700,8 +722,22 @@ static uint8_t Nobs_CheckNode(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
         case NOBS_SETUP_SCRIPT_DONE:
             TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_SCRIPT_DONE", 1U, node_ptr->signature_ptr->node_address));
             node_ptr->internal_infos.script_state = NOBS_SETUP_END_SUCCESS;
-            (void)Rtm_SetNodeAvailable(self->rtm_ptr, node_ptr, true);/* $TJA$ */
-            Nobs_NotifyApp(self, UCS_MGR_REP_AVAILABLE, NULL/*signature unknown*/, node_ptr);
+            (void)Rtm_SetNodeAvailable(self->rtm_ptr, node_ptr, true);
+            Nobs_NotifyApp(self, UCS_SUPV_REP_AVAILABLE, NULL/*signature unknown*/, node_ptr);
+            break;
+        case NOBS_SETUP_UNSYNC_START:
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_UNSYNC_START", 1U, node_ptr->signature_ptr->node_address));
+            Nobs_InvalidateNode(self, node_ptr, true);
+            node_ptr->internal_infos.script_state = NOBS_SETUP_UNSYNC_WAIT;
+            break;
+        case NOBS_SETUP_UNSYNC_WAIT:
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_UNSYNC_WAIT", 1U, node_ptr->signature_ptr->node_address));
+            node_ptr->internal_infos.script_state = NOBS_SETUP_SYNC;
+            break;
+        case NOBS_SETUP_UNSYNC_STOP:
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNode(): node=0x%03X, NOBS_SETUP_UNSYNC_STOP", 1U, node_ptr->signature_ptr->node_address));
+            Nobs_InvalidateNode(self, node_ptr, true);
+            node_ptr->internal_infos.script_state = NOBS_SETUP_IDLE;
             break;
         case NOBS_SETUP_SYNC_RUNNING:
         case NOBS_SETUP_SCRIPT_RUNNING:
@@ -734,7 +770,7 @@ static void Nobs_OnSyncResult(void *self, CNode *node_object_ptr, Rsm_Result_t r
     if (node_object_ptr != NULL)
     {
         Ucs_Rm_Node_t *node_ptr = Node_GetPublicNodeStruct(node_object_ptr);
-        TR_INFO((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): node=0x%03X, result=%d", 2U, Node_GetNodeAddress(node_object_ptr), result.code));
+        TR_INFO((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): node=0x%03X, result=0x%02X", 2U, Node_GetNodeAddress(node_object_ptr), result.code));
 
         if (node_ptr->internal_infos.script_state == NOBS_SETUP_SYNC_RUNNING)
         {
@@ -744,13 +780,13 @@ static void Nobs_OnSyncResult(void *self, CNode *node_object_ptr, Rsm_Result_t r
             }
             else
             {
-                TR_ERROR((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): process failed for node=0x%03X, result=%d", 2U, Node_GetNodeAddress(node_object_ptr), result.code));
+                TR_ERROR((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): process failed for node=0x%03X, result=0x%02X", 2U, Node_GetNodeAddress(node_object_ptr), result.code));
                 node_ptr->internal_infos.script_state = NOBS_SETUP_END_ERROR;
             }
         }
         else
         {
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): node=0x%03X, result=%d, invalid state=%d", 3U, Node_GetNodeAddress(node_object_ptr), result.code, node_ptr->internal_infos.script_state));
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnSyncResult(): node=0x%03X, result=0x%02X, invalid state=0x%02X", 3U, Node_GetNodeAddress(node_object_ptr), result.code, node_ptr->internal_infos.script_state));
             node_ptr->internal_infos.script_state = NOBS_SETUP_END_ERROR;
         }
         Srv_SetEvent(&self_->service, NOBS_EV_SCRIPTING);
@@ -774,7 +810,7 @@ static void Nobs_OnScriptResult(void *user_ptr, Nsm_Result_t result)
     {
         CNodeObserver *self = (CNodeObserver *)node_ptr->internal_infos.nobs_inst_ptr;
 
-        TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): node=0x%03X, result=%d", 2U, node_ptr->signature_ptr->node_address, result.code));
+        TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): node=0x%03X, result=0x%02X", 2U, node_ptr->signature_ptr->node_address, result.code));
 
         if (node_ptr->internal_infos.script_state == NOBS_SETUP_SCRIPT_RUNNING)
         {
@@ -784,7 +820,7 @@ static void Nobs_OnScriptResult(void *user_ptr, Nsm_Result_t result)
             }
             else
             {
-                TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): process failed for node=0x%03X, result=%d", 2U, node_ptr->signature_ptr->node_address, result.code));
+                TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): process failed for node=0x%03X, result=0x%02X", 2U, node_ptr->signature_ptr->node_address, result.code));
                 node_ptr->internal_infos.script_state = NOBS_SETUP_SCRIPT_FAILED;
 #ifndef NOBS_SETUP_UNSYNC_ON_ERROR
                 {
@@ -800,7 +836,7 @@ static void Nobs_OnScriptResult(void *user_ptr, Nsm_Result_t result)
         }
         else
         {
-            TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): node=0x%03X, result=%d, invalid state=%d", 3U, node_ptr->signature_ptr->node_address, result.code, node_ptr->internal_infos.script_state));
+            TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_OnScriptResult(): node=0x%03X, result=%d, invalid state=0x%02X", 3U, node_ptr->signature_ptr->node_address, result.code, node_ptr->internal_infos.script_state));
             node_ptr->internal_infos.script_state = NOBS_SETUP_END_ERROR;
         }
         Srv_SetEvent(&self->service, NOBS_EV_SCRIPTING);
@@ -820,18 +856,20 @@ static void Nobs_OnGuardTimer(void *self)
     {
         for (cnt = 0U; cnt < self_->init_data.nodes_list_size; cnt++)
         {
-            Nobs_CheckNodeGuarding(self_, &self_->init_data.nodes_list_ptr[cnt]);
+            bool is_last_checked = (self_->last_node_checked == cnt) ? true : false;
+            Nobs_CheckNodeGuarding(self_, &self_->init_data.nodes_list_ptr[cnt], is_last_checked);
         }
     }
 }
 
 /*! \brief      Checks the internal states of a node and re-triggers synchronization if required
- *  \param      self        The instance
- *  \param      node_ptr    The reference to the node structure
+ *  \param      self              The instance
+ *  \param      node_ptr          The reference to the node structure
+ *  \param      is_last_checked   Is \c true if this was the last checked node (maybe running a process)
  */
-static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
+static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool is_last_checked)
 {                                                               /* node discovery is successful for this node? */
-    if ((Nobs_IsNodeSuspicious(self, node_ptr) != false) && (node_ptr->internal_infos.guard_retries <= NOBS_GUARD_RETRY_LIMIT))
+    if ((Nobs_IsNodeSuspicious(self, node_ptr, is_last_checked) != false) && (node_ptr->internal_infos.guard_retries <= NOBS_GUARD_RETRY_LIMIT))
     {
         TR_INFO((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNodeGuarding() found node: node=0x%03X, script_state=0x%02X, count=%d, retries=%d", 4U, node_ptr->signature_ptr->node_address, node_ptr->internal_infos.script_state, node_ptr->internal_infos.guard_cnt, node_ptr->internal_infos.guard_retries));
         node_ptr->internal_infos.guard_cnt++;
@@ -841,12 +879,14 @@ static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
             {
                 /* cannot recover failure */
                 TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNodeGuarding() all retries failed for node=0x%03X", 1U, node_ptr->signature_ptr->node_address));
-                Nobs_NotifyApp(self, UCS_MGR_REP_IRRECOVERABLE, NULL/*signature: take latest*/, node_ptr);
+                Nobs_NotifyApp(self, UCS_SUPV_REP_IRRECOVERABLE, NULL/*signature: take latest*/, node_ptr);
+                node_ptr->internal_infos.script_state = NOBS_SETUP_UNSYNC_STOP;
+                Srv_SetEvent(&self->service, NOBS_EV_SCRIPTING);
             }
-            else    /* trigger retry now */
+            else/* trigger retry now */
             {
                 TR_ERROR((self->base_ptr->ucs_user_ptr, "[NOBS]", "Nobs_CheckNodeGuarding() re-trigger synchronize: node=0x%03X, script_state=0x%02X, count=%d, retries=%d", 4U, node_ptr->signature_ptr->node_address, node_ptr->internal_infos.script_state, node_ptr->internal_infos.guard_cnt, node_ptr->internal_infos.guard_retries));
-                node_ptr->internal_infos.script_state = NOBS_SETUP_SYNC;
+                node_ptr->internal_infos.script_state = NOBS_SETUP_UNSYNC_START;
                 Srv_SetEvent(&self->service, NOBS_EV_SCRIPTING);
             }
             node_ptr->internal_infos.guard_cnt = 0U;
@@ -856,22 +896,36 @@ static void Nobs_CheckNodeGuarding(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
 }
 
 /*! \brief      Checks if a node is discovered but not announced as available
- *  \param      self        The instance
- *  \param      node_ptr    The reference to the node structure
+ *  \param      self              The instance
+ *  \param      node_ptr          The reference to the node structure
+ *  \param      is_last_checked   Is \c true if this was the last checked node (maybe running a process)
  *  \return     Returns \c true if the node is in a suspicious state, otherwise false.
  */
-static bool Nobs_IsNodeSuspicious(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr)
+static bool Nobs_IsNodeSuspicious(CNodeObserver *self, Ucs_Rm_Node_t *node_ptr, bool is_last_checked)
 {
     bool ret = false;
     if (node_ptr->internal_infos.mgr_joined == NOBS_JOIN_YES)
     {                                                           /* the node is not notified as available to RM? */
-        if (node_ptr->internal_infos.script_state == NOBS_SETUP_IDLE)
+        if (node_ptr->internal_infos.script_state == NOBS_SETUP_END_ERROR)
         {
-            /* do not mark as suspicious if no action was triggered */
-        }
-        else if (node_ptr->internal_infos.script_state != NOBS_SETUP_END_SUCCESS)
-        {
+            /* every node is suspicious which resides in an error state */
             ret = true;
+        }
+
+        if (is_last_checked != false)
+        {
+            /* check if the current node is stuck in an unexpected state
+             * in this case the node-check would not switch to the next joined node
+             */
+            if ((node_ptr->internal_infos.script_state != NOBS_SETUP_END_SUCCESS)
+                 && (node_ptr->internal_infos.script_state != NOBS_SETUP_SCRIPT_RUNNING))
+            {
+                /* SUCCESS and SCRIPT_RUNNING are the only states, the node might reside 
+                 * for a longer time. NSM is responsible to notify a timeout for a
+                 * running script.
+                 */
+                ret = true;
+            }
         }
     }
     MISC_UNUSED(self);

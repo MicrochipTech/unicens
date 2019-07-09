@@ -54,25 +54,17 @@
 
 #define ADMIN_BASE_ADDR         0x0F00U
 
-/* Timers for HalfDuplex command */
-#define HDX_T_SWITCH            100U
-#define HDX_T_SEND              100U
-#define HDX_T_BACK              500U
-#define HDX_T_WAIT              300U
-
 /* State machine timers */
 /*! \brief supervise EXC commands */
 #define HDX_T_COMMAND           100U
-/*! \brief Time after an ReverseRequest command to following TxEnable.
-           = t_switch + t_t_wait + some guard time */
-#define HDX_T_TIMEOUT           (HDX_T_SWITCH + HDX_T_BACK + 100U)
-/*! \brief Time to reach a stable signal after TxEnable */
-#define HDX_T_SIG_PROP          (HDX_T_SEND + 100U)
-#define HDX_T_LIGHT_PROGRESS    20U
+/*! \brief security margin for t_timeout (see Hdx_A_ReverseReqStart) */
+#define HDX_T_MARGIN             30U
+/*! \brief  Time the signal needs to proceed through a single node. */
+#define HDX_T_LIGHT_PROGRESS    10U
 /*! \brief Time the network stays in NET_ON state at the end of diagnosis. */
-#define DXH_T_NETON             2000U
+#define HDX_T_NETON             2000U
 /*! \brief Time the network stays in NET_OFF state before reporting the end of diagnosis. */
-#define DXH_T_NETOFF            300U
+#define HDX_T_NETOFF            350U
 
 
 
@@ -302,18 +294,24 @@ void Hdx_Ctor(CHdx *self, CInic *inic, CBase *base, CExc *exc)
 {
     MISC_MEM_SET((void *)self, 0, sizeof(*self));
 
-    self->inic       = inic;
-    self->exc        = exc;
-    self->base       = base;
+    self->inic   = inic;
+    self->exc    = exc;
+    self->base   = base;
+    
+    self->locked = false;
+
+    /* Set timer to default values. */
+    self->revreq_timer.t_back   = HDX_T_BACK;
+    self->revreq_timer.t_send   = HDX_T_SEND;
+    self->revreq_timer.t_switch = HDX_T_SWITCH;
+    self->revreq_timer.t_wait   = HDX_T_WAIT;
 
     Fsm_Ctor(&self->fsm, self, &(hdx_trans_tab[0][0]), HDX_NUM_EVENTS, HDX_S_IDLE);
-
 
     Sobs_Ctor(&self->hdx_inic_start,     self, &Hdx_NwHdxStartResultCb);
     Sobs_Ctor(&self->hdx_inic_end,       self, &Hdx_NwHdxStopResultCb);
     Sobs_Ctor(&self->hdx_enabletx,       self, &Hdx_EnableTxResultCb);
     Sobs_Ctor(&self->hdx_revreq,         self, &Hdx_RevReqResultCb);
-
 
     /* register termination events */
     Mobs_Ctor(&self->hdx_terminate, self, EH_M_TERMINATION_EVENTS, &Hdx_OnTerminateEventCb);
@@ -353,37 +351,72 @@ static void Hdx_Service(void *self)
 /**************************************************************************************************/
 /*! \brief Start the HalfDuplex Diagnosis
  *
- *  \param self         Reference to HalfDuplex Diagnosis object
- *  \param report_fptr  Reference to result callback used by HalfDuplex Diagnosis
- *  \return UCS_RET_SUCCESS              Operation successful
- *  \return UCS_RET_ERR_API_LOCKED       HalfDuplex Diagnosis was already started
+ *  \param self                             Reference to HalfDuplex Diagnosis object
+ *  \param obs_ptr                          Reference to an observer
+ *  \return UCS_RET_SUCCESS                 Operation successful
+ *  \return UCS_RET_ERR_API_LOCKED          Required INIC API is already in use by another task.
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW     Invalid observer
  */
-Ucs_Return_t Hdx_Start(CHdx *self, Ucs_Diag_HdxReportCb_t report_fptr)
+Ucs_Return_t Hdx_StartDiag(CHdx *self, CSingleObserver *obs_ptr)
 {
     Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
     if (self->exc->service_locked == false)
     {
-        self->report_fptr = report_fptr;
-        self->first_error_reported = false;
+        Ssub_Ret_t ret_ssub;
 
-        Fsm_SetEvent(&self->fsm, HDX_E_START);
-        Srv_SetEvent(&self->service, HDX_EVENT_SERVICE);
+        ret_ssub = Ssub_AddObserver(&self->ssub_diag_hdx, obs_ptr);
+        if (ret_ssub != SSUB_UNKNOWN_OBSERVER)  /* obs_ptr == NULL ? */
+        {
+            self->exc->service_locked  = true;
+            self->first_error_reported = false;
+            self->locked               = true;
 
-        self->exc->service_locked = true;
-        TR_INFO((self->base->ucs_user_ptr, "[HDX]", "Hdx_Start", 0U));
+            Fsm_SetEvent(&self->fsm, HDX_E_START);
+            Srv_SetEvent(&self->service, HDX_EVENT_SERVICE);
+
+            TR_INFO((self->base->ucs_user_ptr, "[HDX]", "Hdx_StartDiag", 0U));
+        }
+        else
+        {
+            ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;  /* obs_ptr was invalid */
+        }
     }
     else
     {
         ret_val = UCS_RET_ERR_API_LOCKED;
-        TR_INFO((self->base->ucs_user_ptr, "[HDX]", "Hdx_Start failed: API locked", 0U));
+        TR_INFO((self->base->ucs_user_ptr, "[HDX]", "Hdx_StartDiag failed: API locked", 0U));
     }
 
     return ret_val;
 
 }
 
+/*! \brief Sets the timer values for the ReverseRequest command.
+ *
+ * \param self      Reference to HalfDuplex Diagnosis object.
+ * \param timer     Structure which holds the timer values for the ReverseRequest command.
+ * \return UCS_RET_SUCCESS              Operation successful
+ * \return UCS_RET_ERR_API_LOCKED       HalfDuplex Diagnosis was already started
+ */
+Ucs_Return_t Hdx_SetTimers(CHdx *self, Ucs_Hdx_Timers_t timer)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
 
+    if (self->locked == true)
+    {
+        ret_val = UCS_RET_ERR_API_LOCKED;
+    }
+    else
+    {
+        self->revreq_timer.t_back   = timer.t_back;
+        self->revreq_timer.t_send   = timer.t_send;
+        self->revreq_timer.t_switch = timer.t_switch;
+        self->revreq_timer.t_wait   = timer.t_wait;
+    }
+
+    return ret_val;
+}
 
 /**************************************************************************************************/
 /*  FSM Actions                                                                                   */
@@ -433,20 +466,16 @@ static void Hdx_A_NwHdxTimeout(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_NwHdxTimeout", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_TIMEOUT;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_TIMEOUT;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
     Hdx_HalfDuplexEnd(self);
 }
@@ -459,20 +488,16 @@ static void Hdx_A_NwHdxStartFailed(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_NwHdxStartFailed", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
 
     Hdx_HalfDuplexEnd(self);
@@ -521,20 +546,15 @@ static void Hdx_A_TimeoutEnableTx(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_TimeoutEnableTx", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_TIMEOUT;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_TIMEOUT;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        self_->first_error_reported = true;
     }
 
     Hdx_HalfDuplexEnd(self);
@@ -548,20 +568,16 @@ static void Hdx_A_EnableTxFailed(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_EnableTxFailed", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
 
     Hdx_HalfDuplexEnd(self);
@@ -571,6 +587,10 @@ static void Hdx_A_EnableTxFailed(void *self)
 static void Hdx_A_WaitSig(void *self)
 {
     CHdx *self_ = (CHdx *)self;
+    uint16_t t_sig_prop;            /* Time to reach a stable signal after TxEnable */
+
+    /* adapt waiting time to position of node under test. */
+    t_sig_prop = (uint16_t)(self_->revreq_timer.t_send + ((self_->current_position - 1U) * HDX_T_LIGHT_PROGRESS));
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_WaitSig", 0U));
 
@@ -578,9 +598,9 @@ static void Hdx_A_WaitSig(void *self)
                 &self_->timer,
                 &Hdx_TimerCb,
                 self_,
-                HDX_T_SIG_PROP,
+                t_sig_prop,
                 0U);
-    TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: HDX_T_SIG_PROP %d", 1U, HDX_T_SIG_PROP));
+    TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: t_sig_prop %d", 1U, t_sig_prop));
 }
 
 
@@ -593,32 +613,39 @@ static void Hdx_A_ReverseReqStart(void *self)
 {
     Ucs_Return_t ret_val;
     Exc_ReverseReq0_List_t req_list;
+    uint16_t t_timeout;     /* Time after an ReverseRequest command to the following TxEnable.
+                               = t_switch + t_wait + some guard time */
 
     CHdx *self_ = (CHdx *)self;
 
-    TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ReverseReqStart", 0U));
+    TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ReverseReqStart: t_switch t_send t_back t_wait", 4U, 
+                                                  self_->revreq_timer.t_switch,
+                                                  self_->revreq_timer.t_send,
+                                                  self_->revreq_timer.t_back,
+                                                  self_->revreq_timer.t_wait));
 
-    req_list.t_wait             = HDX_T_WAIT;
+    req_list.t_wait             = self_->revreq_timer.t_wait;
     req_list.admin_node_address = (uint16_t)(((uint16_t)ADMIN_BASE_ADDR + (uint16_t)(self_->current_position)) - (uint16_t)1U);
     req_list.version_limit      = UCS_EXC_SIGNATURE_VERSION_LIMIT;
 
     ret_val = Exc_ReverseRequest0_Start(self_->exc,
                                         self_->current_position,
-                                        HDX_T_SWITCH,
-                                        HDX_T_SEND,
-                                        HDX_T_BACK,
+                                        self_->revreq_timer.t_switch,
+                                        self_->revreq_timer.t_send,
+                                        self_->revreq_timer.t_back,
                                         req_list,
                                         &self_->hdx_revreq);
-
+    
+    t_timeout  = (uint16_t)(self_->revreq_timer.t_switch + (self_->revreq_timer.t_back + HDX_T_MARGIN));
     if (ret_val == UCS_RET_SUCCESS)
     {
         Tm_SetTimer(&self_->base->tm,
                     &self_->timer,
                     &Hdx_TimerCb,
                     self_,
-                    HDX_T_TIMEOUT,
+                    t_timeout,
                     0U);
-        TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: HDX_T_TIMEOUT %d", 1U, HDX_T_TIMEOUT));
+        TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: t_timeout %d", 1U, t_timeout));
     }
     else
     {
@@ -636,20 +663,16 @@ static void Hdx_A_ReverseReqTimeout(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ReverseReqTimeout", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_TIMEOUT;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_TIMEOUT;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
 
     Hdx_HalfDuplexEnd(self);
@@ -663,20 +686,16 @@ static void Hdx_A_ReverseReqStartFailed(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ReverseReqStartFailed", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
 
     Hdx_HalfDuplexEnd(self);
@@ -689,17 +708,14 @@ static void Hdx_A_NextSeg(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_NextSeg", 0U));
 
-    if (self_->report_fptr != NULL)
-    {
-        Ucs_Hdx_Report_t report;
+    MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+    self_->report.code              = UCS_HDX_RES_SUCCESS;
+    self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+    self_->report.position          = self_->current_position;
+    self_->report.signature_ptr     = &(self_->hdx_result.result_list.signature);
 
-        report.code              = UCS_HDX_RES_SUCCESS;
-        report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-        report.position          = self_->current_position;
-        report.signature         = &(self_->hdx_result.result_list.signature);
+    Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
 
-        self_->report_fptr(report, self_->base->ucs_user_ptr);
-    }
     self_->current_position = (uint8_t)(self_->current_position + 1U);       /* switch to next segment. */
 }
 
@@ -708,73 +724,59 @@ static void Hdx_A_ReportLastSeg(void *self)
 {
     CHdx *self_ = (CHdx *)self;
     Ucs_Signature_t *dummy_signature = NULL;
-    Ucs_Hdx_Report_t report;
+
+    MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ReportLastSeg result: %d", 1U, self_->hdx_result.result_list.tester_result));
 
     switch(self_->hdx_result.result_list.tester_result)
     {
         case EXC_REVREQ0_RES_SLAVE_WRONG_POS:
-            if (self_->report_fptr != NULL)
-            {
-                report.code              = UCS_HDX_RES_SLAVE_WRONG_POS;
-                report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-                report.position          = self_->current_position;
-                report.signature         = &(self_->hdx_result.result_list.signature);
+            self_->report.code              = UCS_HDX_RES_SLAVE_WRONG_POS;
+            self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+            self_->report.position          = self_->current_position;
+            self_->report.signature_ptr     = &(self_->hdx_result.result_list.signature);
 
-                self_->report_fptr(report, self_->base->ucs_user_ptr);
-            }
+            Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
             break;
 
         case EXC_REVREQ0_RES_MASTER_NO_RX:
-            if (self_->report_fptr != NULL)
-            {
-                report.code              = UCS_HDX_RES_RING_BREAK;
-                report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-                report.position          = self_->current_position;
-                report.signature         = &(self_->hdx_result.result_list.signature);
+            self_->report.code              = UCS_HDX_RES_RING_BREAK;
+            self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+            self_->report.position          = self_->current_position;
+            self_->report.signature_ptr     = &(self_->hdx_result.result_list.signature);
 
-                self_->report_fptr(report, self_->base->ucs_user_ptr);
-            }
+            Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
             break;
 
         case EXC_REVREQ0_RES_MASTER_RX_LOCK:
-            if (self_->report_fptr != NULL)
-            {
-                report.code              = UCS_HDX_RES_NO_RING_BREAK;
-                report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-                report.position          = self_->current_position;
-                report.signature         = &(self_->hdx_result.result_list.signature);
+            self_->report.code              = UCS_HDX_RES_NO_RING_BREAK;
+            self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+            self_->report.position          = self_->current_position;
+            self_->report.signature_ptr     = &(self_->hdx_result.result_list.signature);
 
-                self_->report_fptr(report, self_->base->ucs_user_ptr);
-            }
+            Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
             break;
 
         case EXC_REVREQ0_RES_NO_RESULT:
-            if (self_->report_fptr != NULL)
-            {
-                report.code              = UCS_HDX_RES_NO_RESULT;
-                report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-                report.position          = self_->current_position;
-                report.signature         = &(self_->hdx_result.result_list.signature);
+            self_->report.code              = UCS_HDX_RES_NO_RESULT;
+            self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+            self_->report.position          = self_->current_position;
+            self_->report.signature_ptr     = &(self_->hdx_result.result_list.signature);
 
-                self_->report_fptr(report, self_->base->ucs_user_ptr);
-            }
+            Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
             break;
 
         default:
-            if (self_->report_fptr != NULL)
+            if (self_->first_error_reported == false)       /* report only the first error */
             {
-                if (self_->first_error_reported == false)
-                {
-                    report.code              = UCS_HDX_RES_ERROR;
-                    report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
-                    report.position          = self_->current_position;
-                    report.signature         = dummy_signature;
+                self_->report.code              = UCS_HDX_RES_ERROR;
+                self_->report.cable_diag_result = self_->hdx_result.result_list.cable_diag_result;
+                self_->report.position          = self_->current_position;
+                self_->report.signature_ptr     = dummy_signature;
 
-                    self_->report_fptr(report, self_->base->ucs_user_ptr);
-                    self_->first_error_reported = true;
-                }
+                Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+                self_->first_error_reported = true;
             }
             break;
     }
@@ -803,21 +805,18 @@ static void Hdx_A_EndTimeout(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_EndTimeout", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_TIMEOUT;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_TIMEOUT;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
+
     Hdx_NwStartUp(self);
 }
 
@@ -833,20 +832,16 @@ static void Hdx_A_EndError(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_EndError", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
     Hdx_NwStartUp(self);
 }
@@ -876,20 +871,16 @@ static void Hdx_A_StartUpError(void *self)
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_StartUpError", 0U));
 
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
     Hdx_NwShutDown(self);
 }
@@ -918,23 +909,20 @@ static void Hdx_A_ShutDownError(void *self)
     Ucs_Signature_t *dummy_signature = NULL;
 
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_ShutDownError", 0U));
-    if (self_->report_fptr != NULL)
+    if (self_->first_error_reported == false)       /* report only the first error */
     {
-        if (self_->first_error_reported == false)
-        {
-            Ucs_Hdx_Report_t report;
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+        self_->report.code              = UCS_HDX_RES_ERROR;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
 
-            report.code              = UCS_HDX_RES_ERROR;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
-            self_->first_error_reported = true;
-        }
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+        self_->first_error_reported = true;
     }
     Hdx_ReportDiagEnd(self);
     self_->exc->service_locked = false;
+    self_->locked      = false;
 }
 
 
@@ -945,6 +933,7 @@ static void Hdx_A_FinishDiag(void *self)
     TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "Hdx_A_FinishDiag", 0U));
     Hdx_ReportDiagEnd(self_);
     self_->exc->service_locked = false;
+    self_->locked              = false;
 }
 
 
@@ -993,7 +982,7 @@ static void Hdx_NwStartUp(void *self)
                     &self_->timer,
                     &Hdx_TimerCb,
                     self_,
-                    DXH_T_NETON,
+                    HDX_T_NETON,
                     0U);
         TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: HDX_T_COMMAND %d", 1U, HDX_T_COMMAND));
     }
@@ -1021,9 +1010,9 @@ static void Hdx_NwShutDown(void *self)
                     &self_->timer,
                     &Hdx_TimerCb,
                     self_,
-                    DXH_T_NETOFF,
+                    HDX_T_NETOFF,
                     0U);
-        TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: HDX_T_COMMAND %d", 1U, HDX_T_COMMAND));
+        TR_INFO((self_->base->ucs_user_ptr, "[HDX]", "HdxTimer started: HDX_T_NETOFF %d", 1U, HDX_T_NETOFF));
     }
     else
     {
@@ -1040,18 +1029,13 @@ static void Hdx_ReportDiagEnd(void *self)
     CHdx *self_ = (CHdx *)self;
     Ucs_Signature_t *dummy_signature = NULL;
 
+    MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+    self_->report.code              = UCS_HDX_RES_END;
+    self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+    self_->report.position          = UCS_HDX_DUMMY_POS;
+    self_->report.signature_ptr     = dummy_signature;
 
-    if (self_->report_fptr != NULL)
-    {
-        Ucs_Hdx_Report_t report;
-
-        report.code              = UCS_HDX_RES_END;
-        report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-        report.position          = UCS_HDX_DUMMY_POS;
-        report.signature         = dummy_signature;
-
-        self_->report_fptr(report, self_->base->ucs_user_ptr);
-    }
+    Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
 }
 
 /**************************************************************************************************/
@@ -1220,28 +1204,26 @@ static void Hdx_OnTerminateEventCb(void *self, void *result_ptr)
     if (self_->fsm.current_state != HDX_S_IDLE)
     {
         Tm_ClearTimer(&self_->base->tm, &self_->timer);
-        if (self_->report_fptr != NULL)
+        MISC_MEM_SET(&self_->report, 0, sizeof(self_->report));
+
+        if (self_->first_error_reported == false)       /* report only the first error */
         {
-            Ucs_Hdx_Report_t report;
+            self_->report.code              = UCS_HDX_RES_ERROR;
+            self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+            self_->report.position          = UCS_HDX_DUMMY_POS;
+            self_->report.signature_ptr     = dummy_signature;
 
-            if (self_->first_error_reported == false)
-            {
-                report.code              = UCS_HDX_RES_ERROR;
-                report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-                report.position          = UCS_HDX_DUMMY_POS;
-                report.signature         = dummy_signature;
-
-                self_->report_fptr(report, self_->base->ucs_user_ptr);
-                self_->first_error_reported = true;
-            }
-
-            report.code              = UCS_HDX_RES_END;
-            report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
-            report.position          = UCS_HDX_DUMMY_POS;
-            report.signature         = dummy_signature;
-
-            self_->report_fptr(report, self_->base->ucs_user_ptr);
+            Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+            self_->first_error_reported = true;
         }
+
+        self_->report.code              = UCS_HDX_RES_END;
+        self_->report.cable_diag_result = UCS_HDX_DUMMY_CABLE_DIAG_RESULT;
+        self_->report.position          = UCS_HDX_DUMMY_POS;
+        self_->report.signature_ptr     = dummy_signature;
+
+        Ssub_Notify(&self_->ssub_diag_hdx, &self_->report, false);
+
         /* reset FSM */
         self_->fsm.current_state = HDX_S_IDLE;
     }

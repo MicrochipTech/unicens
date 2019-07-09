@@ -66,7 +66,8 @@ typedef enum Ucs_Rm_EndPointState_
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 /* Epm_Inst_t requires incomplete forward declaration, to hide internal data type.
- * The Epm_Inst_t object is allocated internally, the core library must access only the pointer to Epm_Inst_t. */
+ * The Epm_Inst_t object is allocated internally, the core library must access only the pointer to Epm_Inst_t. 
+ */
 struct Epm_Inst_;
 
 /*!\brief  EndpointManagement instance */
@@ -75,22 +76,14 @@ typedef struct Epm_Inst_ Epm_Inst_t;
 /*! \brief Internal configuration structure of a Connection EndPoint. */
 typedef struct Ucs_Rm_EndPointInt_
 {
-    /*! \brief Stores the current number of retries in case of error. */
-    uint8_t num_retries;
-    /*! \brief State of the endpoint object. */
-    Ucs_Rm_EndPointState_t endpoint_state;
-    /*! \brief connection label. */
-    uint16_t connection_label;
-    /*! \brief object counter. */
-    uint8_t reference_cnt;
-    /*! \brief last XRM result. */
-    Ucs_Xrm_Result_t xrm_result;
-    /*! \brief A subject object for this endpoint. */
-    CSubject subject_obj;
-    /*! \brief Reference to the EndPointManagement that handles this endpoint */
-    Epm_Inst_t * epm_inst;
-    /*! \brief magic number to signal that endpoint has already been initialized */
-    uint32_t magic_number;
+    uint8_t num_retries;                    /*!< \brief Stores the current number of retries in case of error. */
+    Ucs_Rm_EndPointState_t endpoint_state;  /*!< \brief State of the endpoint object. */
+    uint16_t connection_label;              /*!< \brief connection label. */
+    uint8_t reference_cnt;                  /*!< \brief object counter. */
+    Ucs_Xrm_Result_t xrm_result;            /*!< \brief last XRM result. */
+    CSubject subject_obj;                   /*!< \brief A subject object for this endpoint. */
+    Epm_Inst_t * epm_inst;                  /*!< \brief Reference to the EndPointManagement that handles this endpoint. */
+    uint32_t magic_number;                  /*!< \brief magic number to signal that endpoint has already been initialized. */
 
 } Ucs_Rm_EndPointInt_t;
 

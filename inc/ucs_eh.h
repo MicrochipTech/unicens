@@ -75,6 +75,9 @@ extern "C"
 /*! \brief UNICENS initialization failed
  */
 #define EH_E_INIT_FAILED            0x0020U
+/*! \brief UNICENS starts un-synchronization process (termination). 
+ */
+#define EH_E_UNSYNC_STARTED         0x0040U
 
 /*! \brief Mask including all events that lead to the termination of the UCS
  */
@@ -83,7 +86,7 @@ extern "C"
 
 /*! \brief Bitmask to identify all internal event codes
  */
-#define EH_M_ALL_EVENTS             (EH_M_TERMINATION_EVENTS | EH_E_INIT_SUCCEEDED | EH_E_SYNC_LOST)
+#define EH_M_ALL_EVENTS             (EH_M_TERMINATION_EVENTS | EH_E_INIT_SUCCEEDED | EH_E_SYNC_LOST | EH_E_UNSYNC_STARTED)
 
 /*------------------------------------------------------------------------------------------------*/
 /* Type definitions                                                                               */

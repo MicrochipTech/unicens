@@ -144,7 +144,6 @@ extern uint16_t Xrmp_GetResourceHandle(CXrmPool * self, Xrm_Job_t * job_ptr, UCS
 extern uint16_t Xrmp_GetResourceHandleIdx(CXrmPool *self, Xrm_Job_t *job_ptr, UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr);
 extern Xrm_Job_t * Xrmp_GetJob(CXrmPool * self, UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_list[]);
 extern void Xrmp_Foreach(CXrmPool *self, Xrmp_ForeachFunc_t func_ptr, void *user_data_ptr1, void *user_data_ptr2, void *user_data_ptr3);
-extern uint16_t Xrmp_GetResourceHandleForAtd(CXrmPool * self, uint16_t conn_lab , UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

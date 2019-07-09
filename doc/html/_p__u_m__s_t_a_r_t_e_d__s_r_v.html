@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -146,23 +146,27 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="line">{</div>
 <div class="line">    <span class="keywordtype">bool</span> running = <span class="keyword">false</span>;</div>
 <div class="line">    <a class="code" href="struct_ucs___init_data__t.html" title="UNICENS initialization structure used by function Ucs_Init().">Ucs_InitData_t</a> init_data;</div>
-<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64b50780725a0dc8693b5b73f8345ad6.html#ga64b50780725a0dc8693b5b73f8345ad6" title="Assigns default values to a provided UNICENS init structure.">Ucs_SetDefaultConfig</a>(&amp;init_data);                                   <span class="comment">/* assign default configuration */</span></div>
+<div class="line">    <span class="comment">/* assign default configuration */</span></div>
+<div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64b50780725a0dc8693b5b73f8345ad6.html#ga64b50780725a0dc8693b5b73f8345ad6" title="Assigns default values to a provided UNICENS init structure.">Ucs_SetDefaultConfig</a>(&amp;init_data);</div>
+<div class="line">    </div>
+<div class="line">    <span class="comment">/* assign SERVICE event callback functions */</span></div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a7d2541cf63dfcea750c0d0ec2ef563c0.html#a7d2541cf63dfcea750c0d0ec2ef563c0" title="Callback function requesting the application to call Ucs_Service(). Mandatory callback function in ev...">request_service_fptr</a> = &amp;App_OnServiceRequest;</div>
+<div class="line">    <span class="comment">/* assign TIMER event callback function */</span></div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a9de73ec82699e45173702e9b0ccc917a.html#a9de73ec82699e45173702e9b0ccc917a" title="Callback function requesting the application to call Ucs_ReportTimeout() after a certain time...">set_application_timer_fptr</a> = &amp;App_OnSetAppTimer;</div>
+<div class="line">    <span class="comment">/* tick count requires the same timer reference/resolution as the application timer */</span></div>
+<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a4e1140be3951f0e14d4071840f4ebc8e.html#a4e1140be3951f0e14d4071840f4ebc8e" title="Mandatory callback function querying the actual system tick count.">get_tick_count_fptr</a> = App_OnGetTickCount;</div>
 <div class="line"></div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a7d2541cf63dfcea750c0d0ec2ef563c0.html#a7d2541cf63dfcea750c0d0ec2ef563c0" title="Callback function requesting the application to call Ucs_Service(). Mandatory callback function in ev...">request_service_fptr</a> = &amp;App_OnServiceRequest;     <span class="comment">/* assign SERVICE event callback functions */</span></div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a9de73ec82699e45173702e9b0ccc917a.html#a9de73ec82699e45173702e9b0ccc917a" title="Callback function requesting the application to call Ucs_ReportTimeout() after a certain time...">set_application_timer_fptr</a> = &amp;App_OnSetAppTimer;  <span class="comment">/* assign TIMER event callback function */</span></div>
-<div class="line">    init_data.<a class="code" href="struct_ucs___init_data__t_a43e7559dfe1bc2860cb0d2749fa66071.html#a43e7559dfe1bc2860cb0d2749fa66071" title="General initialization data.">general</a>.<a class="code" href="struct_ucs___general___init_data__t_a4e1140be3951f0e14d4071840f4ebc8e.html#a4e1140be3951f0e14d4071840f4ebc8e" title="Mandatory callback function querying the actual system tick count.">get_tick_count_fptr</a> = App_OnGetTickCount;         <span class="comment">/* tick count requires the same timer</span></div>
-<div class="line"><span class="comment">                                                                           reference/resolution as the application timer</span></div>
-<div class="line"><span class="comment">                                                                         */</span></div>
-<div class="line">    <span class="comment">/* .. further initialization .. */</span></div>
+<div class="line">    <span class="comment">/* ... further initialization ... */</span></div>
 <div class="line"></div>
-<div class="line">    <span class="keywordflow">if</span> (Ucs_init(&amp;init_data) == UCS_RET_ERR_SUCCESS)</div>
+<div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init</a>(&amp;init_data) == <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        running = <span class="keyword">true</span>;</div>
 <div class="line">    }</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">while</span> (running)</div>
 <div class="line">    {</div>
-<div class="line">        Os_WaitForEvent();                                              <span class="comment">/* stop until event occurs */</span></div>
+<div class="line">        <span class="comment">/* wait until an event occurs */</span></div>
+<div class="line">        Os_WaitForEvent();</div>
 <div class="line"></div>
 <div class="line">        <span class="keywordflow">if</span> (event_timeout != <span class="keyword">false</span>)</div>
 <div class="line">        {</div>
@@ -183,7 +187,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> App_OnServiceRequest(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    event_service = <span class="keyword">true</span>;</div>
-<div class="line">    Os_SignalEvent();                                                   <span class="comment">/* wakeup process */</span></div>
+<div class="line">    Os_SignalEvent();                                                           <span class="comment">/* wakeup process */</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>During high message load the UNICENS library might also fire a high number of <em>service request</em> events in a short term. Consider that processing UNICENS library events might be at other processes expense. Therefore, balance your system also for high load scenario. During high message load it is acceptable to call <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga649fb9128df6f634fc86aa03b374d822.html#ga649fb9128df6f634fc86aa03b374d822" title="The application must call this function cyclically to drive UNICENS.">Ucs_Service()</a> in lower frequency than the <em>service request</em> event is fired by the UNICENS library.</dd></dl>
 <p>The implementation of the callback function <code>App_OnSetAppTimer()</code> must consider some particularities.</p>
@@ -195,27 +199,27 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 </ul>
 <div class="fragment"><div class="line">UINT timer_id = 0U;</div>
 <div class="line"></div>
-<div class="line"><span class="keywordtype">void</span> CALLBACK App_TimerCb (UINT uTimerID,</div>
-<div class="line">                           UINT uMsg,</div>
-<div class="line">                           DWORD_PTR dwUser,</div>
-<div class="line">                           DWORD_PTR dw1,</div>
-<div class="line">                           DWORD_PTR dw2)</div>
+<div class="line"><span class="keywordtype">void</span> CALLBACK App_TimerCb(UINT uTimerID,</div>
+<div class="line">                          UINT uMsg,</div>
+<div class="line">                          DWORD_PTR dwUser,</div>
+<div class="line">                          DWORD_PTR dw1,</div>
+<div class="line">                          DWORD_PTR dw2)</div>
 <div class="line">{</div>
-<div class="line">    timer_id = 0U;                                          <span class="comment">/* mark timer as stopped */</span></div>
+<div class="line">    timer_id = 0U;                                                       <span class="comment">/* mark timer as stopped */</span></div>
 <div class="line">    event_timeout = <span class="keyword">true</span>;</div>
-<div class="line">    Os_SignalEvent();                                       <span class="comment">/* wakeup process */</span></div>
+<div class="line">    Os_SignalEvent();                                                           <span class="comment">/* wakeup process */</span></div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">void</span> App_OnSetAppTimer(uint16_t timeout)</div>
 <div class="line">{</div>
 <div class="line"></div>
-<div class="line">    <span class="keywordflow">if</span> (timer_id != 0U)                                     <span class="comment">/* stop reference timer if it is still running */</span></div>
+<div class="line">    <span class="keywordflow">if</span> (timer_id != 0U)                            <span class="comment">/* stop reference timer if it is still running */</span></div>
 <div class="line">    {</div>
 <div class="line">        (void)timeKillEvent(timer_id);</div>
 <div class="line">        timer_id = 0U;</div>
 <div class="line">    }</div>
 <div class="line"></div>
-<div class="line">    <span class="keywordflow">if</span> (timeout != 0U)                                      <span class="comment">/* start reference timer with the given timeout value */</span></div>
+<div class="line">    <span class="keywordflow">if</span> (timeout != 0U)                      <span class="comment">/* start reference timer with the given timeout value */</span></div>
 <div class="line">    {</div>
 <div class="line">        timer_id = timeSetEvent((UINT)timeout,</div>
 <div class="line">                                (UINT)1,</div>
@@ -227,19 +231,19 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__s_r_v.html',''
 <div class="line"></div>
 <div class="line">uint16_t App_OnGetTickCount(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
-<div class="line">    <span class="keywordflow">return</span> (uint16_t)timeGetTime();                         <span class="comment">/* retrieve current tick count */</span></div>
+<div class="line">    <span class="keywordflow">return</span> (uint16_t)timeGetTime();                                <span class="comment">/* retrieve current tick count */</span></div>
 <div class="line">}</div>
 </div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

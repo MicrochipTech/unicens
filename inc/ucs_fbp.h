@@ -49,7 +49,14 @@ extern "C"
 {
 #endif
 
-
+/*------------------------------------------------------------------------------------------------*/
+/* Types                                                                                          */
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief Internal report function for Fallback Protection.
+ *  \param self    The instance
+ *  \param result  The result value
+ */
+typedef void (*Fbp_ReportCb_t)(void *self, Ucs_Fbp_ResCode_t result);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
@@ -62,22 +69,20 @@ typedef struct CFbackProt_
     CExc    *exc;                       /*!< \brief Reference to CExc object */
     CBase   *base;                      /*!< \brief Reference to CBase object */
 
+    CSingleSubject  ssub_fbp_report;    /*!< \brief Subject for the Fallback Protection reports */
+
     CSingleObserver fbp_inic_fbp_start; /*!< \brief Observes the INIC.FBPiag result */
     CSingleObserver fbp_inic_fbp_end;   /*!< \brief Observes the INIC.FBPiagEnd result*/
     CSingleObserver fbp_rev_req;        /*!< \brief Observes the EXC.FBPiag result */
-    CSingleObserver fbp_alive;          /*!< \brief Observes the EXC.ALiveMessage */
 
-    CMaskedObserver fbp_terminate;      /*!< \brief Observes events leading to termination */
 
     CObserver       fbp_nwstatus;       /*!< \brief Observes the Network status */
 
     CFsm     fsm;                       /*!< \brief Node Discovery state machine  */
     CService service;                   /*!< \brief Service instance for the scheduler */
-    CTimer   timer;                     /*!< \brief timer for monitoring messages */
+    CTimer   timer;                     /*!< \brief Timer for monitoring messages */
 
-    bool neton;                         /*!< \brief indicates Network availability */
-
-    Ucs_Fbp_ReportCb_t report_fptr;     /*!< \brief Report callback function */
+    bool fallback;                      /*!< \brief Indicates that the network is in fallback mode. */
 
     uint8_t current_position;           /*!< \brief Node position of the currently tested node, starts with 1. */
     Exc_ReverseReq1_Result_t fbp_result;    /*!< \brief Result of current tested segment. */
@@ -95,8 +100,10 @@ void Fbp_Ctor(CFbackProt *self,
               CBase *base,
               CExc *exc);
 
-extern void Fbp_Start(CFbackProt *self, uint16_t duration, Ucs_Fbp_ReportCb_t report_fptr);
+extern void Fbp_Start(CFbackProt *self, uint16_t duration);
 extern void Fbp_Stop(CFbackProt *self);
+extern Ucs_Return_t Fbp_RegisterReportObserver(CFbackProt* self, CSingleObserver* obs_ptr);
+extern void Fbp_UnRegisterReportObserver(CFbackProt* self);
 
 #ifdef __cplusplus
 }   /* extern "C" */

@@ -61,7 +61,7 @@ static const uint16_t ATS_INIT_TIMEOUT = 3000U; /* parasoft-suppress  MISRA2004-
 /*------------------------------------------------------------------------------------------------*/
 /* Internal definitions                                                                           */
 /*------------------------------------------------------------------------------------------------*/
-#define ATS_NUM_STATES     11U      /*!< \brief Number of state machine states */
+#define ATS_NUM_STATES     12U      /*!< \brief Number of state machine states */
 #define ATS_NUM_EVENTS      5U      /*!< \brief Number of state machine events */
 
 /*------------------------------------------------------------------------------------------------*/
@@ -90,8 +90,9 @@ typedef enum Ats_State_
     ATS_S_DEV_ATT_STAGE_2 =  6,     /*!< \brief Device attach state 2 (wait for second condition) */
     ATS_S_DEV_ATT_STAGE_3 =  7,     /*!< \brief Device attach state 3 (wait for third condition) */
     ATS_S_NW_CONFIG       =  8,     /*!< \brief Retrieve network configuration */
-    ATS_S_INIT_CPL        =  9,     /*!< \brief Initialization complete state */
-    ATS_S_ERROR           = 10      /*!< \brief Error state */
+    ATS_S_SIGNATURE       =  9,     /*!< \brief Retrieve signature from local INIC */
+    ATS_S_INIT_CPL        = 10,     /*!< \brief Initialization complete state */
+    ATS_S_ERROR           = 11      /*!< \brief Error state */
 
 } Ats_State_t;
 
@@ -107,6 +108,7 @@ static void Ats_StartVersChk(void *self);
 static void Ats_StartInicOvhl(void *self);
 static void Ats_StartDevAtt(void *self);
 static void Ats_StartNwConfig(void *self);
+static void Ats_StartSignatureGet(void *self);
 static void Ats_InitCpl(void *self);
 static void Ats_HandleInternalErrors(void *self, void *error_code_ptr);
 static void Ats_HandleError(void *self);
@@ -119,6 +121,7 @@ static void Ats_CheckNetworkStatusReceived(void *self, void *result_ptr);
 static void Ats_CheckDeviceStatusReceived(void *self, void *data_ptr);
 static void Ats_CheckDevAttResult(void *self, void *result_ptr);
 static void Ats_CheckNwConfigStatus(void *self, void *result_ptr);
+static void Ats_CheckSignatureStatus(void *self, void *data_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* State transition table (used by finite state machine)                                          */
@@ -138,7 +141,8 @@ static const Fsm_StateElem_t ats_trans_tab[ATS_NUM_STATES][ATS_NUM_EVENTS] =    
     { {NULL, ATS_S_DEV_ATT_STAGE_1}, {NULL,                   ATS_S_DEV_ATT_STAGE_2}, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
     { {NULL, ATS_S_DEV_ATT_STAGE_2}, {NULL,                   ATS_S_DEV_ATT_STAGE_3}, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
     { {NULL, ATS_S_DEV_ATT_STAGE_3}, {&Ats_StartNwConfig,     ATS_S_NW_CONFIG      }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
-    { {NULL, ATS_S_NW_CONFIG      }, {&Ats_InitCpl,           ATS_S_INIT_CPL       }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
+    { {NULL, ATS_S_NW_CONFIG      }, {&Ats_StartSignatureGet, ATS_S_SIGNATURE      }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
+    { {NULL, ATS_S_SIGNATURE      }, {&Ats_InitCpl,           ATS_S_INIT_CPL       }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_HandleError,       ATS_S_ERROR}, {&Ats_HandleTimeout,     ATS_S_ERROR} },
     { {NULL, ATS_S_INIT_CPL       }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR}, {&Ats_InvalidTransition, ATS_S_ERROR} },
     { {NULL, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR          }, {&Ats_InvalidTransition, ATS_S_ERROR}, {&Ats_InvalidTransition, ATS_S_ERROR} }
 };
@@ -318,6 +322,25 @@ static void Ats_StartNwConfig(void *self)
     if (Inic_NwConfig_Get(self_->init_data.inic_ptr, &self_->sobs) != UCS_RET_SUCCESS)
     {
         TR_ERROR((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "INIC network configuration failed!", 0U));
+        self_->report_result = UCS_INIT_RES_ERR_BUF_OVERFLOW;
+        Fsm_SetEvent(&self_->fsm, ATS_E_ERROR);
+    }
+}
+
+/*! \brief Starts request the signature (node address) from the local INIC
+ *  \param self    Instance pointer
+ */
+static void Ats_StartSignatureGet(void *self)
+{
+    CAttachService *self_ = (CAttachService *)self;
+
+    TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_StartSignatureGet(): request signature of local INIC", 0U));
+    /* Assign observer to monitor the initial receipt of INIC message INIC.NetworkConfigurarion */
+    Sobs_Ctor(&self_->sobs, self_, &Ats_CheckSignatureStatus);
+
+    if (Exc_Signature_Get(self_->init_data.exc_ptr, UCS_ADDR_LOCAL_INIC, UCS_EXC_SIGNATURE_VERSION_LIMIT, &self_->sobs) != UCS_RET_SUCCESS)
+    {
+        TR_ERROR((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "ENC.Signature.Get() for local node failed!", 0U));
         self_->report_result = UCS_INIT_RES_ERR_BUF_OVERFLOW;
         Fsm_SetEvent(&self_->fsm, ATS_E_ERROR);
     }
@@ -603,6 +626,35 @@ static void Ats_CheckNwConfigStatus(void *self, void *result_ptr)
         TR_ERROR_INIC_RESULT(self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", error_data.result.info_ptr, error_data.result.info_size);
     }
     TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_CheckNwConfigStatus() called", 0U));
+}
+
+/*! \brief Result callback for ENC.Signature.Status()
+ *  \param self        Instance pointer
+ *  \param data_ptr    Reference to the Signature.Status result data.
+ */
+static void Ats_CheckSignatureStatus(void *self, void *data_ptr)
+{
+    CAttachService *self_ = (CAttachService *)self;
+    Exc_StdResult_t *result_ptr = (Exc_StdResult_t *)data_ptr;
+
+    if ((result_ptr->result.code == UCS_RES_SUCCESS) && (result_ptr->data_info != NULL))
+    {
+        /* Operation succeeded */
+        Exc_SignatureStatus_t *signature_status = (Exc_SignatureStatus_t *)result_ptr->data_info;
+        TR_INFO((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_CheckSignatureStatus() retrieving node_address: 0x%04X", 1U, signature_status->signature.node_address));
+        Addr_NotifyOwnAddress(&self_->init_data.base_ptr->addr, signature_status->signature.node_address);
+
+        Fsm_SetEvent(&self_->fsm, ATS_E_NEXT);
+        Srv_SetEvent(&self_->ats_srv, ATS_EVENT_SERVICE);
+    }
+    else
+    {
+        /* INIC reports an unexpected error -> attach process failed! */
+        self_->report_result = UCS_INIT_RES_ERR_NET_CFG;
+        Fsm_SetEvent(&self_->fsm, ATS_E_ERROR);
+        Srv_SetEvent(&self_->ats_srv, ATS_EVENT_SERVICE);
+        TR_ERROR((self_->init_data.base_ptr->ucs_user_ptr, "[ATS]", "Ats_CheckSignatureStatus(): Unexpected error code = 0x%02X", 1U, result_ptr->result.code));
+    }
 }
 
 /*!

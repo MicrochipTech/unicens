@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -104,7 +104,7 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___a_m_s.html','');})
 
 <p>Retrieves a reference to the front-most message in the Rx queue. </p>
 <p>The Application Message Service already provides a queue of completed Rx messages. <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> always returns a reference to the front-most message in the Rx queue. The function call does not dequeue the message handle. Thus, multiple subsequent calls of <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> will always return the same reference. After processing the front-most message, the application must call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a>. <br/>
- Typically, an application will process the front-most Rx message and call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a>, which dequeues and frees the Rx message. Hence, the application must not access this this reference anymore. The next call of <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> returns a reference of the following Rx message, or <code>NULL</code> if no further message is available. <br/>
+ Typically, an application will process the front-most Rx message and call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a>, which dequeues and frees the Rx message. Hence, the application must not access this reference anymore. The next call of <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> returns a reference of the following Rx message, or <code>NULL</code> if no further message is available. <br/>
  However, it is possible that an application cannot process an Rx message. In that case that application must not call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a> so that the next call of <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> returns again the reference to the un-processed message. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -112,7 +112,8 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___a_m_s.html','');})
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Reference to the front-most message in the Rx queue or <code>NULL</code> if the Rx queue is empty. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Reference to the front-most message in the Rx queue or <code>NULL</code> if the Rx queue is empty.<br/>
+ The function also returns <code>NULL</code> if the AMS feature is disabled either by defining <a class="el" href="group___g___u_c_s___m_i_s_c_ga0922091e9a1dd367834936f40a4d477c.html#ga0922091e9a1dd367834936f40a4d477c">UCS_FOOTPRINT_DISABLE_AMS</a> or by setting the initialization attribute <a class="el" href="struct_ucs___ams___init_data__t.html">ams.enabled</a> to <code>false</code>. </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>It is important that the application takes care about the life time of the Rx message object. The returned reference is valid if the application performs the peek, processing and release operation in one go. A reference returned by <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> might become invalid during a call of <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga649fb9128df6f634fc86aa03b374d822.html#ga649fb9128df6f634fc86aa03b374d822" title="The application must call this function cyclically to drive UNICENS.">Ucs_Service()</a>. The reason is that the UNICENS library might process an event which will flush the AMS Rx queue. </dd></dl>
 
 </div>
@@ -123,12 +124,12 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___a_m_s.html','');})
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a></li>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

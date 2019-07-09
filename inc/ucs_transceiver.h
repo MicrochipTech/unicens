@@ -121,6 +121,7 @@ extern void Trcv_TxSendMsgExt(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_Tx
 extern void Trcv_TxSendMsgBypass(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr);
 extern void Trcv_TxReleaseMsg(Ucs_Message_t *tel_ptr);
 extern void Trcv_TxReuseMsg(Ucs_Message_t *tel_ptr);
+
 /* Rx */
 extern void Trcv_RxAssignReceiver(CTransceiver *self, Trcv_RxCompleteCb_t callback_fptr, void *inst_ptr);
 extern void Trcv_RxAssignFilter(CTransceiver *self, Trcv_RxFilterCb_t callback_fptr, void *inst_ptr);

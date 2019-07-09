@@ -54,6 +54,89 @@ extern "C"
 #define ND_NUM_NODES            1U
 #endif
 
+/*------------------------------------------------------------------------------------------------*/
+/*  Node Discovery                                                                                */
+/*------------------------------------------------------------------------------------------------*/
+
+/*! \brief   Result values of the Node Discovery service.
+ *  \ingroup G_UCS_NODE_DISCOVERY_TYPES
+ */
+typedef enum Ucs_Nd_ResCode_
+{
+    UCS_ND_RES_WELCOME_SUCCESS   = 0x01U,    /*!< \brief Node was successfully added to the network. */
+    UCS_ND_RES_UNKNOWN           = 0x02U,    /*!< \brief Node signature is unknown to the application, node will be ignored. */
+    UCS_ND_RES_MULTI             = 0x03U,    /*!< \brief A node with the same signature is already part of the system. The new node will be ignored. */
+    UCS_ND_RES_STOPPED           = 0x04U,    /*!< \brief The Node Discovery service was stopped by API function Ucs_Nd_Stop(). Ucs_Nd_Start() has to be called to start again. */
+    UCS_ND_RES_NETOFF            = 0x05U,    /*!< \brief The Node Discovery service detected a NetOff event and pauses . It resumes automatically as soon as NetOn occurs. */
+    UCS_ND_RES_ERROR             = 0x06U     /*!< \brief An unexpected error occurred. Node Discovery service was stopped. Ucs_Nd_Start() has to be called to start again. */
+
+} Ucs_Nd_ResCode_t;
+
+/*! \brief   Result values of the application's evaluation function (type \ref Ucs_Nd_EvalCb_t).
+ *  \ingroup G_UCS_NODE_DISCOVERY_TYPES
+ */
+typedef enum Ucs_Nd_CheckResult_
+{
+    UCS_ND_CHK_WELCOME              = 0x01U,    /*!< \brief Node is ok, try to add it to the network. */
+    UCS_ND_CHK_UNIQUE               = 0x02U,    /*!< \brief Test if this node is unique. */
+    UCS_ND_CHK_UNKNOWN              = 0x03U     /*!< \brief The node is unknown, no further action. */
+
+} Ucs_Nd_CheckResult_t;
+
+/*! \brief Function signature of node evaluation callback used by Node Discovery service.
+ *
+ *  The Node Discovery service announces the signature of each node it has found to the
+ *  application via the evaluation function. In this function the application
+ *  decides how the Node Discovery service shall proceed with the node.
+ *  The application maintains two lists:
+ *
+ *  <dl>
+ *      <dt> *set_list* </dt>
+ *      <dd> Contains the signatures of the nodes the system shall contain
+ *
+ *      <dt> *device_list* </dt>
+ *      <dd> Contains the signatures of the nodes detected in the system
+ *  </dl>
+ *
+ *  The evaluation has to follow these rules:
+ *  - If the node is not part of the *set_list*, it is regarded as unknown (\ref UCS_ND_CHK_UNKNOWN)
+ *    and will be ignored.
+ *  - If the node is part of the *set_list* and is not yet in the *device_list*, the Node Discovery
+ *    Service shall try to add the node to network (\ref UCS_ND_CHK_WELCOME).
+ *  - If the node is already part of the *device_list*, there are two possibilities: the node in the
+ *    *device_list* experienced a reset or there are two nodes with the same signature. Evaluation
+ *    result is \ref UCS_ND_CHK_UNIQUE. The Node Discovery service will perform further tests.
+ *
+ *  \param    signature   Signature of the respective node
+ *  \param    user_ptr    User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \returns  UCS_ND_CHK_WELCOME  Node is ok, try to add it to the network.
+ *  \returns  UCS_ND_CHK_UNIQUE   Test if this node is unique.
+ *  \returns  UCS_ND_CHK_UNKNOWN  Node is unknown, no further action.
+ *  \ingroup  G_UCS_NODE_DISCOVERY
+ */
+typedef Ucs_Nd_CheckResult_t(*Ucs_Nd_EvalCb_t)(Ucs_Signature_t *signature_ptr, void *user_ptr);
+
+/*! \brief Function signature of result callback used by Node Discovery service.
+ *
+ *  The Node Discovery service reports the result of each node and some system events by
+ *  this callback function.
+ *
+ *  \note The parameter <b>signature</b> will be NULL, if parameter <b>code</b> is
+ *  \ref UCS_ND_RES_STOPPED, \ref UCS_ND_RES_NETOFF or \ref UCS_ND_RES_ERROR.
+ *
+ *  \param   code         Result code
+ *  \param   signature    Signature of the respective node
+ *  \param   user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
+ *  \ingroup G_UCS_NODE_DISCOVERY
+ */
+typedef void (*Ucs_Nd_ReportCb_t)(Ucs_Nd_ResCode_t code,
+                                  Ucs_Signature_t *signature_ptr,
+                                  void *user_ptr);
+
+/*! 
+ * \addtogroup G_NODE_DIS
+ * @{
+ */
 
 /*! \brief Function signature of node evaluation callback used by Node Discovery service.
  *
@@ -84,7 +167,6 @@ extern "C"
  *  \returns  UCS_ND_CHK_WELCOME  Node is ok, try to add it to the network.
  *  \returns  UCS_ND_CHK_UNIQUE   Test if this node is unique.
  *  \returns  UCS_ND_CHK_UNKNOWN  Node is unknown, no further action.
- *  \ingroup G_UCS_NODE_DISCOVERY
  */
 typedef Ucs_Nd_CheckResult_t(*Nd_EvalCb_t)(void *self, Ucs_Signature_t *signature);
 
@@ -99,31 +181,22 @@ typedef Ucs_Nd_CheckResult_t(*Nd_EvalCb_t)(void *self, Ucs_Signature_t *signatur
  *  \param   self         The instance
  *  \param   code         Result code
  *  \param   signature    Signature of the respective node
- *  \ingroup G_UCS_NODE_DISCOVERY
  */
 typedef void (*Nd_ReportCb_t)(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature);
-
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Structure decribing a node.
- *  \ingroup G_UCS_NODE_DISCOVERY
+/*! \brief   Structure describing a node.
  */
 typedef struct Nd_Node_
 {
-    /*bool               available; */      /*!< \brief node available? *//*! i todo RWI:  */
-    /*uint16_t           node_address; */   /*!< \brief node address used for welcome command */
-    /*uint8_t            result;     */     /*!< \brief result parameter of Welcome.Result message */
-    /*uint8_t            version;  */       /*!< \brief version parameter of Hello and Welcome messages */
     Ucs_Signature_t    signature;           /*!< \brief signature of the node */
     CDlNode            node;                /*!< \brief enables listing */
 
 } Nd_Node;
 
-
 /*! \brief  Initialization structure of the Node Discovery service.
- *  \ingroup G_UCS_NODE_DISCOVERY
  */
 typedef struct Nd_InitData_
 {
@@ -133,11 +206,7 @@ typedef struct Nd_InitData_
 
 } Nd_InitData_t;
 
-
-
-
 /*! \brief   Structure of class CNodeDiscovery.
- *  \ingroup G_UCS_NODE_DISCOVERY
  */
 typedef struct CNodeDiscovery_
 {
@@ -183,8 +252,6 @@ typedef struct CNodeDiscovery_
 
 }CNodeDiscovery;
 
-
-
 /*------------------------------------------------------------------------------------------------*/
 /* Prototypes                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
@@ -199,14 +266,16 @@ extern Ucs_Return_t Nd_Start(CNodeDiscovery *self);
 extern Ucs_Return_t Nd_Stop(CNodeDiscovery *self);
 extern void Nd_InitAll(CNodeDiscovery *self);
 
-
-
+/*!
+ * @}
+ */
 
 #ifdef __cplusplus
 }   /* extern "C" */
 #endif
 
 #endif /* UCS_NODEDIS_H */
+
 /*!
  * \endcond
  */

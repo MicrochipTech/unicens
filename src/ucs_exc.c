@@ -224,24 +224,6 @@ static void Exc_HandleApiTimeout(void *self, void *method_mask_ptr)
 
     switch(method_mask)
     {
-#if 0   /* FullDuplex Diagnosis supervises timeouts for these functions  */
-        case EXC_API_ENABLE_PORT:
-            Ssub_Notify(&self_->ssubs.enableport, &res_data, false);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_EnablePort_Sr().", 0U));
-            break;
-        case EXC_API_HELLO:
-            Ssub_Notify(&self_->ssubs.hello, &res_data, false);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_Hello_Get().", 0U));
-            break;
-        case EXC_API_WELCOME:
-            Ssub_Notify(&self_->ssubs.welcome, &res_data, false);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_Welcome_Sr().", 0U));
-            break;
-        case EXC_API_CABLE_LINK_DIAG:
-            Ssub_Notify(&self_->ssubs.cablelinkdiag, &res_data, false);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_CableLinkDiagnosis_Start().", 0U));
-            break;
-#endif
         case EXC_API_PHY_LAY_TEST_RESULT:
             Ssub_Notify(&self_->ssubs.phylaytestresult, &res_data, false);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[EXC]", "API locking timeout occurred for method Exc_PhyTestResult_Get().", 0U));
@@ -486,6 +468,52 @@ Ucs_Return_t Exc_Init_Start(CExc *self,
 }
 
 
+/*! \brief Registers an observer for the AliveMessage status and error messages
+ *
+ * \param self      Reference to CExc instance
+ * \param obs_ptr   Reference to the observer
+ * \return UCS_RET_SUCCESS              No error
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW  Given observer is not valid
+ */
+Ucs_Return_t Exc_RegisterAliveObserver(CExc* self, CObserver* obs_ptr)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+    Sub_Ret_t ret_sub;
+
+    ret_sub = Sub_AddObserver(&self->subs.alivemessage, obs_ptr);
+    if (ret_sub == SUB_UNKNOWN_OBSERVER)
+    {
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return ret_val;
+}
+
+
+/*! \brief Unregisters an observer for the AliveMessage status and error messages
+ *
+ * \param self      Reference to CExc instance
+ * \param obs_ptr   Reference to the observer
+ * \return UCS_RET_SUCCESS              No error
+ * \return UCS_RET_ERR_BUFFER_OVERFLOW  Given observer is not valid
+ */
+Ucs_Return_t Exc_UnRegisterAliveObserver(CExc* self, CObserver* obs_ptr)
+{
+    Ucs_Return_t ret_val = UCS_RET_SUCCESS;
+    Sub_Ret_t ret_sub;
+
+    ret_sub = Sub_RemoveObserver(&self->subs.alivemessage, obs_ptr);
+    if (ret_sub == SUB_UNKNOWN_OBSERVER)
+    {
+        ret_val = UCS_RET_ERR_BUFFER_OVERFLOW;
+    }
+
+    return ret_val;
+}
+
+
+
+
 /*! \brief  This method enables a port
  *  \param  self            Reference to CExc instance
  *  \param  target_address  Target address
@@ -676,7 +704,7 @@ Ucs_Return_t  Exc_PhyTestResult_Get(CExc *self,
 
 
 
-/*! Sends the ReverseRequest.Startresult command for HalfDuplex Diagnosis
+/*! \brief Sends the ReverseRequest.Startresult command for HalfDuplex Diagnosis
  *
  * \param self              Reference to CExc instance
  * \param master_position   Position of the node to be checked.
@@ -742,8 +770,7 @@ Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
                                        uint16_t t_send,
                                        uint16_t t_back,
                                        Exc_ReverseReq1_List_t req_list,
-                                       CSingleObserver *obs_ptr,
-                                       CSingleObserver *alive_obs_ptr)
+                                       CSingleObserver *obs_ptr)
 {
     Ucs_Return_t result = UCS_RET_SUCCESS;
 
@@ -774,7 +801,6 @@ Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
         Trcv_TxSendMsg(self->xcvr_ptr, msg_ptr);
 
         (void)Ssub_AddObserver(&self->ssubs.reverse_request, obs_ptr);
-        (void)Ssub_AddObserver(&self->ssubs.alivemessage, alive_obs_ptr);
     }
     else
     {
@@ -785,7 +811,7 @@ Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
 }
 
 
-/*! Enables the signal during HalfDuplex Diagnosis
+/*! \brief Enables the signal during HalfDuplex Diagnosis
  *
  * \param self          Reference to CExc instance
  * \param port          Number of port which has to be enabled.
@@ -1236,7 +1262,7 @@ static void Exc_Welcome_Result(void *self, Ucs_Message_t *msg_ptr)
 }
 
 
-/*! Handler function for the EXC.Signature.Status message
+/*! \brief Handler function for the EXC.Signature.Status message
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
@@ -1251,9 +1277,9 @@ static void Exc_Signature_Status(void *self, Ucs_Message_t *msg_ptr)
         signature_data.version =    msg_ptr->tel.tel_data_ptr[0];
         Exc_Read_Signature(&(signature_data.signature), &(msg_ptr->tel.tel_data_ptr[1]));
 
-        res_data.data_info       = &signature_data;
-        res_data.result.code     = UCS_RES_SUCCESS;
-        res_data.result.info_ptr = NULL;
+        res_data.data_info        = &signature_data;
+        res_data.result.code      = UCS_RES_SUCCESS;
+        res_data.result.info_ptr  = NULL;
         res_data.result.info_size = 0U;
 
         Ssub_Notify(&self_->ssubs.signature, &res_data, true);
@@ -1261,7 +1287,7 @@ static void Exc_Signature_Status(void *self, Ucs_Message_t *msg_ptr)
 }
 
 
-/*! Handler function for the EXC.Signature.Error message
+/*! \brief Handler function for the EXC.Signature.Error message
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
@@ -1282,7 +1308,7 @@ static void Exc_Signature_Error(void *self, Ucs_Message_t *msg_ptr)
 }
 
 
-/*! Handler function for the EXC.Init.Error message
+/*! \brief Handler function for the EXC.Init.Error message
  * \param  self     reference to EXC object
  * \param  msg_ptr  received message
  */
@@ -1310,13 +1336,21 @@ static void Exc_Init_Error(void *self, Ucs_Message_t *msg_ptr)
 static void Exc_AliveMessage_Status(void *self, Ucs_Message_t *msg_ptr)
 {
     CExc *self_ = (CExc *)self;
+    Exc_AliveMessageStatus_t alive_data;
     Exc_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
 
-    MISC_UNUSED(msg_ptr);
+    alive_data.alive_version     = msg_ptr->tel.tel_data_ptr[0];
+    alive_data.welcomed          = (Ucs_Welcomed_t)(msg_ptr->tel.tel_data_ptr[1]);
+    MISC_DECODE_WORD(&alive_data.alive_status, &(msg_ptr->tel.tel_data_ptr[2]));
+    alive_data.signature_version = msg_ptr->tel.tel_data_ptr[4];
+    Exc_Read_Signature(&(alive_data.signature), &(msg_ptr->tel.tel_data_ptr[5]));
 
-    res_data.result.code = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-    Ssub_Notify(&self_->ssubs.alivemessage, &res_data, true);
+    res_data.data_info        = &alive_data;
+    res_data.result.code      = UCS_RES_SUCCESS;
+    res_data.result.info_ptr  = NULL;
+    res_data.result.info_size = 0U;
+
+    Sub_Notify(&self_->subs.alivemessage, &res_data);  
 }
 
 /*! \brief Handler function for EXC.AliveMessage.Error
@@ -1334,7 +1368,7 @@ static void Exc_AliveMessage_Error(void *self, Ucs_Message_t *msg_ptr)
                                              &msg_ptr->tel.tel_data_ptr[0],
                                              (uint8_t)(msg_ptr->tel.tel_len));
 
-        Ssub_Notify(&self_->ssubs.alivemessage, &res_data, true);
+        Sub_Notify(&self_->subs.alivemessage, &res_data);
     }
 }
 

@@ -59,20 +59,22 @@ extern "C"
 /*! \brief This enumerator specifies the type of an EndPoint object. */
 typedef enum Ucs_Rm_EndPointType_
 {
-    UCS_RM_EP_SOURCE = 0x00U,    /*!< \brief Specifies the source endpoint. */
-    UCS_RM_EP_SINK   = 0x01U     /*!< \brief Specifies the sink endpoint. */
+    UCS_RM_EP_SOURCE    = 0x00U,    /*!< \brief Specifies the source endpoint. */
+    UCS_RM_EP_SINK      = 0x01U,    /*!< \brief Specifies the sink endpoint. */
+    UCS_RM_EP_DC_SOURCE = 0x02U,    /*!< \brief Specifies a default created source endpoint. */
+    UCS_RM_EP_DC_SINK   = 0x03U     /*!< \brief Specifies a default created sink endpoint. */
 
 } Ucs_Rm_EndPointType_t;
 
-/*! \brief This enumerator specifies the possible route information returned via User callback function of \ref Ucs_Rm_Start(). */
+/*! \brief This enumerator specifies the possible route information. */
 typedef enum Ucs_Rm_RouteInfos_
 {
     UCS_RM_ROUTE_INFOS_BUILT          = 0x00U,     /*!< \brief Specifies that the route has been built. */
     UCS_RM_ROUTE_INFOS_DESTROYED      = 0x01U,     /*!< \brief Specifies that the route has been destroyed. */
     UCS_RM_ROUTE_INFOS_SUSPENDED      = 0x02U,     /*!< \brief Specifies that the route has been suspended. */
     UCS_RM_ROUTE_INFOS_PROCESS_STOP   = 0x03U,     /*!< \brief Specifies that the route cannot be processed anymore because of UNICENS Termination. */
-    UCS_RM_ROUTE_INFOS_ATD_UPDATE     = 0x04U,     /* Specifies that a new ATD value is available. */
-    UCS_RM_ROUTE_INFOS_ATD_ERROR      = 0x05U      /* Specifies that a ATD calculation was stopped due to an error. */
+    UCS_RM_ROUTE_INFOS_ATD_UPDATE     = 0x04U,     /*!< \brief Specifies that a new ATD value is available. */
+    UCS_RM_ROUTE_INFOS_ATD_ERROR      = 0x05U      /*!< \brief Specifies that a ATD calculation was stopped due to an error. */
 
 } Ucs_Rm_RouteInfos_t;
 
@@ -93,6 +95,40 @@ typedef struct Ucs_Rm_EndPoint_
 
 } Ucs_Rm_EndPoint_t;
 
+
+/*! \brief Configuration structure of a default created EndPoint. */
+typedef struct Ucs_Rm_DC_EndPoint_
+{
+    /*! \brief Type of the endpoint object. */
+    Ucs_Rm_EndPointType_t endpoint_type;
+    /*! \brief Internal information of this endpoint object. */
+    Ucs_Rm_EndPointInt_t internal_infos;
+
+} Ucs_Rm_DC_EndPoint_t;
+
+
+/*! \brief Configuration structure to enable and setup the ATD module. */
+typedef struct Ucs_Rm_Atd_
+{
+    /*! \brief Flag to enable the ATD calculation for the corresponding route. */
+    uint8_t enabled;
+    /*! \brief Clock speed configured for the source streaming port. */
+    Ucs_Stream_PortClockConfig_t clk_config;
+
+} Ucs_Rm_Atd_t;
+
+
+/*! \brief Configuration structure to enable the route for proxy channel use. */
+typedef struct Ucs_Rm_StaticConnection_
+{
+    /*! \brief Connection label for proxy channel usage. Valid range from 0x800C to 0x817F. */
+    uint16_t static_con_label;
+    /*! \brief Enable the routes build in Fallback mode only. */
+    uint8_t fallback_enabled;
+
+} Ucs_Rm_StaticConnection_t;
+
+
 /*! \brief Configuration structure of a Route. */
 typedef struct Ucs_Rm_Route_
 {
@@ -104,12 +140,15 @@ typedef struct Ucs_Rm_Route_
     uint8_t active;
     /*! \brief User-defined route identifier. */
     uint16_t route_id;
-    /*! \brief ATD callback enable. */
-    uint8_t atd_enabled;
+    /*! \brief ATD settings. */
+    Ucs_Rm_Atd_t atd;
+    /*! \brief Structure for static connection settings */
+    Ucs_Rm_StaticConnection_t static_connection;
     /*! \brief Internal information of the route object. */
     Ucs_Rm_RouteInt_t internal_infos;
 
 } Ucs_Rm_Route_t;
+
 
 #ifdef __cplusplus
 }   /* extern "C" */

@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -93,12 +93,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h1>Introduction</h1>
-<p>The Routing Management is an aspect of the INIC Resources Management that implements the connectivity between sources and sinks endpoints respectively sockets from a device perspective (see picture below).</p>
+<p>The Routing Management is an aspect of the INIC Resources Management. Its responsibility is the connectivity between source and sink endpoints (see picture below).</p>
 <div class="image">
 <img src="routing_physical_pov.png" alt="routing_physical_pov.png"/>
 </div>
-<p> A (virtual) route is a logical unidirectional connection between two endpoints. An endpoint acts as a connection in INIC plus the internal linked resources. <br/>
- The routing management consists of following features:</p>
+<p> A (virtual) route is a logical unidirectional connection between two endpoints. An endpoint acts as an INIC internal connection and consists of internal linked resources. <br/>
+ The routing management offers the following features:</p>
 <ul>
 <li>Create a route</li>
 <li>Destroy a route</li>
@@ -121,10 +121,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 </div><!-- fragment --><h1>Initialization</h1>
 <p>The application shall provide following report callback functions in the UNICENS Init-Structure in order to receive any routing events. These are:</p>
 <ul>
-<li><a class="el" href="struct_ucs___rm___init_data__t_a2420c468d89e6f991f68189ba2f61d15.html#a2420c468d89e6f991f68189ba2f61d15">rm.report_fptr</a>: Optional callback function that reports status information for all routes. The passed result callback function does not only report the result of the build operation but also monitors the status of the created routes during their whole lifetime. That is, the callback function also reports the various states of a route (Refer to <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b">Ucs_Rm_RouteInfos_t</a> for more infos). Furthermore the result of <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gabb9185254132bb29ee0af137c36f50b8.html#gabb9185254132bb29ee0af137c36f50b8">Ucs_Rm_SetRouteActive()</a> function call is reported by this result callback function. <dl class="section user"><dt>Handling the states:</dt><dd><ul>
+<li><a class="el" href="struct_ucs___rm___init_data__t_a2420c468d89e6f991f68189ba2f61d15.html#a2420c468d89e6f991f68189ba2f61d15">rm.report_fptr</a>: Optional callback function that reports status information for all routes. The passed result callback function does not only report the result of the build operation but also monitors the status of the created routes during their whole lifetime. That is, the callback function also reports the various states of a route (Refer to <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b">Ucs_Rm_RouteInfos_t</a> for more infos). Furthermore the result of <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gabb9185254132bb29ee0af137c36f50b8.html#gabb9185254132bb29ee0af137c36f50b8">Ucs_Rm_SetRouteActive()</a> function call is reported by this result callback function as well as the status of the ATD feature, if it is enabled for the route. <dl class="section user"><dt>Handling the states:</dt><dd><ul>
 <li><b>Built:</b> The route has been built. From this state a route can be deactivated respectively destroyed by the application or "auto-destroyed" if a system error occurs.</li>
 <li><b>Destroyed:</b> The route has been destroyed successfully. The job has been instructed by the user application.</li>
 <li><b>Suspended:</b> The route enters this state if critical configuration errors or temporary critical network errors occur or the maximum number of auto retries after uncritical errors has reached. The route will remain in this state until user intervention. The route can be reactivated by setting it to "inactive" first and than build the route again by setting it to "active".</li>
+<li><b> ATD Update available:</b> An ATD update is available for the corresponding route. This is caused due to a route build event or the number of the nodes in the network changed.</li>
+<li><b> ATD Error:</b> The ATD value could not be calculated for the corresponding route.</li>
 </ul>
 </dd></dl>
 </li>
@@ -142,7 +144,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 <div class="line">ucs_init_data.<a class="code" href="struct_ucs___init_data__t_a8619aaf795810b7508046fbfef6d6907.html#a8619aaf795810b7508046fbfef6d6907" title="The initialization data of the Routing Management.">rm</a>.<a class="code" href="struct_ucs___rm___init_data__t_ab3de88c423837727c463947f57895e49.html#ab3de88c423837727c463947f57895e49" title="Initialization structure of the Extended Resource Manager.">xrm</a>.<a class="code" href="struct_ucs___xrm___init_data__t_a7ad953f5414061df43df073ece15e25b.html#a7ad953f5414061df43df073ece15e25b" title="Callback function that signals the EHC to check the mute pin state of devices before attempting unmut...">check_unmute_fptr</a>      = &amp;App_CheckUnmuteStatusCb;</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* The report callback function for all routes */</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(uint16_t route_id, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information returned via User callback function of Ucs_R...">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(uint16_t route_id, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information.">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="comment">/* Do whatever is necessary here */</span></div>
 <div class="line"></div>
@@ -155,7 +157,14 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 <div class="line">            <span class="comment">/* Route has been destroyed */</span></div>
 <div class="line">            <span class="keywordflow">break</span>;</div>
 <div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9bace1ac2f05b198d3d223baa33ca71493a" title="Specifies that the route cannot be processed anymore because of UNICENS Termination.">UCS_RM_ROUTE_INFOS_PROCESS_STOP</a>:</div>
-<div class="line">            <span class="comment">/* Route cannot be processed anymore due to UNICENS Termination */</span></div>
+<div class="line">            <span class="comment">/* Route can not be processed anymore due to UNICENS Termination */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9badb63fb6363ebb3ae51d0bf8e3892138e" title="Specifies that a new ATD value is available.">UCS_RM_ROUTE_INFOS_ATD_UPDATE</a>:</div>
+<div class="line">            <span class="comment">/* ATD update available */</span></div>
+<div class="line">            <span class="comment">/* Do whatever is necessary here, e.g. Ucs_Rm_GetAtdValue() */</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9ba1026c9d7cd077ef0938ca6984442f514" title="Specifies that a ATD calculation was stopped due to an error.">UCS_RM_ROUTE_INFOS_ATD_ERROR</a>:</div>
+<div class="line">            <span class="comment">/* ATD error occurred */</span></div>
 <div class="line">            <span class="keywordflow">break</span>;</div>
 <div class="line">        <span class="keywordflow">default</span>:</div>
 <div class="line">            <span class="comment">/* Route has been suspended */</span></div>
@@ -204,16 +213,8 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 <div class="line">}</div>
 </div><!-- fragment --></dd></dl>
 <h1>Operation</h1>
-<p>After initialization the application specifies the routes, endpoints, nodes as well as the XRM jobs and calls the <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gaaa23aca8279da197192210fe11889452.html#gaaa23aca8279da197192210fe11889452" title="Initializes the routing process with the given routes list information and starts the process to hand...">Ucs_Rm_Start()</a> function to initialize and start the routing process. This function must be called once and can only be called once. At this point, it is important to mention that there are some <b>preconditions</b> for the routes to be handled properly:</p>
-<ul>
-<li>The internal_infos structure of route, endpoint and node objects is <b>zero-initialized</b> </li>
-<li>UNICENS is initialized</li>
-<li>XRM macros have been set correctly (See <b>Configuration</b> <b>Section</b> above)</li>
-<li>The network is available</li>
-<li>The nodes, where the corresponding routes shall be built on, are <code>available</code>. That is, the user application has to call the function <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable()</a> whenever the node is available or the node is unavailable. In case the node is unavailable all created resources related to the node will be internally released and the user will receive a notification via the given callback functions <a class="el" href="struct_ucs___rm___init_data__t_a2420c468d89e6f991f68189ba2f61d15.html#a2420c468d89e6f991f68189ba2f61d15">report_fptr</a> and <a class="el" href="struct_ucs___rm___init_data__t_a68590d8712353f94f2e9ccec1e21baa5.html#a68590d8712353f94f2e9ccec1e21baa5">debug_resource_status_fptr</a> in <a class="el" href="struct_ucs___rm___init_data__t.html" title="The initialization structure of the Routing Management.">Ucs_Rm_InitData_t</a>.</li>
-</ul>
-<p>In short the user application can anytime call the function <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gaaa23aca8279da197192210fe11889452.html#gaaa23aca8279da197192210fe11889452" title="Initializes the routing process with the given routes list information and starts the process to hand...">Ucs_Rm_Start()</a> with the specified list of routes but these routes will have been processing only when the above conditions are met.</p>
-<p>It is important to note that, The build up of routes can take some times in case the routing process may need to perform retries when uncritical errors occur (e.g.: transmission errors, processing errors, etc) or when certain conditions are not met yet (e.g. network not available, node not available, etc.). By the way, the maximum number of retries is <b>0xFF</b> and the minimum time between the retries is <b>50ms</b>.</p>
+<p>The basic handling of routing management is done by the supervisor. Have a look at the supervisors Normal Operation Mode <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v__n_o_r_m_a_l.html">Supervisor Normal Operation Mode</a>. Nevertheless, the application can activate or deactivate specific routes using the <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gabb9185254132bb29ee0af137c36f50b8.html#gabb9185254132bb29ee0af137c36f50b8">Ucs_Rm_SetRouteActive()</a> function.</p>
+<p>It is important to note that, the build up of routes can take some time, in case the routing process may need to perform retries when uncritical errors occur (e.g.: transmission errors, processing errors, etc) or when certain conditions are not met yet (e.g. network not available, node not available, etc.). As an aside, the maximum number of retries is <b>0xFF</b> and the minimum time between the retries is <b>50ms</b>.</p>
 <p>Also note that enabling the error and event trace output in <code>ucs_cfg.h</code> file (see below) will help user get detailed information on routes during processing. </p>
 <div class="fragment"><div class="line"><span class="comment">/* File: ucs_cfg.h */</span></div>
 <div class="line"><span class="comment">/*------------------------------------------------------------------------------------------------*/</span></div>
@@ -228,9 +229,13 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__r_m.html','');
 <div class="line">                           uint16_t vargs_cnt, ...);</div>
 </div><!-- fragment --><h1><a class="anchor" id="ResourceExample"></a>
 Implementation Guide</h1>
-<p>The following example outlines the construction of a route between a local (Master) and a remote device inclusive the settings of the above preconditions. In this example the <a class="el" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56">UCS_ADDR_LOCAL_NODE</a> macro is used to address the local device and <b>should</b> <b>only</b> <b>be</b> <b>used</b> for the local device. <br/>
- This example is inserted as a guide and may not contain all of the necessary details and information. </p>
-<dl class="section user"><dt>Describing the route structure:</dt><dd>In this section the route structure is defined for the route shown in the above picture. Therefore XRM jobs have to be set for the needed resources in the sink and source endpoint. <div class="fragment"><div class="line"><span class="comment">/*</span></div>
+<p>The following example outlines the construction of a route between a local (Master) and a remote device inclusive the settings of the above preconditions. In this example the <a class="el" href="group___g___u_c_s___i_r_m_ga290ae87b9fb8fb7e084368b9e2567d56.html#ga290ae87b9fb8fb7e084368b9e2567d56">UCS_ADDR_LOCAL_NODE</a> macro is used to address the local device and <b>should</b> <b> only be used </b> for the local device. <br/>
+ This example is inserted as a guide and may not contain all of the necessary details and information.</p>
+<dl class="section user"><dt>Describing the route structure:</dt><dd>In this section the route structure is defined for the route shown in the picture. Therefore XRM jobs have to be set for the needed resources in the sink and source endpoint.</dd></dl>
+<div class="image">
+<img src="RouteResourcesOverview.png" alt="RouteResourcesOverview.png"/>
+</div>
+<div class="fragment"><div class="line"><span class="comment">/*</span></div>
 <div class="line"><span class="comment">  Source Endpoint [Synchronous Data Connection &quot;Application -&gt; Streaming Port -&gt; Network&quot;]:</span></div>
 <div class="line"><span class="comment">       - Configuration Port A:</span></div>
 <div class="line"><span class="comment">           - Operation Mode:   Generic</span></div>
@@ -272,7 +277,7 @@ Implementation Guide</h1>
 <div class="line"><span class="comment">           - Bandwidth:        2 bytes</span></div>
 <div class="line"><span class="comment">*/</span></div>
 <div class="line"></div>
-<div class="line"><span class="comment">/* Specification of XRM JOB OUT */</span></div>
+<div class="line"><span class="comment">/* Specification of XRM jobs of the Source Endpoint */</span></div>
 <div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___xrm___network_socket__t.html" title="Configuration structure of a network socket.">Ucs_Xrm_NetworkSocket_t</a> Xrm_NW_Sckt_Out={ <a class="code" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca3ef70ccdea3e80ce549be70baf9c16a7" title="network socket">UCS_XRM_RC_TYPE_NW_SOCKET</a>,</div>
 <div class="line">                                                   0x0D00U,</div>
 <div class="line">                                                   <a class="code" href="group___g___u_c_s___x_r_m___e_n_u_m_ga28477f727fe10f9d6fd21cfc98a9c115.html#gga28477f727fe10f9d6fd21cfc98a9c115aa14fc95a1f8c5f54aa6d601614a887fe" title="Socket transfers data out of INIC.">UCS_SOCKET_DIR_OUTPUT</a>,</div>
@@ -294,7 +299,7 @@ Implementation Guide</h1>
 <div class="line">                                                   <a class="code" href="group___g___u_c_s___x_r_m___e_n_u_m_gaef12892b897a1cd1013357cfe63f2434.html#ggaef12892b897a1cd1013357cfe63f2434a6e21656de3fa891d522f272307fca772" title="No mute monitoring.">UCS_SYNC_MUTE_MODE_NO_MUTING</a>,</div>
 <div class="line">                                                   0U };</div>
 <div class="line"></div>
-<div class="line"><span class="comment">/* Specification of XRM JOB IN */</span></div>
+<div class="line"><span class="comment">/* Specification of XRM jobs of the Sink Endpoint*/</span></div>
 <div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___xrm___network_socket__t.html" title="Configuration structure of a network socket.">Ucs_Xrm_NetworkSocket_t</a> Xrm_NW_Sckt_In= { <a class="code" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca3ef70ccdea3e80ce549be70baf9c16a7" title="network socket">UCS_XRM_RC_TYPE_NW_SOCKET</a>,</div>
 <div class="line">                                                   0x0D00U,</div>
 <div class="line">                                                   <a class="code" href="group___g___u_c_s___x_r_m___e_n_u_m_ga28477f727fe10f9d6fd21cfc98a9c115.html#gga28477f727fe10f9d6fd21cfc98a9c115a02fdd605a809a4a660e25cfd888347c7" title="Socket transfers data into INIC.">UCS_SOCKET_DIR_INPUT</a>,</div>
@@ -341,9 +346,9 @@ Implementation Guide</h1>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Routes Specification */</span></div>
 <div class="line"><span class="keyword">static</span> <a class="code" href="struct_ucs___rm___route__t.html" title="Configuration structure of a Route.">Ucs_Rm_Route_t</a> route_66[] = { {&amp;endpoint_src, &amp;endpoint_sink, is_active, 66U, 0x00U} };</div>
-</div><!-- fragment --></dd></dl>
-<dl class="section user"><dt>Implementation to build the defined route:</dt><dd>The above defined route can be build by implementing and extending the following code example. <div class="fragment"><div class="line"> <span class="comment">/* Forward declaration of results callback function */</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(uint16_t route_id, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information returned via User callback function of Ucs_R...">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr);</div>
+</div><!-- fragment --><dl class="section user"><dt>Implementation to build the defined route:</dt><dd>The above defined route can be build by implementing and extending the following code example.</dd></dl>
+<div class="fragment"><div class="line"><span class="comment">/* Forward declaration of results callback function */</span></div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(uint16_t route_id, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information.">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr);</div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnInitResult(<a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga0a933f34b9acbf21dc68f426c324e78c.html#ga0a933f34b9acbf21dc68f426c324e78c" title="Result values of initialization result callback function.">Ucs_InitResult_t</a> result, <span class="keywordtype">void</span> *user_ptr);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* Set app flags */</span></div>
@@ -374,26 +379,6 @@ Implementation Guide</h1>
 <div class="line">    {</div>
 <div class="line">        <span class="keywordflow">if</span> (ucs_is_running)</div>
 <div class="line">        {</div>
-<div class="line">            <span class="keywordflow">if</span> (!rtm_is_started)</div>
-<div class="line">            {</div>
-<div class="line">                rtm_is_started = <span class="keyword">true</span>;</div>
-<div class="line"></div>
-<div class="line">                <span class="comment">/* Network start-up */</span></div>
-<div class="line">                <a class="code" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459" title="Starts up the Network.">Ucs_Network_Startup</a>(ucs_inst_ptr, 52U, 0xFFFFU, NULL);</div>
-<div class="line">    </div>
-<div class="line">                <span class="comment">/* Starts routes processing */</span></div>
-<div class="line">                <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd" title="Standard return codes used for synchronous response.">Ucs_Return_t</a> ret_value = <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g_gaaa23aca8279da197192210fe11889452.html#gaaa23aca8279da197192210fe11889452" title="Initializes the routing process with the given routes list information and starts the process to hand...">Ucs_Rm_Start</a>(ucs_inst_ptr, &amp;route_66[0], 1U);</div>
-<div class="line">                <span class="keywordflow">if</span> (ret_value != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
-<div class="line">                {</div>
-<div class="line">                    <span class="comment">/* Do whatever is necessary here */</span></div>
-<div class="line">                }</div>
-<div class="line">            }</div>
-<div class="line"></div>
-<div class="line">            <span class="keywordflow">if</span> (set_ampl_to_available)</div>
-<div class="line">            {</div>
-<div class="line">                <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable</a>(ucs_inst_ptr, ampl_node.<a class="code" href="struct_ucs___rm___node__t_ae619e45bed87dee01aaf280635cf3911.html#ae619e45bed87dee01aaf280635cf3911" title="The signature of the node.">signature_ptr</a>-&gt;<a class="code" href="struct_ucs___signature__t_a550e0ded0fb13bc58b087d3a162d43c7.html#a550e0ded0fb13bc58b087d3a162d43c7" title="NodeAddress.">node_address</a>, <span class="keyword">true</span>);</div>
-<div class="line">            }</div>
-<div class="line">    </div>
 <div class="line">            <span class="keywordflow">if</span> (ampl_is_discovered)</div>
 <div class="line">            {</div>
 <div class="line">                (void) <a class="code" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_ga8fbfe64d0c67ade39e1823ee8e60a399.html#ga8fbfe64d0c67ade39e1823ee8e60a399" title="This function is used to configure a Streaming Port.">Ucs_Xrm_Stream_SetPortConfig</a>(ampl_node.<a class="code" href="struct_ucs___rm___node__t_ae619e45bed87dee01aaf280635cf3911.html#ae619e45bed87dee01aaf280635cf3911" title="The signature of the node.">signature_ptr</a>-&gt;<a class="code" href="struct_ucs___signature__t_a550e0ded0fb13bc58b087d3a162d43c7.html#a550e0ded0fb13bc58b087d3a162d43c7" title="NodeAddress.">node_address</a>,</div>
@@ -418,7 +403,7 @@ Implementation Guide</h1>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="comment">/* The report callback function for all routes */</span></div>
-<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(<a class="code" href="struct_ucs___rm___route__t.html" title="Configuration structure of a Route.">Ucs_Rm_Route_t</a>* route_ptr, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information returned via User callback function of Ucs_R...">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr)</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> App_OnRoutingResult(<a class="code" href="struct_ucs___rm___route__t.html" title="Configuration structure of a Route.">Ucs_Rm_Route_t</a>* route_ptr, <a class="code" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b" title="This enumerator specifies the possible route information.">Ucs_Rm_RouteInfos_t</a> route_infos, <span class="keywordtype">void</span> *user_ptr)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">switch</span> (route_infos)</div>
 <div class="line">    {</div>
@@ -452,18 +437,17 @@ Implementation Guide</h1>
 <div class="line">        set_ampl_to_available = <span class="keyword">true</span>;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --></dd></dl>
-<h1>Additional Routing API</h1>
+</div><!-- fragment --><h1>Additional Routing API</h1>
 <p>The Routing provides additional API functions to handle some runtime tasks. These functions are:</p>
 <ul>
 <li><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gabb9185254132bb29ee0af137c36f50b8.html#gabb9185254132bb29ee0af137c36f50b8" title="Sets the given route to active respectively inactive and triggers the routing process to handle the r...">Ucs_Rm_SetRouteActive()</a> : This functions sets a specific route to <code>"active"</code> or <code>"inactive"</code> at runtime.</li>
-<li><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable()</a> : This function sets the availability attribute (<code>available</code> or <code>not</code> <code>available</code>) of the given node and triggers the routing process to handle attached route(s).</li>
 <li><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga05817aefb6c3970eb41f9cc37db5df09.html#ga05817aefb6c3970eb41f9cc37db5df09" title="Retrieves the &quot;available&quot; flag information of the given node.">Ucs_Rm_GetNodeAvailable()</a> : This function retrieves the <code>"available"</code> flag information of a given node.</li>
-<li>Ucs_Rm_GetAttachedRoutes() : This function retrieves the references of the routes attached to the given endpoint.</li>
 <li><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga87a46a3aa0657e13f5884e5a04d16e17.html#ga87a46a3aa0657e13f5884e5a04d16e17" title="Retrieves the ConnectionLabel of the given route.">Ucs_Rm_GetConnectionLabel()</a>: This function retrieves the <code>ConnectionLabel</code> of the given route.</li>
 </ul>
 <h1>Examples for Routing API</h1>
 <ul>
+<li><a class="el" href="_p__u_m__s_t_a_r_t_e_d__a_t_d.html">Audio Transportation Delay</a></li>
+<li><a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_c.html">Static Connections</a></li>
 <li><a class="el" href="_p__u_m__s_t_a_r_t_e_d__r_m__e.html">Routing Management and XRM Examples</a> </li>
 </ul>
 </div></div><!-- contents -->
@@ -471,12 +455,12 @@ Implementation Guide</h1>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

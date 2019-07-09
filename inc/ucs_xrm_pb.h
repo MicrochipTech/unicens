@@ -147,11 +147,22 @@ typedef enum Ucs_Xrm_ResourceType_
     UCS_XRM_RC_TYPE_AVP_CON      = 0x0DU,       /*!< \brief A/V packetized isochronous streaming
                                                  *          data connection
                                                  */
-    UCS_XRM_RC_TYPE_QOS_CON      = 0x0EU        /*!< \brief Quality of Service IP streaming data
+    UCS_XRM_RC_TYPE_QOS_CON      = 0x0EU,        /*!< \brief Quality of Service IP streaming data
                                                  *          connection
                                                  */
+    UCS_XRM_RC_TYPE_DC_SOCKET    = 0x0FU,       /*!< \brief Default created socket */
+    UCS_XRM_RC_TYPE_DC_CON       = 0x10U        /*!< \brief Default created connection */
 
 } Ucs_Xrm_ResourceType_t;
+
+
+/*! \brief Socket types use for default created socket. */
+typedef enum Ucs_Xrm_SocketType_
+{
+    UCS_XRM_SOCKET_TYPE_NW          = 0x0EU,    /*!< \brief Network socket */
+    UCS_XRM_SOCKET_TYPE_STR         = 0x17U     /*!< \brief Streaming socket */
+
+} Ucs_Xrm_SocketType_t;
 
 /*! \brief Port types use for default created ports. */
 typedef enum Ucs_Xrm_PortType_
@@ -192,13 +203,13 @@ typedef void Ucs_Xrm_ResObject_t;
 
 /*! \brief Function signature of result callback used by Ucs_Xrm_Stream_SetPortConfig() and
  *         Ucs_Xrm_Stream_GetPortConfig().
- *  \mns_res_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
+ *  \dox_res_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
  *  \param node_address         The node address from which the results come
- *  \param index                Streaming Port instance. \mns_name_inic{Index}
- *  \param op_mode              Operation mode of the Streaming Port. \mns_name_inic{OperationMode}
- *  \param port_option          Direction of the physical pins of the indexed Streaming Port. \mns_name_inic{PortOption}
- *  \param clock_mode           Configuration of the FSY/SCK signals. \mns_name_inic{ClockMode}
- *  \param clock_data_delay     Configuration of the FSY/SCK signals for Generic Streaming. \mns_name_inic{ClockDataDelay}
+ *  \param index                Streaming Port instance. \dox_name_inic{Index}
+ *  \param op_mode              Operation mode of the Streaming Port. \dox_name_inic{OperationMode}
+ *  \param port_option          Direction of the physical pins of the indexed Streaming Port. \dox_name_inic{PortOption}
+ *  \param clock_mode           Configuration of the FSY/SCK signals. \dox_name_inic{ClockMode}
+ *  \param clock_data_delay     Configuration of the FSY/SCK signals for Generic Streaming. \dox_name_inic{ClockDataDelay}
  *  \param result               Returned result of the operation
  *  \param user_ptr             User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  */
@@ -275,21 +286,22 @@ typedef struct Ucs_Xrm_DefaultCreatedPort_
 
 } Ucs_Xrm_DefaultCreatedPort_t;
 
+
 /*! \brief Configuration structure of a network socket. */
 typedef struct Ucs_Xrm_NetworkSocket_
 {
     /*! \brief Type of the INIC resource object. */
     Ucs_Xrm_ResourceType_t resource_type;
-    /*! \brief Port resource handle. \mns_param_inic{NetworkPortHandle,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
+    /*! \brief Port resource handle. \dox_param_inic{NetworkPortHandle,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
      */
     uint16_t nw_port_handle;
-    /*! \brief Direction of data stream. \mns_param_inic{Direction,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
+    /*! \brief Direction of data stream. \dox_param_inic{Direction,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
      */
     Ucs_SocketDirection_t direction;
-    /*! \brief Data type. \mns_param_inic{DataType,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
+    /*! \brief Data type. \dox_param_inic{DataType,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
      */
     Ucs_Network_SocketDataType_t data_type;
-    /*! \brief Required socket bandwidth. \mns_param_inic{Bandwidth,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
+    /*! \brief Required socket bandwidth. \dox_param_inic{Bandwidth,NetworkSocketCreate,MNSH3-NetworkSocketCreate611}
      */
     uint16_t bandwidth;
 
@@ -300,10 +312,10 @@ typedef struct Ucs_Xrm_MlbPort_
 {
     /*! \brief Type of the INIC resource object. */
     Ucs_Xrm_ResourceType_t resource_type;
-    /*! \brief MLB port instance. \mns_param_inic{Index,MediaLBPortCreate,MNSH3-MediaLBPortCreate621}
+    /*! \brief MLB port instance. \dox_param_inic{Index,MediaLBPortCreate,MNSH3-MediaLBPortCreate621}
      */
     uint8_t index;
-    /*! \brief Clock speed configuration. \mns_param_inic{ClockConfig,MediaLBPortCreate,MNSH3-MediaLBPortCreate621}
+    /*! \brief Clock speed configuration. \dox_param_inic{ClockConfig,MediaLBPortCreate,MNSH3-MediaLBPortCreate621}
      */
     Ucs_Mlb_ClockConfig_t clock_config;
 
@@ -316,16 +328,16 @@ typedef struct Ucs_Xrm_MlbSocket_
     Ucs_Xrm_ResourceType_t resource_type;
     /*! \brief Reference to the INIC resource object the socket is attached to.  */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *mlb_port_obj_ptr;
-    /*! \brief Direction of data stream. \mns_param_inic{Direction,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
+    /*! \brief Direction of data stream. \dox_param_inic{Direction,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
      */
     Ucs_SocketDirection_t direction;
-    /*! \brief Data type. \mns_param_inic{DataType,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
+    /*! \brief Data type. \dox_param_inic{DataType,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
      */
     Ucs_Mlb_SocketDataType_t data_type;
-    /*! \brief Required socket bandwidth. \mns_param_inic{Bandwidth,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
+    /*! \brief Required socket bandwidth. \dox_param_inic{Bandwidth,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
      */
     uint16_t bandwidth;
-    /*! \brief MLB channel address. \mns_param_inic{ChannelAddress,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
+    /*! \brief MLB channel address. \dox_param_inic{ChannelAddress,MediaLBSocketCreate,MNSH3-MediaLBSocketCreate631}
      */
     uint16_t channel_address;
 
@@ -336,19 +348,19 @@ typedef struct Ucs_Xrm_UsbPort_
 {
     /*! \brief Type of the INIC resource object. */
     Ucs_Xrm_ResourceType_t resource_type;
-    /*! \brief USB port instance. \mns_param_inic{Index,USBPortCreate,MNSH3-USBPortCreate661}
+    /*! \brief USB port instance. \dox_param_inic{Index,USBPortCreate,MNSH3-USBPortCreate661}
      */
     uint8_t index;
-    /*! \brief Physical layer interface of the USB Port. \mns_param_inic{PhysicalLayer,USBPortCreate,MNSH3-USBPortCreate661}
+    /*! \brief Physical layer interface of the USB Port. \dox_param_inic{PhysicalLayer,USBPortCreate,MNSH3-USBPortCreate661}
      */
     Ucs_Usb_PhysicalLayer_t physical_layer;
-    /*! \brief USB devices interfaces mask. \mns_param_inic{DeviceInterfaces,USBPortCreate,MNSH3-USBPortCreate661}
+    /*! \brief USB devices interfaces mask. \dox_param_inic{DeviceInterfaces,USBPortCreate,MNSH3-USBPortCreate661}
      */
     uint16_t devices_interfaces;
-    /*! \brief OUT Endpoints inside the streaming interface. \mns_param_inic{StreamingIfEpOutCount,USBPortCreate,MNSH3-USBPortCreate661}
+    /*! \brief OUT Endpoints inside the streaming interface. \dox_param_inic{StreamingIfEpOutCount,USBPortCreate,MNSH3-USBPortCreate661}
      */
     uint8_t streaming_if_ep_out_count;
-    /*! \brief IN Endpoints inside the streaming interface. \mns_param_inic{StreamingIfEpInCount,USBPortCreate,MNSH3-USBPortCreate661}
+    /*! \brief IN Endpoints inside the streaming interface. \dox_param_inic{StreamingIfEpInCount,USBPortCreate,MNSH3-USBPortCreate661}
      */
     uint8_t streaming_if_ep_in_count;
 
@@ -361,16 +373,16 @@ typedef struct Ucs_Xrm_UsbSocket_
     Ucs_Xrm_ResourceType_t resource_type;
     /*! \brief Reference to the INIC resource object the socket is attached to. */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *usb_port_obj_ptr;
-    /*! \brief Direction of the data stream. \mns_param_inic{Direction,USBSocketCreate,MNSH3-USBSocketCreate671}
+    /*! \brief Direction of the data stream. \dox_param_inic{Direction,USBSocketCreate,MNSH3-USBSocketCreate671}
      */
     Ucs_SocketDirection_t direction;
-    /*! \brief Data type. \mns_param_inic{DataType,USBSocketCreate,MNSH3-USBSocketCreate671}
+    /*! \brief Data type. \dox_param_inic{DataType,USBSocketCreate,MNSH3-USBSocketCreate671}
      */
     Ucs_Usb_SocketDataType_t data_type;
-    /*! \brief Address of a USB Endpoint. \mns_param_inic{EndpointAddress,USBSocketCreate,MNSH3-USBSocketCreate671}
+    /*! \brief Address of a USB Endpoint. \dox_param_inic{EndpointAddress,USBSocketCreate,MNSH3-USBSocketCreate671}
      */
     uint8_t end_point_addr;
-    /*! \brief Number of network frames/packets per one USB transaction. \mns_param_inic{FramesPerTransfer,USBSocketCreate,MNSH3-USBSocketCreate671}
+    /*! \brief Number of network frames/packets per one USB transaction. \dox_param_inic{FramesPerTransfer,USBSocketCreate,MNSH3-USBSocketCreate671}
      */
     uint16_t frames_per_transfer;
 
@@ -381,13 +393,13 @@ typedef struct Ucs_Xrm_RmckPort_
 {
     /*! \brief Type of the INIC resource object. */
     Ucs_Xrm_ResourceType_t resource_type;
-    /*! \brief RMCK Port instance. \mns_param_inic{Index,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
+    /*! \brief RMCK Port instance. \dox_param_inic{Index,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
      */
     uint8_t index;
-    /*! \brief Source of the RMCK clock. \mns_param_inic{ClockSource,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
+    /*! \brief Source of the RMCK clock. \dox_param_inic{ClockSource,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
      */
     Ucs_Rmck_PortClockSource_t clock_source;
-    /*! \brief Divisor of the clock source. \mns_param_inic{Divisor,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
+    /*! \brief Divisor of the clock source. \dox_param_inic{Divisor,RMCKPortCreate,MNSH3-RMCKPortCreate6A1}
      */
     uint16_t divisor;
 
@@ -398,13 +410,13 @@ typedef struct Ucs_Xrm_StrmPort_
 {
     /*! \brief Type of the INIC resource object. */
     Ucs_Xrm_ResourceType_t resource_type;
-    /*! \brief Streaming Port instance. \mns_param_inic{Index,StreamPortCreate,MNSH3-StreamPortCreate681}
+    /*! \brief Streaming Port instance. \dox_param_inic{Index,StreamPortCreate,MNSH3-StreamPortCreate681}
      */
     uint8_t index;
-    /*! \brief Clock speed configuration. \mns_param_inic{ClockConfig,StreamPortCreate,MNSH3-StreamPortCreate681}
+    /*! \brief Clock speed configuration. \dox_param_inic{ClockConfig,StreamPortCreate,MNSH3-StreamPortCreate681}
      */
     Ucs_Stream_PortClockConfig_t clock_config;
-    /*! \brief Alignment of the data bytes. \mns_param_inic{DataAlignment,StreamPortCreate,MNSH3-StreamPortCreate681}
+    /*! \brief Alignment of the data bytes. \dox_param_inic{DataAlignment,StreamPortCreate,MNSH3-StreamPortCreate681}
      */
     Ucs_Stream_PortDataAlign_t data_alignment;
 
@@ -417,16 +429,16 @@ typedef struct Ucs_Xrm_StrmSocket_
     Ucs_Xrm_ResourceType_t resource_type;
     /*! \brief Reference to the INIC resource object the socket is attached to. */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *stream_port_obj_ptr;
-    /*! \brief Direction of the data stream. \mns_param_inic{Direction,StreamSocketCreate,MNSH3-StreamSocketCreate691}
+    /*! \brief Direction of the data stream. \dox_param_inic{Direction,StreamSocketCreate,MNSH3-StreamSocketCreate691}
      */
     Ucs_SocketDirection_t direction;
-    /*! \brief Data type. \mns_param_inic{DataType,StreamSocketCreate,MNSH3-StreamSocketCreate691}
+    /*! \brief Data type. \dox_param_inic{DataType,StreamSocketCreate,MNSH3-StreamSocketCreate691}
      */
     Ucs_Stream_SocketDataType_t data_type;
-    /*! \brief Required socket bandwidth in bytes. \mns_param_inic{Bandwidth,StreamSocketCreate,MNSH3-StreamSocketCreate691}
+    /*! \brief Required socket bandwidth in bytes. \dox_param_inic{Bandwidth,StreamSocketCreate,MNSH3-StreamSocketCreate691}
      */
     uint16_t bandwidth;
-    /*! \brief ID of the serial interface pin. \mns_param_inic{StreamPinID,StreamSocketCreate,MNSH3-StreamSocketCreate691}
+    /*! \brief ID of the serial interface pin. \dox_param_inic{StreamPinID,StreamSocketCreate,MNSH3-StreamSocketCreate691}
      */
     Ucs_Stream_PortPinId_t stream_pin_id;
 
@@ -445,10 +457,10 @@ typedef struct Ucs_Xrm_SyncCon_
      *         ending point of the link. Must be a socket of type \c Output.
      */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *socket_out_obj_ptr;
-    /*! \brief Mode of operation of mute. \mns_param_inic{MuteMode,SyncCreate,MNSH3-SyncCreate871}
+    /*! \brief Mode of operation of mute. \dox_param_inic{MuteMode,SyncCreate,MNSH3-SyncCreate871}
      */
     Ucs_Sync_MuteMode_t mute_mode;
-    /*! \brief Offset from where the socket data should be routed from a splitter. \mns_param_inic{Offset,SyncCreate,MNSH3-SyncCreate871}
+    /*! \brief Offset from where the socket data should be routed from a splitter. \dox_param_inic{Offset,SyncCreate,MNSH3-SyncCreate871}
      */
     uint16_t offset;
 
@@ -477,10 +489,10 @@ typedef struct Ucs_Xrm_Combiner_
     Ucs_Xrm_ResourceType_t resource_type;
     /*! \brief Reference to the INIC resource object that specifies the synchronous socket. */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *port_socket_obj_ptr;
-    /*! \brief Port resource handle. \mns_param_inic{NetworkPortHandle,CombinerCreate,MNSH3-CombinerCreate901}
+    /*! \brief Port resource handle. \dox_param_inic{NetworkPortHandle,CombinerCreate,MNSH3-CombinerCreate901}
      */
     uint16_t nw_port_handle;
-    /*! \brief Total number of data bytes to be transferred each network frame. \mns_param_inic{BytesPerFrame,CombinerCreate,MNSH3-CombinerCreate901}
+    /*! \brief Total number of data bytes to be transferred each network frame. \dox_param_inic{BytesPerFrame,CombinerCreate,MNSH3-CombinerCreate901}
      */
     uint16_t bytes_per_frame;
 
@@ -493,10 +505,10 @@ typedef struct Ucs_Xrm_Splitter_
     Ucs_Xrm_ResourceType_t resource_type;
     /*! \brief Reference to the INIC resource object that specifies the synchronous socket. */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *socket_in_obj_ptr;
-    /*! \brief Port resource handle. \mns_param_inic{NetworkPortHandle,SplitterCreate,MNSH3-SplitterCreate911}
+    /*! \brief Port resource handle. \dox_param_inic{NetworkPortHandle,SplitterCreate,MNSH3-SplitterCreate911}
      */
     uint16_t nw_port_handle;
-    /*! \brief Total number of data bytes to be transferred each network frame. \mns_param_inic{BytesPerFrame,SplitterCreate,MNSH3-SplitterCreate911}
+    /*! \brief Total number of data bytes to be transferred each network frame. \dox_param_inic{BytesPerFrame,SplitterCreate,MNSH3-SplitterCreate911}
      */
     uint16_t bytes_per_frame;
 
@@ -515,7 +527,7 @@ typedef struct Ucs_Xrm_AvpCon_
      *         ending point of the link. Must be a socket of type \c Output.
      */
     UCS_XRM_CONST Ucs_Xrm_ResObject_t *socket_out_obj_ptr;
-    /*! \brief Size of data packets. \mns_param_inic{IsocPacketSize,AVPacketizedCreate,MNSH3-AVPacketizedCreate861}
+    /*! \brief Size of data packets. \dox_param_inic{IsocPacketSize,AVPacketizedCreate,MNSH3-AVPacketizedCreate861}
      */
     Ucs_Avp_IsocPacketSize_t isoc_packet_size;
 

@@ -50,7 +50,7 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
 static bool Epm_RsmReportSyncLost(Fac_Inst_t inst_type, void *inst_ptr, void *ud_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
-/* Implementation of class CEndpointManagement                                                     */
+/* Implementation of class CEndpointManagement                                                    */
 /*------------------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------------------*/
 /* Initialization Methods                                                                         */
@@ -85,11 +85,29 @@ void Epm_InitInternalInfos(CEndpointManagement *self, Ucs_Rm_EndPoint_t *ep_ptr)
 
             ep_ptr->internal_infos.magic_number = (uint32_t)0x0BADC0DE;
             Sub_Ctor(&ep_ptr->internal_infos.subject_obj, self->base_ptr->ucs_user_ptr);
-            /* Set the EndpointManagement instance */
             ep_ptr->internal_infos.epm_inst = (Epm_Inst_t *)(void *)self;
         }
     }
 }
+
+/*! \brief Resets the internal information of the given endpoint object if it is a remote nodes one.
+ *  \details This is performed only if the magic number is not set.
+ *  \param self     EPM instance pointer
+ *  \param ep_ptr   Reference to the endpoint to be initialize
+ */
+void Epm_ResetInternalInfos(CEndpointManagement *self, Ucs_Rm_EndPoint_t *ep_ptr)
+{
+    if ((self != NULL) && (ep_ptr != NULL) /*&&
+        (Inic_GetTargetAddress(Fac_GetInic(self->fac_ptr,  ep_ptr->node_obj_ptr->signature_ptr->node_address)) != UCS_ADDR_LOCAL_NODE)*/)
+    {
+            MISC_MEM_SET(&ep_ptr->internal_infos, 0, sizeof(Ucs_Rm_EndPointInt_t));
+            ep_ptr->internal_infos.magic_number = (uint32_t)0x0BADC0DE;
+            Sub_Ctor(&ep_ptr->internal_infos.subject_obj, self->base_ptr->ucs_user_ptr);
+            ep_ptr->internal_infos.epm_inst = (Epm_Inst_t *)(void *)self;
+    }
+}
+
+
 
 /*! \brief Clears the internal information of the given endpoint object.
  *  \details Resetting the magic number of the given endpoint will enforce its Re-Initialization.
@@ -116,12 +134,14 @@ void Epm_AddObserver(Ucs_Rm_EndPoint_t *ep_ptr, CObserver *obs_ptr)
 {
     Sub_Ret_t ret_val = SUB_UNKNOWN_OBSERVER;
 
-    ret_val = Sub_AddObserver(&ep_ptr->internal_infos.subject_obj, obs_ptr);
-    if (ret_val == SUB_OK)
+    if ((ep_ptr != NULL) && (obs_ptr != NULL))
     {
-        if ((ep_ptr != NULL) && (ep_ptr->endpoint_type == UCS_RM_EP_SOURCE))
+        ret_val = Sub_AddObserver(&ep_ptr->internal_infos.subject_obj, obs_ptr);
+
+        if ((ret_val == SUB_OK) && (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT))
         {
-            if ((ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT) && (ep_ptr->internal_infos.reference_cnt > 0U))
+            if (((ep_ptr->endpoint_type == UCS_RM_EP_SOURCE) && (ep_ptr->internal_infos.reference_cnt > 0U)) ||
+                 (ep_ptr->endpoint_type == UCS_RM_EP_DC_SOURCE))
             {
                 ep_ptr->internal_infos.reference_cnt++;
             }
@@ -153,37 +173,46 @@ Ucs_Return_t Epm_SetBuildProcess(CEndpointManagement *self, Ucs_Rm_EndPoint_t *e
 
     if ((self != NULL)  && (ep_ptr != NULL))
     {
-        /* Process Endpoint construction by XRM */
-        result = Xrm_Process(Fac_FindXrm(self->fac_ptr, ep_ptr->node_obj_ptr->signature_ptr->node_address),
-                             ep_ptr->jobs_list_ptr, ep_ptr->internal_infos.connection_label,
-                             (void *)ep_ptr, &Epm_XrmReportCb);
-        if (result == UCS_RET_SUCCESS)
+        if ((ep_ptr->endpoint_type == UCS_RM_EP_DC_SINK) || (ep_ptr->endpoint_type == UCS_RM_EP_DC_SOURCE))
         {
-            if (ep_ptr->internal_infos.endpoint_state != UCS_RM_EP_BUILT)
-            {
-                ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_XRMPROCESSING;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "XRM has been ordered to create following Endpoint: %X", 1U, ep_ptr));
-            }
-            else
-            {
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has already been built", 1U, ep_ptr));
-            }
-        }
-        else if (result == UCS_RET_ERR_ALREADY_SET)
-        {
-            if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_IDLE)
-            {
-                ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_BUILT;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has already been built", 1U, ep_ptr));
-            }
+            result = UCS_RET_SUCCESS;
+            ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_BUILT;
         }
         else
         {
-            /* Set the internal error */
-            ep_ptr->internal_infos.endpoint_state  = UCS_RM_EP_IDLE;
-            ep_ptr->internal_infos.xrm_result.code = UCS_XRM_RES_ERR_BUILD;
-            ep_ptr->internal_infos.xrm_result.details.result_type = UCS_XRM_RESULT_TYPE_INT;
-            ep_ptr->internal_infos.xrm_result.details.int_result  = result;
+            /* Process Endpoint construction by XRM */
+            result = Xrm_Process(Fac_FindXrm(self->fac_ptr, ep_ptr->node_obj_ptr->signature_ptr->node_address),
+                                 ep_ptr->jobs_list_ptr, ep_ptr->internal_infos.connection_label,
+                                 (void *)ep_ptr, &Epm_XrmReportCb);
+
+            if (result == UCS_RET_SUCCESS)
+            {
+                if (ep_ptr->internal_infos.endpoint_state != UCS_RM_EP_BUILT)
+                {
+                    ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_XRMPROCESSING;
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "XRM has been ordered to create following Endpoint: 0x%X", 1U, ep_ptr));
+                }
+                else
+                {
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has already been built", 1U, ep_ptr));
+                }
+            }
+            else if (result == UCS_RET_ERR_ALREADY_SET)
+            {
+                if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_IDLE)
+                {
+                    ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_BUILT;
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has already been built", 1U, ep_ptr));
+                }
+            }
+            else
+            {
+                /* Set the internal error */
+                ep_ptr->internal_infos.endpoint_state  = UCS_RM_EP_IDLE;
+                ep_ptr->internal_infos.xrm_result.code = UCS_XRM_RES_ERR_BUILD;
+                ep_ptr->internal_infos.xrm_result.details.result_type = UCS_XRM_RESULT_TYPE_INT;
+                ep_ptr->internal_infos.xrm_result.details.int_result  = result;
+            }
         }
     }
 
@@ -206,9 +235,9 @@ Ucs_Return_t Epm_SetDestroyProcess(CEndpointManagement *self, Ucs_Rm_EndPoint_t 
     Ucs_Return_t result = UCS_RET_ERR_PARAM;
     bool can_be_destroyed = true;
 
-    if ((self != NULL)  && (ep_ptr != NULL) )
+    if ((self != NULL) && (ep_ptr != NULL))
     {
-        if (UCS_RM_EP_SOURCE == ep_ptr->endpoint_type)
+        if ((UCS_RM_EP_SOURCE == ep_ptr->endpoint_type) || (UCS_RM_EP_DC_SOURCE == ep_ptr->endpoint_type))
         {
             if (ep_ptr->internal_infos.reference_cnt == 0U)
             {
@@ -225,35 +254,67 @@ Ucs_Return_t Epm_SetDestroyProcess(CEndpointManagement *self, Ucs_Rm_EndPoint_t 
 
         if (can_be_destroyed != false)
         {
-            result = Xrm_Destroy(Fac_GetXrmByJobList(self->fac_ptr, ep_ptr->jobs_list_ptr), ep_ptr->jobs_list_ptr);
-            if (result == UCS_RET_SUCCESS)
+            if ((UCS_RM_EP_DC_SOURCE == ep_ptr->endpoint_type) || (UCS_RM_EP_DC_SINK == ep_ptr->endpoint_type))
             {
-                ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_XRMPROCESSING;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "XRM has been ordered to destroy following Endpoint {%X}", 1U, ep_ptr));
-            }
-            else if (result == UCS_RET_ERR_ALREADY_SET)
-            {
-                if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT)
-                {
-                    ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
-                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has already been destroyed", 1U, ep_ptr));
-                }
-            }
-            else if (result == UCS_RET_ERR_NOT_AVAILABLE)
-            {
-                if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT)
-                {
-                    ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
-                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has already been destroyed", 1U, ep_ptr));
-                }
+                result = Epm_ResetDefaultCreatedEp(self, ep_ptr);
             }
             else
             {
-                /* Set the internal error */
-                ep_ptr->internal_infos.xrm_result.code = UCS_XRM_RES_ERR_DESTROY;
-                ep_ptr->internal_infos.xrm_result.details.result_type = UCS_XRM_RESULT_TYPE_INT;
-                ep_ptr->internal_infos.xrm_result.details.int_result  = result;
+                result = Xrm_Destroy(Fac_GetXrmByJobList(self->fac_ptr, ep_ptr->jobs_list_ptr), ep_ptr->jobs_list_ptr);
+                if (result == UCS_RET_SUCCESS)
+                {
+                    ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_XRMPROCESSING;
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "XRM has been ordered to destroy following Endpoint {0x%X}", 1U, ep_ptr));
+                }
+                else if (result == UCS_RET_ERR_ALREADY_SET)
+                {
+                    if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT)
+                    {
+                        ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
+                        TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has already been destroyed", 1U, ep_ptr));
+                    }
+                }
+                else if (result == UCS_RET_ERR_NOT_AVAILABLE)
+                {
+                    if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT)
+                    {
+                        ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
+                        TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has already been destroyed", 1U, ep_ptr));
+                    }
+                }
+                else
+                {
+                    /* Set the internal error */
+                    ep_ptr->internal_infos.xrm_result.code = UCS_XRM_RES_ERR_DESTROY;
+                    ep_ptr->internal_infos.xrm_result.details.result_type = UCS_XRM_RESULT_TYPE_INT;
+                    ep_ptr->internal_infos.xrm_result.details.int_result  = result;
+                }
             }
+        }
+    }
+
+    return result;
+}
+
+/*! \brief Resets the structure of the given default created endpoint.
+ *  \param self     Reference to the EPM instance
+ *  \param ep_ptr   Reference to an default created endpoint
+ *  \return Possible return values are:
+    \c UCS_RET_SUCCESS     Endpoint was reseted successfully
+    \c UCS_RET_ERR_PARAM   At least one parameter is not correct, either NULL pointer in the param list or reference_cnt of the endpoint is NULL
+ */
+Ucs_Return_t Epm_ResetDefaultCreatedEp(CEndpointManagement *self, Ucs_Rm_EndPoint_t *ep_ptr)
+{
+    Ucs_Return_t result = UCS_RET_ERR_PARAM;
+
+    if ((self != NULL) && (ep_ptr != NULL))
+    {
+        if ((UCS_RM_EP_DC_SOURCE == ep_ptr->endpoint_type) || (UCS_RM_EP_DC_SINK == ep_ptr->endpoint_type))
+        {
+            ep_ptr->internal_infos.connection_label = 0xFFFFU;
+            ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
+            result = UCS_RET_SUCCESS;
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[EPM]", "Default created endpoint was reseted {0x%X}", 1U, ep_ptr));
         }
     }
 
@@ -417,7 +478,7 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
             {
                 ep_ptr->internal_infos.reference_cnt++;
             }
-            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has been successfully built", 1U, ep_ptr));
+            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has been successfully built", 1U, ep_ptr));
             break;
 
         case UCS_XRM_RES_SUCCESS_DESTROY:
@@ -430,11 +491,11 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
                     ep_ptr->internal_infos.reference_cnt--;
                 }
             }
-            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has been successfully destroyed", 1U, ep_ptr));
+            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has been successfully destroyed", 1U, ep_ptr));
             break;
 
         case UCS_XRM_RES_RC_AUTO_DESTROYED:
-            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {%X} has been auto destroyed.", 1U, ep_ptr));
+            TR_INFO((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Following Endpoint {0x%X} has been auto destroyed.", 1U, ep_ptr));
             ep_ptr->internal_infos.connection_label = 0xFFFFU;
             ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
             if (ep_ptr->endpoint_type == UCS_RM_EP_SOURCE)
@@ -452,7 +513,7 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
         case UCS_XRM_RES_ERR_BUILD:
             ep_ptr->internal_infos.connection_label = 0xFFFFU;
             ep_ptr->internal_infos.endpoint_state = UCS_RM_EP_IDLE;
-            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Building endpoint {%X} failed: node=0x%03X, error_code=0x%02X", 3U, ep_ptr, node_address, result.code));
+            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Building endpoint {0x%X} failed: node address=0x%03X, error_code=0x%02X", 3U, ep_ptr, node_address, result.code));
             break;
 
         case UCS_XRM_RES_ERR_DESTROY:
@@ -473,11 +534,11 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
             {
                 ep_ptr->internal_infos.reference_cnt = 0U;
             }
-            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Destroying endpoint {%X} failed. Error_Code: 0x%02X", 2U, ep_ptr, result.code));
+            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Destroying endpoint {0x%X} failed. Error_Code: 0x%02X", 2U, ep_ptr, result.code));
             break;
 
         case UCS_XRM_RES_ERR_INV_LIST:
-            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Request of invalid lists on endpoint {%X} failed.", 1U, ep_ptr));
+            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Request of invalid lists on endpoint {0x%X} failed.", 1U, ep_ptr));
             if (ep_ptr->internal_infos.endpoint_state == UCS_RM_EP_BUILT)
             {
                 ep_ptr->internal_infos.connection_label = 0xFFFFU;
@@ -490,7 +551,7 @@ static void Epm_XrmReportCb(uint16_t node_address, uint16_t connection_label, Uc
             break;
 
         default:
-            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Processing endpoint {%X} failed. Unknown Error_Code: 0x%02X", 2U, ep_ptr, result.code));
+            TR_ERROR((((CEndpointManagement *)(void *)ep_ptr->internal_infos.epm_inst)->base_ptr->ucs_user_ptr, "[EPM]", "Processing endpoint {0x%X} failed. Unknown Error_Code: 0x%02X", 2U, ep_ptr, result.code));
             break;
         }
     }

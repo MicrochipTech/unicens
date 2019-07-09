@@ -117,7 +117,7 @@ typedef struct Fac_InitData_
     CXrmPool * xrmp_ptr;            /*!< \brief Reference to the XRM Pool instance */
     CTransceiver * icm_transceiver; /*!< \brief Reference to ICM transceiver */
     CTransceiver * rcm_transceiver; /*!< \brief Reference to MCM transceiver */
-
+    bool debug_msg_enable;          /*!< \brief Flag to enable the debug messages for local nodes. */
 } Fac_InitData_t;
 
 /*! \brief  Class structure of the MNS Factory. */
@@ -147,6 +147,8 @@ typedef struct CFactory_
     CTransceiver * icm_transceiver;
     /*! \brief The RCM transceiver */
     CTransceiver * rcm_transceiver;
+    /*! \brief Enables the debug messages for local node*/
+    bool debug_message_enable;
 
 } CFactory;
 

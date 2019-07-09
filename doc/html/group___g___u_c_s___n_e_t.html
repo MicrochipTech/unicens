@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -92,19 +92,20 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___n_e_t.html','');})
 <a href="#groups">Topics</a> &#124;
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#typedef-members">Callback Functions</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Network</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Provides network management functions.  
+<p>Provides Network Management functions.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
 Topics</h2></td></tr>
 <tr class="memitem:group___g___u_c_s___n_e_t___t_y_p_e_s"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s.html">Referred Types</a></td></tr>
-<tr class="memdesc:group___g___u_c_s___n_e_t___t_y_p_e_s"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides network management functions. <br/></td></tr>
+<tr class="memdesc:group___g___u_c_s___n_e_t___t_y_p_e_s"><td class="mdescLeft">&#160;</td><td class="mdescRight">Network Management related types. <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -112,50 +113,64 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___network___init_data__t.html">Ucs_Network_InitData_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network section of the UNICENS initialization data.  <a href="struct_ucs___network___init_data__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___network___alive_status__t.html">Ucs_Network_AliveStatus_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the AliveMessage.AliveStatus values.  <a href="struct_ucs___network___alive_status__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Callback Functions</h2></td></tr>
 <tr class="memitem:ga7ef0f374202a3e8b69aba643c37d4c28"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga7ef0f374202a3e8b69aba643c37d4c28.html#ga7ef0f374202a3e8b69aba643c37d4c28">Ucs_Network_StatusCb_t</a> )(uint16_t change_mask, uint16_t events, <a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s_ga6b0bec2ae9e4d0fb93eefd65752f0c74.html#ga6b0bec2ae9e4d0fb93eefd65752f0c74">Ucs_Network_Availability_t</a> availability, <a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#gad5ed0387c3c156602826d50ce94c9df7">Ucs_Network_AvailInfo_t</a> avail_info, <a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s_gab4ec40bf01de998abc4f2ae34c26ac46.html#gab4ec40bf01de998abc4f2ae34c26ac46">Ucs_Network_AvailTransCause_t</a> avail_trans_cause, uint16_t node_address, uint8_t max_position, uint16_t packet_bw, void *user_ptr)</td></tr>
 <tr class="memdesc:ga7ef0f374202a3e8b69aba643c37d4c28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature used for the Network Status callback function.  <a href="#ga7ef0f374202a3e8b69aba643c37d4c28"></a><br/></td></tr>
 <tr class="separator:ga7ef0f374202a3e8b69aba643c37d4c28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga43fb9c04d5ad142f6abbf9566af82f8c"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga43fb9c04d5ad142f6abbf9566af82f8c.html#ga43fb9c04d5ad142f6abbf9566af82f8c">Ucs_Network_FrameCounterCb_t</a> )(uint32_t reference, uint32_t frame_counter, bool frame_lock, <a class="el" href="struct_ucs___std_result__t.html">Ucs_StdResult_t</a> result, void *user_pointer)</td></tr>
-<tr class="memdesc:ga43fb9c04d5ad142f6abbf9566af82f8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___n_e_t_ga3360b1585b5a9b54d24a934c22a44281.html#ga3360b1585b5a9b54d24a934c22a44281" title="Retrieves the Network Frame Counter, which is the number of frames since reset.">Ucs_Network_GetFrameCounter()</a>.  <a href="#ga43fb9c04d5ad142f6abbf9566af82f8c"></a><br/></td></tr>
-<tr class="separator:ga43fb9c04d5ad142f6abbf9566af82f8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4fc022d711f9e746a53286a16b3ef910"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga4fc022d711f9e746a53286a16b3ef910.html#ga4fc022d711f9e746a53286a16b3ef910">Ucs_Network_AliveCb_t</a> )(<a class="el" href="struct_ucs___network___alive_status__t.html">Ucs_Network_AliveStatus_t</a> *result_ptr, void *user_ptr)</td></tr>
+<tr class="memdesc:ga4fc022d711f9e746a53286a16b3ef910"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report function for Alive Status message.  <a href="#ga4fc022d711f9e746a53286a16b3ef910"></a><br/></td></tr>
+<tr class="separator:ga4fc022d711f9e746a53286a16b3ef910"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga473762e40ff5c329b1f5351ea383beaa"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga473762e40ff5c329b1f5351ea383beaa.html#ga473762e40ff5c329b1f5351ea383beaa">Ucs_Network_FrameCounterCb_t</a> )(uint32_t reference, uint32_t frame_counter, bool frame_lock, <a class="el" href="struct_ucs___std_result__t.html">Ucs_StdResult_t</a> result, void *user_ptr)</td></tr>
+<tr class="memdesc:ga473762e40ff5c329b1f5351ea383beaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by <a class="el" href="group___g___u_c_s___n_e_t_ga3360b1585b5a9b54d24a934c22a44281.html#ga3360b1585b5a9b54d24a934c22a44281" title="Retrieves the Network Frame Counter, which is the number of frames since reset.">Ucs_Network_GetFrameCounter()</a>.  <a href="#ga473762e40ff5c329b1f5351ea383beaa"></a><br/></td></tr>
+<tr class="separator:ga473762e40ff5c329b1f5351ea383beaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gaa6401ed4a9707e4fc66aaf7cc6e6ed89"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_gaa6401ed4a9707e4fc66aaf7cc6e6ed89.html#gaa6401ed4a9707e4fc66aaf7cc6e6ed89">Ucs_Welcomed_t</a> { <br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___n_e_t_gaa6401ed4a9707e4fc66aaf7cc6e6ed89.html#ggaa6401ed4a9707e4fc66aaf7cc6e6ed89a53b07cd7bef56e722efe3234bf19ac86">UCS_NOT_WELCOMED</a> = 0x0U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___n_e_t_gaa6401ed4a9707e4fc66aaf7cc6e6ed89.html#ggaa6401ed4a9707e4fc66aaf7cc6e6ed89a62c16811aaf747d2dace9a090b810b90">UCS_WELCOMED</a> = 0x1U
+<br/>
+ }</td></tr>
+<tr class="memdesc:gaa6401ed4a9707e4fc66aaf7cc6e6ed89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the AliveMessage.AliveStatus.Welcomed value.  <a href="group___g___u_c_s___n_e_t_gaa6401ed4a9707e4fc66aaf7cc6e6ed89.html#gaa6401ed4a9707e4fc66aaf7cc6e6ed89">More...</a><br/></td></tr>
+<tr class="separator:gaa6401ed4a9707e4fc66aaf7cc6e6ed89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga83c2e74a4cc216aa10d7c6a1a517d459"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459">Ucs_Network_Startup</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint16_t packet_bw, uint16_t forced_na_timeout, <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a> result_fptr)</td></tr>
-<tr class="memdesc:ga83c2e74a4cc216aa10d7c6a1a517d459"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts up the Network.  <a href="#ga83c2e74a4cc216aa10d7c6a1a517d459"></a><br/></td></tr>
-<tr class="separator:ga83c2e74a4cc216aa10d7c6a1a517d459"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1e49ce81a42f09bcecc2202edc2b93fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga1e49ce81a42f09bcecc2202edc2b93fc.html#ga1e49ce81a42f09bcecc2202edc2b93fc">Ucs_Network_Shutdown</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a> result_fptr)</td></tr>
-<tr class="memdesc:ga1e49ce81a42f09bcecc2202edc2b93fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switches the Network off.  <a href="#ga1e49ce81a42f09bcecc2202edc2b93fc"></a><br/></td></tr>
-<tr class="separator:ga1e49ce81a42f09bcecc2202edc2b93fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3a71b7772ce265a77eefa7ad069c4819"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga3a71b7772ce265a77eefa7ad069c4819.html#ga3a71b7772ce265a77eefa7ad069c4819">Ucs_Network_ForceNotAvailable</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, bool force, <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a> result_fptr)</td></tr>
-<tr class="memdesc:ga3a71b7772ce265a77eefa7ad069c4819"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triggers the INIC to force the NotAvailable state.  <a href="#ga3a71b7772ce265a77eefa7ad069c4819"></a><br/></td></tr>
-<tr class="separator:ga3a71b7772ce265a77eefa7ad069c4819"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3360b1585b5a9b54d24a934c22a44281"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga3360b1585b5a9b54d24a934c22a44281.html#ga3360b1585b5a9b54d24a934c22a44281">Ucs_Network_GetFrameCounter</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint32_t reference, <a class="el" href="group___g___u_c_s___n_e_t_ga43fb9c04d5ad142f6abbf9566af82f8c.html#ga43fb9c04d5ad142f6abbf9566af82f8c">Ucs_Network_FrameCounterCb_t</a> result_fptr)</td></tr>
+<tr class="memitem:ga3360b1585b5a9b54d24a934c22a44281"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga3360b1585b5a9b54d24a934c22a44281.html#ga3360b1585b5a9b54d24a934c22a44281">Ucs_Network_GetFrameCounter</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint32_t reference, <a class="el" href="group___g___u_c_s___n_e_t_ga473762e40ff5c329b1f5351ea383beaa.html#ga473762e40ff5c329b1f5351ea383beaa">Ucs_Network_FrameCounterCb_t</a> result_fptr)</td></tr>
 <tr class="memdesc:ga3360b1585b5a9b54d24a934c22a44281"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the Network Frame Counter, which is the number of frames since reset.  <a href="#ga3360b1585b5a9b54d24a934c22a44281"></a><br/></td></tr>
 <tr class="separator:ga3360b1585b5a9b54d24a934c22a44281"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf08bc0be54565e30143166d675866f87"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_gaf08bc0be54565e30143166d675866f87.html#gaf08bc0be54565e30143166d675866f87">Ucs_Network_GetNodesCount</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self)</td></tr>
-<tr class="memdesc:gaf08bc0be54565e30143166d675866f87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the number of nodes within the network.  <a href="#gaf08bc0be54565e30143166d675866f87"></a><br/></td></tr>
-<tr class="separator:gaf08bc0be54565e30143166d675866f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1aefb4a6532869a1e6e576701daa671c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga1aefb4a6532869a1e6e576701daa671c.html#ga1aefb4a6532869a1e6e576701daa671c">Ucs_Network_GetNodesCount</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint8_t *count_ptr)</td></tr>
+<tr class="memdesc:ga1aefb4a6532869a1e6e576701daa671c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the number of nodes within the network.  <a href="#ga1aefb4a6532869a1e6e576701daa671c"></a><br/></td></tr>
+<tr class="separator:ga1aefb4a6532869a1e6e576701daa671c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0819e9713eb9be900330f4c38e26b38e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga0819e9713eb9be900330f4c38e26b38e.html#ga0819e9713eb9be900330f4c38e26b38e">Ucs_Network_SetPacketFilterMode</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, uint16_t node_address, uint16_t mode, <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga4311fbe47aaabb059cb569bfee1fd940.html#ga4311fbe47aaabb059cb569bfee1fd940">Ucs_StdNodeResultCb_t</a> result_fptr)</td></tr>
 <tr class="memdesc:ga0819e9713eb9be900330f4c38e26b38e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the packet filter mode of an available node.  <a href="#ga0819e9713eb9be900330f4c38e26b38e"></a><br/></td></tr>
 <tr class="separator:ga0819e9713eb9be900330f4c38e26b38e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga926ad005ebd2a96e0687006108a7fbfa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_ga926ad005ebd2a96e0687006108a7fbfa.html#ga926ad005ebd2a96e0687006108a7fbfa">Ucs_Network_RegisterAliveCb</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, <a class="el" href="group___g___u_c_s___n_e_t_ga4fc022d711f9e746a53286a16b3ef910.html#ga4fc022d711f9e746a53286a16b3ef910">Ucs_Network_AliveCb_t</a> report_fptr)</td></tr>
+<tr class="memdesc:ga926ad005ebd2a96e0687006108a7fbfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers the alive message callback function.  <a href="#ga926ad005ebd2a96e0687006108a7fbfa"></a><br/></td></tr>
+<tr class="separator:ga926ad005ebd2a96e0687006108a7fbfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa0866bd695c73780b7e41184b6652da2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___n_e_t_gaa0866bd695c73780b7e41184b6652da2.html#gaa0866bd695c73780b7e41184b6652da2">Ucs_Network_UnRegisterAliveCb</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self)</td></tr>
+<tr class="memdesc:gaa0866bd695c73780b7e41184b6652da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregisters the alive message callback function.  <a href="#gaa0866bd695c73780b7e41184b6652da2"></a><br/></td></tr>
+<tr class="separator:gaa0866bd695c73780b7e41184b6652da2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Provides network management functions. </p>
+<p>Provides Network Management functions. </p>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

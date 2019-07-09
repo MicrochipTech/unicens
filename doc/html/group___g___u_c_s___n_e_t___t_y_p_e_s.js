@@ -14,6 +14,7 @@ var group___g___u_c_s___n_e_t___t_y_p_e_s =
       [ "UCS_NW_AVAIL_INFO_REGULAR", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7ace556bfc10aa45dcd561a6c75680e99e", null ],
       [ "UCS_NW_AVAIL_INFO_DIAGNOSIS", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7a754bb411728af7ee41315b2257c9f409", null ],
       [ "UCS_NW_AVAIL_INFO_FORCED_NA", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7a95e0a195f246b6c474781b42fda0e1cb", null ],
+      [ "UCS_NW_AVAIL_INFO_FALLBACK", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7ad75bbe8bacd545ea3e11c537c8f5af36", null ],
       [ "UCS_NW_AVAIL_INFO_UNSTABLE", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7a1e35e06faaf9537517a3b77c172c9e6a", null ],
       [ "UCS_NW_AVAIL_INFO_STABLE", "group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7aac87fccc7041c51b30c04dbd42c963ba", null ]
     ] ],

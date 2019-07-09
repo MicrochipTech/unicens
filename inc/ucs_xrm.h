@@ -181,6 +181,7 @@ typedef struct CExtendedResourceManager_
     bool lock_api;
     /*!< \brief Signal whether this instance is in Remote Control Mode */
     bool IsInRemoteControlMode;
+    Ucs_Network_Availability_t nw_availability;
 
 } CExtendedResourceManager;
 

@@ -46,6 +46,8 @@
 #include "ucs_inic.h"
 #include "ucs_base.h"
 
+#include <string.h>
+
 /*------------------------------------------------------------------------------------------------*/
 /* Internal macros                                                                                */
 /*------------------------------------------------------------------------------------------------*/
@@ -73,15 +75,18 @@
 #define INIC_API_I2C_PORT_WR                0x0800U
 /*! \brief Bitmask for API method Inic_DeviceSync() used by API locking manager */
 #define INIC_API_DEVICE_SYNC                0x1000U
-/*! \brief Bitmask for API method Inic_ResourceInfo() used by API locking manager */
-#define INIC_API_RES_INFO                   0x2000U
 /*! \brief Bitmask for API method Inic_NetworkInfo() used by API locking manager */
-#define INIC_API_NET_INFO                   0x4000U
+#define INIC_API_NET_INFO                   0x2000U
+/*! \brief Bitmask for API method Inic_ResourceBuilder() used by API locking manager */
+#define INIC_API_RES_BUILDER                0x4000U
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
 /*------------------------------------------------------------------------------------------------*/
 static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr);
 static void Inic_ResMsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxStatus_t status);
+
+static void Inic_TxSendDebugMsgWrapper(CTransceiver *xcvr_ptr, CTransceiver *xcvr_debug_ptr, Ucs_Message_t *msg_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr);
+static void Inic_RxSendDebugMsg(CTransceiver *xcvr_debug_ptr, Ucs_Message_t *msg_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation                                                                                 */
@@ -155,13 +160,13 @@ static void Inic_HandleResApiTimeout(void *self, void *method_mask_ptr)
             Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_SYNC], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method Inic_DeviceSync_StartResult().", 0U));
             break;
-        case INIC_API_RES_INFO:
-            Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
-            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method INIC_API_RES_INFO_Status().", 0U));
-            break;
         case INIC_API_NET_INFO:
             Ssub_Notify(&self_->ssubs[INIC_SSUB_NET_INFO], &res_data, true);
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method INIC_API_NET_INFO_Status().", 0U));
+            break;
+        case INIC_API_RES_BUILDER:
+            Ssub_Notify(&self_->ssubs[INIC_SSUB_NET_INFO], &res_data, true);
+            TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "API locking timeout occurred for method INIC_API_RES_Build_Status().", 0U));
             break;
         default:
             TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "Unknown API locking bitmask detected. Mask: 0x%02X", 1U, method_mask));
@@ -226,6 +231,65 @@ void Inic_DelObsrvGpioTriggerEvent(CInic *self, CObserver *obs_ptr)
     (void)Sub_RemoveObserver(&self->subs[INIC_SUB_GPIO_TRIGGER_EVENT], obs_ptr);
 }
 
+/*! \brief  Builds the resources associated with the given index.
+ *  \param  self             Reference to CInic instance
+ *  \param  index            Identifier of the build configuration
+ *  \param  obs_ptr          Reference to an optional observer. The result must be casted into type
+ *                           Inic_StdResult_t.
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
+ *  \return UCS_RET_ERR_PARAM             Wrong length of index
+ */
+Ucs_Return_t Inic_ResourceBuilder(CInic *self,
+                                  uint8_t index,
+                                  CSingleObserver *obs_ptr)
+{
+    Ucs_Return_t ret = UCS_RET_SUCCESS;
+
+    if (Al_Lock(&self->lock.res_api, INIC_API_RES_BUILDER) != false)
+    {
+
+        if (index > 4U)
+        {
+            Al_Release(&self->lock.res_api, INIC_API_RES_BUILDER);
+            ret = UCS_RET_ERR_PARAM;
+        }
+        else
+        {
+            Ucs_Message_t *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 1U);
+
+            if (msg_ptr != NULL)
+            {
+                msg_ptr->destination_addr  = self->target_address;
+
+                msg_ptr->id.fblock_id   = FB_INIC;
+                msg_ptr->id.instance_id = 0U;
+                msg_ptr->id.function_id = INIC_FID_RESOURCE_BUILDER;
+                msg_ptr->id.op_type     = UCS_OP_STARTRESULT;
+                msg_ptr->tel.tel_data_ptr[0] = index;
+
+                self->ssubs[INIC_SSUB_RES_BUILDER].user_mask = INIC_API_RES_BUILDER;
+                msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_RES_BUILDER];
+                Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+
+                (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_RES_BUILDER], obs_ptr);
+            }
+            else
+            {
+                Al_Release(&self->lock.res_api, INIC_API_RES_BUILDER);
+                ret = UCS_RET_ERR_BUFFER_OVERFLOW;
+            }
+        }
+    }
+    else
+    {
+        ret = UCS_RET_ERR_API_LOCKED;
+    }
+
+    return ret;
+}
+
 /*! \brief  Destroys the resources associated with the given resource handles
  *  \param  self             Reference to CInic instance
  *  \param  res_handle_list  resource handle list
@@ -276,7 +340,7 @@ Ucs_Return_t Inic_ResourceDestroy(CInic *self,
 
                 self->ssubs[INIC_SSUB_RESOURCE_DESTROY].user_mask = INIC_API_RESOURCE_DESTROY;
                 msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_RESOURCE_DESTROY];
-                Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+                Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
                 (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_RESOURCE_DESTROY], obs_ptr);
             }
@@ -477,49 +541,6 @@ Ucs_Return_t Inic_Notification_Get(CInic *self, uint16_t fktid, CSingleObserver 
     return result;
 }
 
-/*! \brief  Creates a request message to get the ResourceInfo data from a INIC resource.
- *  \param  self                        Reference to CInic instance.
- *  \param  resource_handle             Handle of the requested INIC resource.
- *  \param  obs_ptr                     Reference to an optional observer.
- *  \return UCS_RET_SUCCESS             If message was created successful.
- *  \return UCS_RET_ERR_BUFFER_OVERFLOW No message buffer available.
-  *  \return UCS_RET_ERR_API_LOCKED     Resource API is already used by another command.
- */
-Ucs_Return_t Inic_ResourceInfo_Get(CInic *self, uint16_t resource_handle, CSingleObserver *obs_ptr)
-{
-    Ucs_Return_t result = UCS_RET_SUCCESS;
-
-    if (Al_Lock(&self->lock.res_api, INIC_API_RES_INFO) != false)
-    {
-        Ucs_Message_t   *msg_ptr = Trcv_TxAllocateMsg(self->xcvr_ptr, 2U);
-
-        if (msg_ptr != NULL)
-        {
-            msg_ptr->destination_addr  = self->target_address;
-            msg_ptr->id.fblock_id   = FB_INIC;
-            msg_ptr->id.instance_id = 0U;
-            msg_ptr->id.function_id = INIC_FID_RESOURCE_INFO;
-            msg_ptr->id.op_type     = UCS_OP_GET;
-            msg_ptr->info_ptr       = &self->ssubs[INIC_SSUB_RES_INFO];
-
-            msg_ptr->tel.tel_data_ptr[0]= MISC_HB(resource_handle);
-            msg_ptr->tel.tel_data_ptr[1]= MISC_LB(resource_handle);
-
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
-            (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_RES_INFO], obs_ptr);
-        }
-        else
-        {
-            Al_Release(&self->lock.res_api, INIC_API_RES_INFO);
-            result = UCS_RET_ERR_BUFFER_OVERFLOW;
-        }
-    }
-    else
-    {
-        result = UCS_RET_ERR_API_LOCKED;
-    }
-    return result;
-}
 
 /*! \brief  Creates a synchronous data connection. The connection can be directly associated with
  *          an input and output socket.
@@ -572,7 +593,7 @@ Ucs_Return_t Inic_SyncCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -729,7 +750,7 @@ Ucs_Return_t Inic_DfiPhaseCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -791,7 +812,7 @@ Ucs_Return_t Inic_CombinerCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -853,7 +874,7 @@ Ucs_Return_t Inic_SplitterCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -909,7 +930,7 @@ Ucs_Return_t Inic_QoSCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -965,7 +986,7 @@ Ucs_Return_t Inic_IpcCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1026,7 +1047,7 @@ Ucs_Return_t Inic_AvpCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1095,7 +1116,7 @@ Ucs_Return_t Inic_NetworkSocketCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1149,7 +1170,7 @@ Ucs_Return_t Inic_MlbPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1218,7 +1239,7 @@ Ucs_Return_t Inic_MlbSocketCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1281,7 +1302,7 @@ Ucs_Return_t Inic_UsbPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1348,8 +1369,8 @@ Ucs_Return_t Inic_UsbSocketCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
-
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
         else
@@ -1511,7 +1532,7 @@ Ucs_Return_t Inic_StreamPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1577,7 +1598,7 @@ Ucs_Return_t Inic_StreamSocketCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1633,7 +1654,7 @@ Ucs_Return_t Inic_RmckPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1691,7 +1712,7 @@ Ucs_Return_t Inic_I2cPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -1881,7 +1902,7 @@ Ucs_Return_t Inic_GpioPortCreate(CInic *self,
 
             self->ssubs[INIC_SSUB_CREATE_CLASS].user_mask = INIC_API_CREATE_CLASS;
             msg_ptr->info_ptr = &self->ssubs[INIC_SSUB_CREATE_CLASS];
-            Trcv_TxSendMsgExt(self->xcvr_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
+            Inic_TxSendDebugMsgWrapper(self->xcvr_ptr, self->xcvr_debug_ptr, msg_ptr, &Inic_ResMsgTxStatusCb, self);
 
             (void)Ssub_AddObserver(&self->ssubs[INIC_SSUB_CREATE_CLASS], obs_ptr);
         }
@@ -2234,6 +2255,46 @@ static void Inic_ResMsgTxStatusCb(void *self, Ucs_Message_t *tel_ptr, Ucs_MsgTxS
     }
 }
 
+/*! \brief Handler function for INIC.ResourceBuilder_Error.ErrorAck
+ *  \param self     reference to INIC object
+ *  \param msg_ptr  received message
+ */
+void Inic_ResourceBuilder_Error(void *self, Ucs_Message_t *msg_ptr)
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    res_data.data_info = NULL;
+    res_data.result = Inic_TranslateError(self_,
+                                          &msg_ptr->tel.tel_data_ptr[0],
+                                          (msg_ptr->tel.tel_len));
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_BUILDER], &res_data, true);
+    Al_Release(&self_->lock.res_api, INIC_API_RESOURCE_DESTROY);
+}
+
+/*! \brief Handler function for INIC.ResourceBuilder.ResultAck
+ *  \param self     reference to INIC object
+ *  \param msg_ptr  received message
+ */
+void Inic_ResourceBuilder_Result(void *self, Ucs_Message_t *msg_ptr )
+{
+    CInic *self_ = (CInic *)self;
+    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
+    Inic_ResourceData_t res;
+    
+    res.node_address = msg_ptr->source_addr;
+    MISC_DECODE_WORD(&res.collection_handle, &(msg_ptr->tel.tel_data_ptr[0]));
+    MISC_DECODE_WORD(&res.res_handle_1, &(msg_ptr->tel.tel_data_ptr[2]));
+    MISC_DECODE_WORD(&res.res_handle_2, &(msg_ptr->tel.tel_data_ptr[4]));
+    MISC_DECODE_WORD(&res.res_handle_3, &(msg_ptr->tel.tel_data_ptr[6]));
+
+    res_data.data_info = &res;
+    res_data.result.code  = UCS_RES_SUCCESS;
+    res_data.result.info_size = 8U;
+
+    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_BUILDER], &res_data, true);
+    Al_Release(&self_->lock.res_api, INIC_API_RESOURCE_DESTROY);
+}
+
 /*! \brief Handler function for INIC.ResourceDestroy.ErrorAck
  *  \param self     reference to INIC object
  *  \param msg_ptr  received message
@@ -2345,48 +2406,6 @@ void Inic_ResourceMonitor_Error(void *self, Ucs_Message_t *msg_ptr)
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           msg_ptr->tel.tel_len);
     Sub_Notify(&self_->subs[INIC_SUB_RES_MONITOR], &res_data);
-}
-
-/*! \brief Handler function for Inic_ResourceInfo_Status.
- *  \details Function maps the received message to the resource info status structure and notifies corresponding observer.
- *  \param self     Reference to INIC object.
- *  \param msg_ptr  Pointer to the received message.
- */
-void Inic_ResourceInfo_Status(void *self, Ucs_Message_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
-    ResourceInfoStatus_t resource_info;
-
-    res_data.data_info       = &resource_info;
-    res_data.result.code     = UCS_RES_SUCCESS;
-    res_data.result.info_ptr = NULL;
-
-    MISC_DECODE_WORD(&resource_info.resource_handle, &msg_ptr->tel.tel_data_ptr[0]);
-    resource_info.info_id = msg_ptr->tel.tel_data_ptr[2];
-    resource_info.info_list_ptr = &msg_ptr->tel.tel_data_ptr[3];
-
-    Al_Release(&self_->lock.res_api, INIC_API_RES_INFO);
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
-}
-
-/*! \brief Handler function for Inic_ResourceInfor_Error.
- *  \details Function translates the received error code and notifies corresponding observer.
- *  \param self     Reference to INIC object.
- *  \param msg_ptr  Pointer to the received message.
- */
-void Inic_ResourceInfo_Error(void *self, Ucs_Message_t *msg_ptr)
-{
-    CInic *self_ = (CInic *)self;
-    Inic_StdResult_t res_data = {{UCS_RES_SUCCESS, NULL, 0U}, NULL};
-    TR_ERROR((self_->base_ptr->ucs_user_ptr, "[INIC_RES]", "Inic_ResourceInfo_Error %d", 1U, msg_ptr->tel.tel_data_ptr[0]));
-    res_data.data_info = NULL;
-    res_data.result = Inic_TranslateError(self_,
-                                          &msg_ptr->tel.tel_data_ptr[0],
-                                          msg_ptr->tel.tel_len);
-
-    Ssub_Notify(&self_->ssubs[INIC_SSUB_RES_INFO], &res_data, true);
-    Al_Release(&self_->lock.res_api, INIC_API_RES_INFO);
 }
 
 /*! \brief Handler function for INIC.SyncCreate.ErrorAck
@@ -2761,6 +2780,7 @@ void Inic_NetworkSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2783,6 +2803,7 @@ void Inic_NetworkSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &res;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2802,6 +2823,7 @@ void Inic_MlbPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2823,6 +2845,7 @@ void Inic_MlbPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &mlb_port_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2841,6 +2864,7 @@ void Inic_MlbSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2862,6 +2886,7 @@ void Inic_MlbSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &mlb_socket_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2880,6 +2905,7 @@ void Inic_UsbPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2900,6 +2926,7 @@ void Inic_UsbPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &usb_port_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2918,6 +2945,7 @@ void Inic_UsbSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -2939,6 +2967,7 @@ void Inic_UsbSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &usb_socket_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -3002,6 +3031,7 @@ void Inic_StreamPortCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -3023,6 +3053,7 @@ void Inic_StreamPortCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &stream_port_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -3041,6 +3072,7 @@ void Inic_StreamSocketCreate_Error(void *self, Ucs_Message_t *msg_ptr)
     res_data.result = Inic_TranslateError(self_,
                                           &msg_ptr->tel.tel_data_ptr[0],
                                           (msg_ptr->tel.tel_len));
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -3062,6 +3094,9 @@ void Inic_StreamSocketCreate_Result(void *self, Ucs_Message_t *msg_ptr)
     res_data.data_info       = &stream_socket_handle;
     res_data.result.code     = UCS_RES_SUCCESS;
     res_data.result.info_ptr = NULL;
+
+    Inic_RxSendDebugMsg(self_->xcvr_debug_ptr, msg_ptr);
+
     Ssub_Notify(&self_->ssubs[INIC_SSUB_CREATE_CLASS], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_CREATE_CLASS);
 }
@@ -3489,6 +3524,95 @@ void Inic_DeviceSync_Result(void *self, Ucs_Message_t *msg_ptr)
 
     Ssub_Notify(&self_->ssubs[INIC_SSUB_DEVICE_SYNC], &res_data, true);
     Al_Release(&self_->lock.res_api, INIC_API_DEVICE_SYNC);
+}
+
+
+
+/*! \brief  This function is used as a wrapper to enable the transmission of debug messages. This debug messages are sent additionally to the device ID 0FF0.
+ *  \param  xcvr_ptr        The transceiver instance.
+ *  \param  xcvr_debug_ptr  The debug transceiver instance.
+ *  \param  msg_ptr         Reference to the message object.
+ *  \param  callback_fptr   Callback function which is invoked after message transmission has finished.
+ *                          Must be \c NULL to avoid that a callback function is invoked. In this case
+ *                          the message object is freed internally. Hence, the message object must
+ *                          not provide external payload.
+ *  \param  inst_ptr        Reference to the instance which is invoked with callback_fptr. Has to be \c
+ *                          NULL if callback_fptr is \c NULL.
+  *  \note  The provided callback function is responsible to free the message object by calling
+ *          Trcv_TxReleaseMsg() or to reuse the message object by calling Trcv_TxReuseMsg() before
+ *          passing it to one of the transmit functions again.
+ */
+static void Inic_TxSendDebugMsgWrapper(CTransceiver *xcvr_ptr, CTransceiver *xcvr_debug_ptr, Ucs_Message_t *msg_ptr, Msg_TxStatusCb_t callback_fptr, void *inst_ptr)
+{
+    /* Check if node has additional debug transceiver*/
+    if (xcvr_debug_ptr != NULL)
+    {
+        /* Allocate new message pointer */
+        Ucs_Message_t *msg_debug_ptr = Trcv_TxAllocateMsg(xcvr_debug_ptr, msg_ptr->tel.tel_len);
+        /* Copy content of original message to debug pointer*/
+        if (msg_debug_ptr != NULL)
+        {
+            msg_debug_ptr->destination_addr = 0x0FF0U;
+
+            /* deep copy of the message data */
+            msg_debug_ptr->id.fblock_id = msg_ptr->id.fblock_id;
+            msg_debug_ptr->id.function_id = msg_ptr->id.function_id;
+            msg_debug_ptr->id.instance_id = msg_ptr->id.instance_id;
+            msg_debug_ptr->id.op_type = msg_ptr->id.op_type;
+            msg_debug_ptr->info_ptr = msg_ptr->info_ptr;
+            msg_debug_ptr->source_addr = msg_ptr->source_addr;
+            msg_debug_ptr->tel.tel_cnt = msg_ptr->tel.tel_cnt;
+            msg_debug_ptr->tel.tel_len= msg_ptr->tel.tel_len;
+            if ((msg_ptr->tel.tel_len != 0U) && (msg_debug_ptr->tel.tel_data_ptr != NULL) && (msg_ptr->tel.tel_data_ptr != NULL))
+            {
+                memcpy(msg_debug_ptr->tel.tel_data_ptr, msg_ptr->tel.tel_data_ptr, (size_t) msg_ptr->tel.tel_len);
+            }
+            msg_debug_ptr->tel.tel_id = msg_ptr->tel.tel_id;
+
+            /* Send additional debug message */
+            Trcv_TxSendMsgExt(xcvr_debug_ptr, msg_debug_ptr, NULL, NULL);
+        }
+    }
+    /* Send message */
+    Trcv_TxSendMsgExt(xcvr_ptr, msg_ptr, callback_fptr, inst_ptr);
+}
+
+/*! \brief  This function is used to resend a message received from local INIC as a debug message.
+ *  \param  xcvr_debug_ptr  The debug transceiver instance.
+ *  \param  msg_ptr         Reference to the message object.
+ *  \note   This function should be used for debug purpose only!
+ */
+static void Inic_RxSendDebugMsg(CTransceiver *xcvr_debug_ptr, Ucs_Message_t *msg_ptr)
+{
+    /* Check if node has additional debug transceiver*/
+    if (xcvr_debug_ptr != NULL)
+    {
+        /* Allocate new message pointer */
+        Ucs_Message_t *msg_debug_ptr = Trcv_TxAllocateMsg(xcvr_debug_ptr, msg_ptr->tel.tel_len);
+        /* Copy content of original message to debug pointer*/
+        if (msg_debug_ptr != NULL)
+        {
+            msg_debug_ptr->destination_addr = 0x0FF0U;
+
+            /* deep copy of the message data */
+            msg_debug_ptr->id.fblock_id = msg_ptr->id.fblock_id;
+            msg_debug_ptr->id.function_id = msg_ptr->id.function_id;
+            msg_debug_ptr->id.instance_id = msg_ptr->id.instance_id;
+            msg_debug_ptr->id.op_type = msg_ptr->id.op_type;
+            msg_debug_ptr->info_ptr = msg_ptr->info_ptr;
+            msg_debug_ptr->source_addr = msg_ptr->source_addr;
+            msg_debug_ptr->tel.tel_cnt = msg_ptr->tel.tel_cnt;
+            msg_debug_ptr->tel.tel_len= msg_ptr->tel.tel_len;
+            if ((msg_ptr->tel.tel_len != 0U) && (msg_debug_ptr->tel.tel_data_ptr != NULL) && (msg_ptr->tel.tel_data_ptr != NULL))
+            {
+                memcpy(msg_debug_ptr->tel.tel_data_ptr, msg_ptr->tel.tel_data_ptr, (size_t) msg_ptr->tel.tel_len);
+            }
+            msg_debug_ptr->tel.tel_id = msg_ptr->tel.tel_id;
+
+            /* Send additional debug message */
+            Trcv_TxSendMsgExt(xcvr_debug_ptr, msg_debug_ptr, NULL, NULL);
+        }
+    }
 }
 
 /*!

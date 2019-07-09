@@ -155,12 +155,12 @@ static const Dec_FktOpIcm_t inic_handler[] =       /* parasoft-suppress  MISRA20
     { DEC_FKTOP(INIC_FID_RESOURCE_MONITOR_CFG,    UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_RESOURCE_TAG,            UCS_OP_RESULT),     Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_RESOURCE_TAG,            UCS_OP_ERROR),      Inic_DummyHandler },
-    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_RESULT),     Inic_DummyHandler },
-    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_ERROR),      Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_RESULT),     Inic_ResourceBuilder_Result },
+    { DEC_FKTOP(INIC_FID_RESOURCE_BUILDER,        UCS_OP_ERROR),      Inic_ResourceBuilder_Error },
     { DEC_FKTOP(INIC_FID_RESOURCE_LIST,           UCS_OP_STATUS),     Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_RESOURCE_LIST,           UCS_OP_ERROR),      Inic_DummyHandler },
-    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_STATUS),     Inic_ResourceInfo_Status },
-    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_ERROR),      Inic_ResourceInfo_Error },
+    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_STATUS),     Inic_DummyHandler },
+    { DEC_FKTOP(INIC_FID_RESOURCE_INFO,           UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_PACKET_ATTACH_SOCKETS,   UCS_OP_ERROR),      Inic_DummyHandler },
     { DEC_FKTOP(INIC_FID_PACKET_DETACH_SOCKETS,   UCS_OP_RESULT),     Inic_DummyHandler },
@@ -227,6 +227,7 @@ void Inic_Ctor(CInic *self, Inic_InitData_t *init_ptr)
 
     self->base_ptr        = init_ptr->base_ptr;
     self->xcvr_ptr        = init_ptr->xcvr_ptr;
+    self->xcvr_debug_ptr  = init_ptr->xcvr_debug_ptr;
     self->fkt_op_list_ptr = &inic_handler[0];
     self->target_address  = init_ptr->tgt_addr;
 

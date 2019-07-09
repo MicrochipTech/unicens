@@ -51,6 +51,7 @@
 #include "ucs_ams_pb.h"
 #include "ucs_cmd_pb.h"
 #include "ucs_nodeobserver_pb.h"
+#include "ucs_diag_pb.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -137,7 +138,7 @@ typedef void (*Ucs_Rm_XrmResDebugCb_t)(Ucs_Xrm_ResourceType_t resource_type, Ucs
 typedef void (*Ucs_Inic_PowerStateCb_t)(Ucs_Inic_PowerState_t power_state, void *user_ptr);
 
 /*! \brief Function signature used for the Network Status callback function
- *  \mns_res_inic{NetworkStatus,MNSH3-NetworkStatus520}
+ *  \dox_res_inic{NetworkStatus,MNSH3-NetworkStatus520}
  *  \param change_mask                  Indicates which parameters have been changed since the
  *                                      last function call. If a bit is set the corresponding
  *                                      parameter has been changed since the last update.
@@ -155,13 +156,13 @@ typedef void (*Ucs_Inic_PowerStateCb_t)(Ucs_Inic_PowerState_t power_state, void 
  *  \param events               The occurred network events. Events are only indicated once they occurred.
  *                              I.e., the value is not handled as a continuous state.
  *                              You can use the bitmask \ref UCS_NETWORK_EVENT_NCE to identify received events.
- *                              \mns_name_inic{Events}
- *  \param availability         The network availability.\mns_name_inic{Availability}
- *  \param avail_info           The availability information.\mns_name_inic{AvailabilityInfo}
- *  \param avail_trans_cause    The availability transition cause.\mns_name_inic{AvailabilityTransitionCause}
- *  \param node_address         The current node address.\mns_name_inic{NodeAddress}
- *  \param max_position         The number of available nodes.\mns_name_inic{MaxPosition}
- *  \param packet_bw            The packet bandwidth.\mns_name_inic{PacketBW}
+ *                              \dox_name_inic{Events}
+ *  \param availability         The network availability.\dox_name_inic{Availability}
+ *  \param avail_info           The availability information.\dox_name_inic{AvailabilityInfo}
+ *  \param avail_trans_cause    The availability transition cause.\dox_name_inic{AvailabilityTransitionCause}
+ *  \param node_address         The current node address.\dox_name_inic{NodeAddress}
+ *  \param max_position         The number of available nodes.\dox_name_inic{MaxPosition}
+ *  \param packet_bw            The packet bandwidth.\dox_name_inic{PacketBW}
  *  \param user_ptr             User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  *  \ingroup G_UCS_NET
  */
@@ -175,25 +176,6 @@ typedef void (*Ucs_Network_StatusCb_t)(uint16_t change_mask,
                                        uint16_t packet_bw,
                                        void *user_ptr
                                        );
-
-/*! \brief Function signature of result callback used by HalfDuplex Diagnosis.
- *
- *  The HalfDuplex Diagnosis reports the result of certain segment by
- *  this callback function.
- *
- *  \param   result             Reports the result of the examined segment.
- *  \param   user_ptr           User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
- *  \ingroup G_UCS_HDX_DIAGNOSIS_TYPES
- */
-typedef void (*Ucs_Diag_HdxReportCb_t)(Ucs_Hdx_Report_t result, void *user_ptr);
-
-/*! \brief Function signature of result callback used by FullDuplex Diagnosis().
- *
- *  \param result  reports the result of the examined segment
- *  \ingroup G_UCS_FDX_DIAGNOSIS_TYPES
- */
-typedef void (*Ucs_Diag_FdxReportCb_t)(Ucs_Fdx_Report_t result, void *user_ptr);
-
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
@@ -287,7 +269,7 @@ typedef struct Ucs_Xrm_InitData_
 {
     /*! \brief Callback function that reports streaming-related information for the Network
      *         Port, including the state of the port and available streaming bandwidth.
-     * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
+     * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
      */
     Ucs_Xrm_NetworkPortStatusCb_t nw_port_status_fptr;
 
@@ -295,14 +277,14 @@ typedef struct Ucs_Xrm_InitData_
      *  \details Whenever this callback function is called and the EHC has devices muted by the mute signal (INIC's MUTE pin),
      *           the EHC should ensure that the mute pin is not asserted and if so, unmute the corresponding devices.
      *
-     * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
+     * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
      */
     Ucs_Xrm_CheckUnmuteCb_t check_unmute_fptr;
 
 } Ucs_Xrm_InitData_t;
 
 /*! \brief The initialization structure of the GPIO Module
- *\mns_ic_started{ See also <i>Getting Started</i>, section \ref GPIO_GTESC_Ex for an example implementation. }
+ *\dox_ic_started{ See also <i>Getting Started</i>, section \ref GPIO_GTESC_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 typedef struct Ucs_Gpio_InitData_
@@ -314,7 +296,7 @@ typedef struct Ucs_Gpio_InitData_
 
 /*! \brief The initialization structure of the I2C Module
  *
- *\mns_ic_started{ See also <i>Getting Started</i>, section \ref I2C_ID_Ex for an example implementation. }
+ *\dox_ic_started{ See also <i>Getting Started</i>, section \ref I2C_ID_Ex for an example implementation. }
  *  \ingroup G_UCS_I2C
  */
 typedef struct Ucs_I2c_InitData_
@@ -330,33 +312,24 @@ typedef struct Ucs_I2c_InitData_
 typedef struct Ucs_Rm_InitData_
 {
     /*! \brief Initialization structure of the Extended Resource Manager
-     * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
+     * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
      */
     Ucs_Xrm_InitData_t xrm;
     /*! \brief Optional report callback function pointer for all routes.
-     * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
+     * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
      */
     Ucs_Rm_ReportCb_t report_fptr;
     /*! \brief Callback function that acts as a debug interface for XRM resources.
      *  The user application has the possibility to monitor the specified XRM resources.
-     * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
+     * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_RM for an example implementation. }
      */
     Ucs_Rm_XrmResDebugCb_t debug_resource_status_fptr;
-
+    /*! \brief Optional setting for debugging local traffic of the root node. Set to \c
+     *         false (default value) to disable the additional debug messages, set to \c true to enable debug messages.
+     *  \note  This feature is dedicated for debugging purpose and must be disabled in a production software.
+     */
+    bool debug_message_enable;
 } Ucs_Rm_InitData_t;
-
-
-/*! \brief The initialization data of the Node Discovery service
- *  \ingroup G_UCS_INIT_AND_SRV_TYPES
- */
-typedef struct Ucs_Nd_InitData_
-{
-    /*! \brief Callback function reporting the results of the Node Discovery service. */
-    Ucs_Nd_ReportCb_t report_fptr;
-    /*! \brief Callback function asking for evaluation of the found signature. */
-    Ucs_Nd_EvalCb_t   eval_fptr;
-
-} Ucs_Nd_InitData_t;
 
 /*! \brief The Rx initialization data of the Application Message Service
  *  \ingroup G_UCS_AMS_TYPES
@@ -384,7 +357,7 @@ typedef struct Ucs_AmsTx_InitData_
 
     /*! \brief    Specifies the low-level retry block count which is pre-selected in an allocated
      *            Tx message object. Valid values: 0..100. Default value: 10.
-     *  \mns_ic_inic{ See also <i>INIC API User's Guide</i>, section \ref SEC_IIC_18. }
+     *  \dox_ic_inic{ See also <i>INIC API User's Guide</i>, section \ref SEC_IIC_18. }
      */
     uint8_t default_llrbc;
 
@@ -423,16 +396,14 @@ typedef struct Ucs_InitData_
     Ucs_Gpio_InitData_t gpio;
     /*! \brief Initialization structure of the I2C */
     Ucs_I2c_InitData_t i2c;
-    /*! \brief The initialization data of the Node Discovery */
-    Ucs_Nd_InitData_t nd;
     /*! \brief The initialization data of the Application Message Service */
     Ucs_Ams_InitData_t ams;
     /*! \brief Network initialization data */
     Ucs_Network_InitData_t network;
     /*! \brief INIC initialization data */
     Ucs_Inic_InitData_t inic;
-    /*! \brief The initialization data of the Manager */
-    Ucs_Mgr_InitData_t mgr;
+    /*! \brief The initialization data of the Network Supervisor */
+    Ucs_Supv_InitData_t supv;
 
 } Ucs_InitData_t;
 
@@ -530,46 +501,68 @@ extern void Ucs_Service(Ucs_Inst_t *self);
 extern void Ucs_ReportTimeout(Ucs_Inst_t *self);
 
 /*------------------------------------------------------------------------------------------------*/
+/* Supervisor                                                                                     */
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief      Sets the Network Supervisor to a new operation mode.
+ *  \attention  Do not call this function within the context of a UNICENS callback function. 
+ *  \param      self                   The UNICENS instance pointer.
+ *  \param      mode                   The new operation mode to be set.
+ *  \return     Possible return values are shown in the table below.
+ *              Value                       | Description
+ *              --------------------------- | -------------------------------
+ *              UCS_RET_SUCCESS             | No error
+ *              UCS_RET_ERR_PARAM           | - The parameter \c self is \c NULL.\n - The transition to the new operation \c mode is not allowed, e.g. transition from Normal Operation Mode to Diagnosis Mode.
+ *              UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ *              UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode". The call is not allowed during the following Supervisor Modes:\n - Diagnosis Mode\n - Programming Mode
+ *              UCS_RET_ERR_ALREADY_SET     | The new operation mode is already set.
+ *              UCS_RET_API_LOCKED          | The transition is not allowed while mode \ref UCS_SUPV_MODE_INACTIVE is in state \ref UCS_SUPV_STATE_BUSY.
+ *  \ingroup G_UCS_SUPV
+ *  \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_SUPV. }
+ */
+extern Ucs_Return_t Ucs_Supv_SetMode(Ucs_Inst_t *self, Ucs_Supv_Mode_t mode);
+
+/*! \brief      Starts the programming sequence for a remote node.
+ *  \attention  This function can only be executed in supervisor mode \ref UCS_SUPV_MODE_PROGRAMMING.
+ *  \param      self                   The UNICENS instance pointer.
+ *  \param      node_pos_addr          The node position address of the target node.
+ *                                     The application must take care that the signature of all nodes
+ *                                     are unique and that \c node_pos_addr is the same as specified withing
+ *                                     the provided signature.
+ *  \param      signature_ptr          Reference to the signature of the node to be programmed.
+ *  \param      commands_ptr           Reference to the programming commands.
+ *  \param      result_fptr            User defined callback function notifying the programming result.
+ *  \return     Possible return values are shown in the table below.
+ *              Value                       | Description
+ *              --------------------------- | -------------------------------
+ *              UCS_RET_SUCCESS             | No error
+ *              UCS_RET_ERR_PARAM           | The parameter \c self is NULL.
+ *              UCS_RET_ERR_ALREADY_SET     | The new operation mode is already set.
+ *              UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *              UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ *  \ingroup G_UCS_SUPV
+ */
+extern Ucs_Return_t Ucs_Supv_ProgramNode(Ucs_Inst_t *self, uint16_t node_pos_addr, Ucs_Signature_t *signature_ptr, Ucs_Prg_Command_t *commands_ptr, Ucs_Prg_ReportCb_t result_fptr);
+
+/*! \brief      Exits the Supervisor Programming Mode.
+ *  \attention  This function can only be executed in supervisor mode \ref UCS_SUPV_MODE_PROGRAMMING.
+ *              Calling this function does not abort an already started programming job, but remembers
+ *              the "exit" request and terminates the Supervisor Programming Mode at the next 
+ *              suitable opportunity.
+ *  \param      self                   The UNICENS instance pointer.
+ *  \return     Possible return values are shown in the table below.
+ *              Value                       | Description
+ *              --------------------------- | -------------------------------
+ *              UCS_RET_SUCCESS             | No error
+ *              UCS_RET_ERR_PARAM           | At least one parameter is \c NULL.
+ *              UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *              UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ *  \ingroup G_UCS_SUPV
+ */
+extern Ucs_Return_t Ucs_Supv_ProgramExit(Ucs_Inst_t *self);
+
+/*------------------------------------------------------------------------------------------------*/
 /* Routing Management                                                                             */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Initializes the routing process with the given routes list information and starts the process to handle the route(s).
- *
- *   When calling this function the routing management will be initialized to the given values and the process to handle the routes list started. The internal_infos structure of route,
- *   endpoint and node objects should be therefore \b zero-initialized by customer application (See the example below).
- *   The result of each route is reported via the user callback function \ref Ucs_Rm_InitData_t::report_fptr "report_fptr" in Ucs_InitData_t (if It has been set by user).
- *
- *  \param   self                   The UNICENS instance pointer.
- *  \param   routes_list            List of routes to be handled.
- *  \param   list_size              Size of the given routes list.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | -------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is NULL
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *
- *  \note    This function must be called once and can only be called once. Otherwise, the function returns the error code \ref UCS_RET_ERR_API_LOCKED.
- *  \note    The build-up of routes can take some times in case the routing process may need to perform retries when uncritical errors occur (e.g.: transmission error, processing error, etc.) or when
- *           certain conditions are not met yet (e.g. network not available, node not available, etc.). The maximum number of retries is \c 0xFF and the minimum time between the retries is \c 50ms.
- *
- *  \attention To suit your specific system needs and setup, change the default values of the following Resources Management macros:
- *             - \ref UCS_NUM_REMOTE_DEVICES in \c ucs_cfg.h
- *             - \ref UCS_XRM_NUM_JOBS in \c ucs_xrm_cfg.h
- *             - \ref UCS_XRM_NUM_RESOURCES in \c ucs_xrm_cfg.h
- *
- *  \attention Use the \c UCS_ADDR_LOCAL_NODE macro to address the local device when specifying connection routes to or from this device.
- *             \n The following address ranges are supported:
- *                 - [0x10  ... 0x2FF]
- *                 - [0x500 ... 0xFEF]
- *                 - UCS_ADDR_LOCAL_NODE
- *
- *  \mns_ic_started{ See also \ref ResourceExample "Routing Management" for an example implementation. }
- *  \ingroup G_UCS_ROUTING
- */
-extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, uint16_t list_size);
-
 /*! \brief   Sets the given route to \c active respectively \c inactive and triggers the routing process to handle the route.
  *
  *   When setting a route to \c active the routing process will start building the route and all related resources and return the result to the user callback function (Refer to Routing Management Init Structure).
@@ -583,6 +576,7 @@ extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, 
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
  *           UCS_RET_ERR_ALREADY_SET     | The given route is already active or inactive
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
  *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
  *
  *  \note    The build up or the destruction of a route can take some times in case the routing process may need to perform retries when uncritical errors occur (e.g.: transmission error, processing error, etc.)
@@ -600,51 +594,29 @@ extern Ucs_Return_t Ucs_Rm_Start(Ucs_Inst_t *self, Ucs_Rm_Route_t *routes_list, 
  *                 - [0x500 ... 0xFEF]
  *                 - UCS_ADDR_LOCAL_NODE
  *
- * \mns_ic_started{ See also section \ref Rm_SRA_Ex for an example implementation. }
+ * \dox_ic_started{ See also section \ref Rm_SRA_Ex for an example implementation. }
  *  \ingroup G_UCS_ROUTING
  */
 extern Ucs_Return_t Ucs_Rm_SetRouteActive(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr, bool active);
 
-/*! \brief   Sets the availability attribute (\c available or \c not \c available) of the given node and triggers the routing process to handle attached route(s).
- *  \details In case of \c available the function starts the routing process that checks whether there are endpoints to build on this node.
- *  In case of \c unavailable the function informs sub modules like XRM to check whether there are resources to release and simultaneously unlock \c suspended routes that
- *  link to this node.
- *  \param   self                   The UNICENS instance
- *  \param   node_address           The node address
- *  \param   available              Specifies whether the node is available or not
- *
- *  \return  Possible return values are shown in the table below.
+/*! \brief   This function retrieves the ATD value of the given route reference.
+ * \note    Links the given ATD value pointer to the ATD value of the route instance.
+ * \param   self             Reference to UCS instance.
+ * \param   route_ptr        Reference of the route.
+ * \param   atd_value_ptr    Given pointer which is linked to the ATD value.
+ * \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ---------------------------------------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_ALREADY_SET     | Node is already set to "available" or "not available"
- *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_AVAILABLE   | The function cannot be processed because the network is not available
+ *           UCS_RET_ERR_NOT_AVAILABLE   | ATD was not enabled for the desired route.
+ *           UCS_RET_ERR_PARAM           | ATD value is not up-to-date or the parameter \c self is NULL.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \note    All nodes present in the routing system will be automatically set to \c Unavailable after the network has been shutdown respectively after
- *           transition from \c Available to \c Not \c available. This in turn means that the user has to set the corresponding nodes to \c Available
- *           after network started up respectively after the network transition from \c NotAvailable to \c Available.
- *
- *  \mns_ic_started{ See also section \ref Rm_SNA_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref Rm_Atd_Ex for an example implementation. }
  *  \ingroup G_UCS_ROUTING
  */
-extern Ucs_Return_t Ucs_Rm_SetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address, bool available);
-
-
-/* brief   This function retrieves the ATD value of the given route reference.
- * note    Links the given ATD value pointer to the ATD value of the route instance.
- * param   route_ptr          Reference of the route.
- * param   atd_value_ptr      Given pointer which is linked to the ATD value.
- * return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ---------------------------------------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_AVAILABLE   | ATD was not enabled for the desired route
- *           UCS_RET_ERR_PARAM           | ATD value is not up-to-date
- */
-extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr);
+extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr, uint16_t *atd_value_ptr);
 
 /*! \brief Retrieves the \c "available" flag information of the given node.
  *
@@ -654,7 +626,7 @@ extern Ucs_Return_t Ucs_Rm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd
  *  \param   node_address           The node address
  *  \return  The \c "availability" flag of the given node.
  *
- *  \mns_ic_started{ See also section \ref Rm_GNA_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref Rm_GNA_Ex for an example implementation. }
  *  \ingroup G_UCS_ROUTING
  */
 extern bool Ucs_Rm_GetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address);
@@ -664,7 +636,7 @@ extern bool Ucs_Rm_GetNodeAvailable(Ucs_Inst_t *self, uint16_t node_address);
  *  \param   route_ptr   Reference to the route to be looked for.
  *  \return  The \c ConnectionLabel of the route. The \c ConnectionLabel value falls within the range [0x000C...0x017F] when route is built. Otherwise, 0 is returned.
  *
- *  \mns_ic_started{ See also section \ref Rm_GCL_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref Rm_GCL_Ex for an example implementation. }
  *  \ingroup G_UCS_ROUTING
  */
 extern uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *route_ptr);
@@ -673,28 +645,29 @@ extern uint16_t Ucs_Rm_GetConnectionLabel(Ucs_Inst_t *self, Ucs_Rm_Route_t *rout
 /* Extended Resources Management (XRM)                                                            */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief   This function is used to configure a Streaming Port.
- *  \mns_func_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
+ *  \dox_func_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
  *  \param   self                      The UNICENS instance pointer
  *  \param   node_address              Device address of the target. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                                     \n The following address ranges are supported:
  *                                          - [0x10 ...  0x2FF]
  *                                          - [0x500 ... 0xFEF]
  *                                          - UCS_ADDR_LOCAL_NODE
- *  \param   index                     Streaming Port instance. \mns_name_inic{Index}
- *  \param   op_mode                   Operation mode of the Streaming Port. \mns_name_inic{OperationMode}
- *  \param   port_option               Direction of the Streaming Port. \mns_name_inic{PortOptions}
- *  \param   clock_mode                Configuration of the FSY/SCK signals. \mns_name_inic{ClockMode}
- *  \param   clock_data_delay          Configuration of the FSY/SCK signals for Generic Streaming. \mns_name_inic{ClockDataDelay}
+ *  \param   index                     Streaming Port instance. \dox_name_inic{Index}
+ *  \param   op_mode                   Operation mode of the Streaming Port. \dox_name_inic{OperationMode}
+ *  \param   port_option               Direction of the Streaming Port. \dox_name_inic{PortOptions}
+ *  \param   clock_mode                Configuration of the FSY/SCK signals. \dox_name_inic{ClockMode}
+ *  \param   clock_data_delay          Configuration of the FSY/SCK signals for Generic Streaming. \dox_name_inic{ClockDataDelay}
  *  \param   result_fptr               Required result callback
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | The given UNICENS instance pointer is NULL
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | The parameter \c self is NULL.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref XRM_SSPC_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref XRM_SSPC_Ex for an example implementation. }
  *  \ingroup G_UCS_XRM_STREAM
  */
 extern Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self,
@@ -707,25 +680,26 @@ extern Ucs_Return_t Ucs_Xrm_Stream_SetPortConfig(Ucs_Inst_t *self,
                                                  Ucs_Xrm_Stream_PortCfgResCb_t result_fptr);
 
 /*! \brief   This function requests the configurations of a Streaming Port.
- *  \mns_func_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
+ *  \dox_func_inic{StreamPortConfiguration,MNSH3-StreamPortConfiguration680}
  *  \param   self                  The UNICENS instance pointer
  *  \param   node_address          Device address of the target. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                                 \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param   index                 Streaming Port instance. \mns_name_inic{Index}
+ *  \param   index                 Streaming Port instance. \dox_name_inic{Index}
  *  \param   result_fptr           Required result callback
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ----------------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref XRM_SGPC_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref XRM_SGPC_Ex for an example implementation. }
  *  \ingroup G_UCS_XRM_STREAM
  */
 extern Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t node_address, uint8_t index,
@@ -734,27 +708,6 @@ extern Ucs_Return_t Ucs_Xrm_Stream_GetPortConfig(Ucs_Inst_t *self, uint16_t node
 /*------------------------------------------------------------------------------------------------*/
 /* Node Scripting Management                                                                      */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Synchronizes a node which is required to use RoutingManagement, Scripting and GPIO/I2C
- *           functionality.
- *  \param   self                   The UNICENS instance.
- *  \param   node_address           The node address.
- *  \param   node_pos_addr          The node position address.
- *  \param   node_ptr               Reference to a node structure which is referenced within the routing
- *                                  structures.
- *  \param   result_fptr            Mandatory result callback function.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_AVAILABLE   | This function is not available if the manager is enabled.
- *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_BUFFER_OVERFLOW | UNICENS cannot create an internal administration object.\n Check if the configuration value of \ref UCS_NUM_REMOTE_DEVICES is sufficient.
- *           UCS_RET_ERR_API_LOCKED      | The API is locked.
- *  \ingroup G_UCS_SCRIPTING
- */
-extern Ucs_Return_t Ucs_Ns_SynchronizeNode(Ucs_Inst_t *self, uint16_t node_address, uint16_t node_pos_addr, Ucs_Rm_Node_t *node_ptr, Ucs_Ns_SynchronizeNodeCb_t result_fptr);
-
 /*! \brief      Runs a given script list on the given node.
  *  \param   self                   The UNICENS instance.
  *  \param   node_address           The node address of the node the script shall be executed on.
@@ -767,10 +720,11 @@ extern Ucs_Return_t Ucs_Ns_SynchronizeNode(Ucs_Inst_t *self, uint16_t node_addre
  *           UCS_RET_SUCCESS             | No error
  *           UCS_RET_ERR_NOT_AVAILABLE   | No internal resources allocated for the given node. \n Check if value of \ref UCS_NUM_REMOTE_DEVICES is less than \n the current number of remote devices in network.
  *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
  *           UCS_RET_ERR_BUFFER_OVERFLOW | No TxBuffer Handles available
  *           UCS_RET_ERR_API_LOCKED      | The API is locked.
- * \mns_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_NODE_SCRIPT for detailed information and implementation example. }
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ * \dox_ic_started{ See also <i>Getting Started</i>, section \ref P_UM_STARTED_NODE_SCRIPT for detailed information and implementation example. }
  *  \ingroup G_UCS_SCRIPTING
  */
 extern Ucs_Return_t Ucs_Ns_Run(Ucs_Inst_t *self, uint16_t node_address, UCS_NS_CONST Ucs_Ns_Script_t *script_list_ptr, uint8_t script_list_size, Ucs_Ns_ResultCb_t result_fptr);
@@ -779,178 +733,184 @@ extern Ucs_Return_t Ucs_Ns_Run(Ucs_Inst_t *self, uint16_t node_address, UCS_NS_C
 /* GPIO and I2C Peripheral Bus Interfaces                                                         */
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief Creates the GPIO port with its associated port instance identifier
- *  \mns_func_inic{GPIOPortCreate,MNSH3-GPIOPortCreate701}
+ *  \dox_func_inic{GPIOPortCreate,MNSH3-GPIOPortCreate701}
  *  \param self                 The UNICENS instance pointer
  *  \param node_address         Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param index                The index of the GPIO Port instance. \mns_name_inic{Index}
- *  \param debounce_time        The timeout for the GPIO debounce timer (in ms). \mns_name_inic{DebounceTime}
+ *  \param index                The index of the GPIO Port instance. \dox_name_inic{Index}
+ *  \param debounce_time        The timeout for the GPIO debounce timer (in ms). \dox_name_inic{DebounceTime}
  *  \param result_fptr          Required result callback function pointer.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref GPIO_CP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref GPIO_CP_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 extern Ucs_Return_t Ucs_Gpio_CreatePort(Ucs_Inst_t *self, uint16_t node_address, uint8_t index,
                                         uint16_t debounce_time, Ucs_Gpio_CreatePortResCb_t result_fptr);
 
 /*! \brief Configures the pin mode of the given GPIO port
- *  \mns_func_inic{GPIOPortPinMode,MNSH3-GPIOPortPinMode703}
+ *  \dox_func_inic{GPIOPortPinMode,MNSH3-GPIOPortPinMode703}
  *  \param self                 The UNICENS instance pointer
  *  \param node_address         Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param gpio_port_handle     The GPIO Port resource handle. \mns_name_inic{GPIOPortHandle}
- *  \param pin                  The GPIO pin that is to be configured. \mns_name_inic{Pin}
- *  \param mode                 The mode of the GPIO pin. \mns_name_inic{Mode}
+ *  \param gpio_port_handle     The GPIO Port resource handle. \dox_name_inic{GPIOPortHandle}
+ *  \param pin                  The GPIO pin that is to be configured. \dox_name_inic{Pin}
+ *  \param mode                 The mode of the GPIO pin. \dox_name_inic{Mode}
  *  \param result_fptr          Required result callback function pointer.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref GPIO_SPM_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref GPIO_SPM_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 extern Ucs_Return_t Ucs_Gpio_SetPinMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle,
                                         uint8_t pin, Ucs_Gpio_PinMode_t mode, Ucs_Gpio_ConfigPinModeResCb_t result_fptr);
 
 /*! \brief Retrieves the pin mode configuration of the given GPIO port
- *  \mns_func_inic{GPIOPortPinMode,MNSH3-GPIOPortPinMode703}
+ *  \dox_func_inic{GPIOPortPinMode,MNSH3-GPIOPortPinMode703}
  *  \param self                 The UNICENS instance pointer
  *  \param node_address         Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param gpio_port_handle     The GPIO Port resource handle. \mns_name_inic{GPIOPortHandle}
+ *  \param gpio_port_handle     The GPIO Port resource handle. \dox_name_inic{GPIOPortHandle}
  *  \param result_fptr          Required result callback function pointer.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref GPIO_GPM_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref GPIO_GPM_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 extern Ucs_Return_t Ucs_Gpio_GetPinMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_ConfigPinModeResCb_t result_fptr);
 
 /*! \brief Writes data to the given GPIO port.
- *  \mns_func_inic{GPIOPortPinState,MNSH3-GPIOPortPinState704}
+ *  \dox_func_inic{GPIOPortPinState,MNSH3-GPIOPortPinState704}
  *  \param self                 The UNICENS instance pointer
  *  \param node_address         Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param gpio_port_handle     The GPIO Port resource handle. \mns_name_inic{GPIOPortHandle}
- *  \param mask                 The GPIO pin to be written. \mns_name_inic{Mask}
- *  \param data                 The state of the GPIO pin to be written. \mns_name_inic{Data}
+ *  \param gpio_port_handle     The GPIO Port resource handle. \dox_name_inic{GPIOPortHandle}
+ *  \param mask                 The GPIO pin to be written. \dox_name_inic{Mask}
+ *  \param data                 The state of the GPIO pin to be written. \dox_name_inic{Data}
  *  \param result_fptr          Required result callback function pointer.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref GPIO_WP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref GPIO_WP_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 extern Ucs_Return_t Ucs_Gpio_WritePort(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle,
                                        uint16_t mask, uint16_t data, Ucs_Gpio_PinStateResCb_t result_fptr);
 
 /*! \brief Reads the pin state of the given GPIO port.
- *  \mns_func_inic{GPIOPortPinState,MNSH3-GPIOPortPinState704}
+ *  \dox_func_inic{GPIOPortPinState,MNSH3-GPIOPortPinState704}
  *  \param self                 The UNICENS instance pointer
  *  \param node_address         Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param gpio_port_handle     The GPIO Port resource handle. \mns_name_inic{GPIOPortHandle}
+ *  \param gpio_port_handle     The GPIO Port resource handle. \dox_name_inic{GPIOPortHandle}
  *  \param result_fptr          Required result callback function pointer.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref GPIO_RP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref GPIO_RP_Ex for an example implementation. }
  *  \ingroup G_UCS_GPIO
  */
 extern Ucs_Return_t Ucs_Gpio_ReadPort(Ucs_Inst_t *self, uint16_t node_address, uint16_t gpio_port_handle, Ucs_Gpio_PinStateResCb_t result_fptr);
 
 /*! \brief  Creates an I2C Port with its associated parameter.
- *  \mns_func_inic{I2CPortCreate,MNSH3-I2CPortCreate6C1}
+ *  \dox_func_inic{I2CPortCreate,MNSH3-I2CPortCreate6C1}
  *  \param  self                The UNICENS instance pointer
  *  \param  node_address        Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param  index               I2C Port instance. \mns_name_inic{Index}
- *  \param  speed               The speed grade of the I2C Port. \mns_name_inic{Speed}
+ *  \param  index               I2C Port instance. \dox_name_inic{Index}
+ *  \param  speed               The speed grade of the I2C Port. \dox_name_inic{Speed}
  *  \param  i2c_int_mask        The bit mask corresponding to the I2C-interrupt on the GPIO Port.
  *  \param  result_fptr         Required result callback function pointer.
  *  \return Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is NULL
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is NULL.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
  *  \attention The below points should be considered in order to receive the notification of the I2C interrupt:
  *              - The \ref Ucs_I2c_IntEventReportCb_t callback function should be registered in the Ucs_InitData_t init structure.
- *              - The GPIO port has to be be opened and the I2C interrupt pin associated with that port configured correctly.
+ *              - The GPIO port has to be opened and the I2C interrupt pin associated with that port configured correctly.
  *
- *  \mns_ic_started{ See also section \ref I2C_CP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref I2C_CP_Ex for an example implementation. }
  *  \ingroup G_UCS_I2C
  */
 extern Ucs_Return_t Ucs_I2c_CreatePort(Ucs_Inst_t *self, uint16_t node_address, uint8_t index, Ucs_I2c_Speed_t speed,
                                        uint8_t i2c_int_mask, Ucs_I2c_CreatePortResCb_t result_fptr);
 
 /*! \brief  Writes a block of bytes to an I2C device at a specified I2C address.
- *  \mns_func_inic{I2CPortWrite,MNSH3-I2CPortWrite6C4}
+ *  \dox_func_inic{I2CPortWrite,MNSH3-I2CPortWrite6C4}
  *  \param  self                The UNICENS instance pointer
  *  \param  node_address        Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param  port_handle         Port resource handle. \mns_name_inic{I2CPortHandle}
- *  \param  mode                The write transfer mode. \mns_name_inic{Mode}
+ *  \param  port_handle         Port resource handle. \dox_name_inic{I2CPortHandle}
+ *  \param  mode                The write transfer mode. \dox_name_inic{Mode}
  *  \param  block_count         The number of blocks to be written to the I2C address. If parameter \em mode is \b not set to Burst Mode, the value of \em block_count has to be set to \b 0.
- *                              Otherwise the valid range of this parameter goes from 1 to 30. \mns_name_inic{BlockCount}
- *  \param  slave_address       The 7-bit I2C slave address of the peripheral to be read. \mns_name_inic{SlaveAddress}
- *  \param  timeout             The timeout for the I2C Port write. \mns_name_inic{Timeout}
+ *                              Otherwise the valid range of this parameter goes from 1 to 30. \dox_name_inic{BlockCount}
+ *  \param  slave_address       The 7-bit I2C slave address of the peripheral to be read. \dox_name_inic{SlaveAddress}
+ *  \param  timeout             The timeout for the I2C Port write. \dox_name_inic{Timeout}
  *  \param  data_len            The total number of bytes to be written to the addressed I2C peripheral. Even if parameter \em mode is set to Burst Mode, the \em data_len shall correspond to the whole size of the burst
  *                              transfer. That is, the \em data_len shall equal the size of a block \b times the \em block_count value. The maximum length of data is limited to 32 bytes.
  *  \param  data_ptr            Reference to the data to be written.
@@ -959,12 +919,13 @@ extern Ucs_Return_t Ucs_I2c_CreatePort(Ucs_Inst_t *self, uint16_t node_address, 
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref I2C_WP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref I2C_WP_Ex for an example implementation. }
  *  \ingroup G_UCS_I2C
  */
 extern Ucs_Return_t Ucs_I2c_WritePort(Ucs_Inst_t *self, uint16_t node_address, uint16_t port_handle, Ucs_I2c_TrMode_t mode, uint8_t block_count,
@@ -972,28 +933,29 @@ extern Ucs_Return_t Ucs_I2c_WritePort(Ucs_Inst_t *self, uint16_t node_address, u
                                        Ucs_I2c_WritePortResCb_t result_fptr);
 
 /*! \brief  Reads a block of bytes from an I2C device at a specified I2C address.
- *  \mns_func_inic{I2CPortRead,MNSH3-I2CPortRead6C3}
+ *  \dox_func_inic{I2CPortRead,MNSH3-I2CPortRead6C3}
  *  \param  self                The UNICENS instance pointer
  *  \param  node_address        Address of the target device. Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
  *                              \n The following address ranges are supported:
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param  port_handle         Port resource handle. \mns_name_inic{I2CPortHandle}
- *  \param  slave_address       The 7-bit I2C slave address of the peripheral to be read. \mns_name_inic{SlaveAddress}
- *  \param  data_len            Number of bytes to be read from the address. \mns_name_inic{Length}
- *  \param  timeout             The timeout for the I2C Port read. \mns_name_inic{Timeout}
+ *  \param  port_handle         Port resource handle. \dox_name_inic{I2CPortHandle}
+ *  \param  slave_address       The 7-bit I2C slave address of the peripheral to be read. \dox_name_inic{SlaveAddress}
+ *  \param  data_len            Number of bytes to be read from the address. \dox_name_inic{Length}
+ *  \param  timeout             The timeout for the I2C Port read. \dox_name_inic{Timeout}
  *  \param  result_fptr         Required result callback function pointer.
  *  \return Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_PARAM           | At least one parameter is wrong
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_ERR_PARAM           | At least one parameter is wrong.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
- *  \mns_ic_started{ See also section \ref I2C_RP_Ex for an example implementation. }
+ *  \dox_ic_started{ See also section \ref I2C_RP_Ex for an example implementation. }
  *  \ingroup G_UCS_I2C
  */
 extern Ucs_Return_t Ucs_I2c_ReadPort(Ucs_Inst_t *self, uint16_t node_address, uint16_t port_handle, uint8_t slave_address, uint8_t data_len,
@@ -1002,91 +964,46 @@ extern Ucs_Return_t Ucs_I2c_ReadPort(Ucs_Inst_t *self, uint16_t node_address, ui
 /*------------------------------------------------------------------------------------------------*/
 /* Network Management                                                                             */
 /*------------------------------------------------------------------------------------------------*/
-/*! \brief   Starts up the Network
- *  \mns_func_inic{NetworkStartup,MNSH3-NetworkStartup524}
- *  \note    There is no predefined timeout for this operation. I.e., the startup process is
- *           performed by the INIC until \c result_fptr is invoked or the application calls
- *           Ucs_Network_Shutdown() to abort the startup process.
- *  \param   self                   The instance
- *  \param   packet_bw              The desired packet bandwidth.\mns_name_inic{PacketBW}
- *  \param   forced_na_timeout  The delay time in milliseconds to shutdown the network after the INIC has entered the
- *                                  protected mode.\mns_name_inic{AutoForcedNotAvailable}
- *  \param   result_fptr            Optional result callback.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NET
- */
-extern Ucs_Return_t Ucs_Network_Startup(Ucs_Inst_t *self, uint16_t packet_bw, uint16_t forced_na_timeout,
-                                        Ucs_StdResultCb_t result_fptr);
-
-
-
-/*! \brief   Switches the Network off
- *  \mns_func_inic{NetworkShutdown,MNSH3-NetworkShutdown525}
- *  \param   self           The instance
- *  \param   result_fptr    Optional result callback
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NET
- */
-extern Ucs_Return_t Ucs_Network_Shutdown(Ucs_Inst_t *self, Ucs_StdResultCb_t result_fptr);
-
-/*! \brief   Triggers the INIC to force the NotAvailable state
- *  \mns_func_inic{NetworkForceNotAvailable,MNSH3-NetworkForceNotAvailable52B}
- *  \param   self           The instance
- *  \param   force          Is \c true if the INIC shall force the network in NotAvailable state.
- *                          If \c false the INIC shall no no longer force the network to NotAvailable state.
- *  \param   result_fptr    Optional result callback
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NET
- */
-extern Ucs_Return_t Ucs_Network_ForceNotAvailable(Ucs_Inst_t *self, bool force, Ucs_StdResultCb_t result_fptr);
-
 /*! \brief   Retrieves the Network Frame Counter, which is the number of frames since reset.
- *  \mns_func_inic{NetworkFrameCounter,MNSH3-NetworkFrameCounter523}
+ *  \dox_func_inic{NetworkFrameCounter,MNSH3-NetworkFrameCounter523}
  *  \param   self        The instance
- *  \param   reference   Reference value that shall be delivered by \c result_fptr.\mns_name_inic{Reference}
+ *  \param   reference   The reference value that shall be delivered by \c result_fptr.\dox_name_inic{Reference}
  *  \param   result_fptr Result callback.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
- *           MNS_RET_SUCCESS             | No error
- *           MNS_RET_ERR_BUFFER_OVERFLOW | No message buffer available
- *           MNS_RET_ERR_API_LOCKED      | API is currently locked
- *           MNS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_PARAM           | The parameter \c self is NULL.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer is available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *  \ingroup G_UCS_NET
  */
 extern Ucs_Return_t Ucs_Network_GetFrameCounter(Ucs_Inst_t *self, uint32_t reference, Ucs_Network_FrameCounterCb_t result_fptr);
 
 /*! \brief   Retrieves the number of nodes within the network
- *  \param   self       The instance
- *  \return  Returns the number of nodes within the network.
+ *  \dox_param_inic{MaxPosition,NetworkStatus,MNSH3-NetworkStatus520}
+ *  \param   self           The instance
+ *  \param   count_ptr      References the nodes count which is written if the
+ *                          function returns \c UCS_RET_SUCCESS.\n
+ *                          Possible values:\n
+ *                              - 0x01..0x40 (the number of nodes if the network is available)\n
+ *                              - 0xFF (if the network is not available)
+ *                              .
+ *  \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_PARAM           | The parameter \c self is NULL.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *  \ingroup G_UCS_NET
  */
-extern uint8_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self);
+extern Ucs_Return_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self, uint8_t *count_ptr);
 
 /*! \brief   Sets the packet filter mode of an available node.
- *  \mns_func_inic{NetworkConfiguration,MNSH3-NetworkConfiguration521}
- *  \details This function is only available if \c Ucs_InitData_t::mgr.enabled is \c true.
+ *  \dox_func_inic{NetworkConfiguration,MNSH3-NetworkConfiguration521}
  *  \param   self                   The instance
  *  \param   node_address           The destination address of the node.
  *                                  Use the \c UCS_ADDR_LOCAL_NODE macro to target the local device.
@@ -1094,66 +1011,21 @@ extern uint8_t Ucs_Network_GetNodesCount(Ucs_Inst_t *self);
  *                                      - [0x10 ...  0x2FF]
  *                                      - [0x500 ... 0xFEF]
  *                                      - UCS_ADDR_LOCAL_NODE
- *  \param   mode                   The new packet filter mode.\mns_name_inic{PacketFilterMode}
+ *  \param   mode                   The new packet filter mode.\dox_name_inic{PacketFilterMode}
  *  \param   result_fptr            Result callback.
  *  \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
- *           MNS_RET_SUCCESS             | No error
- *           MNS_RET_ERR_PARAM           | Result callback not provided.
- *           MNS_RET_ERR_BUFFER_OVERFLOW | No message buffer available.
- *           MNS_RET_ERR_API_LOCKED      | API is currently locked.
- *           MNS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_PARAM           | The parameter \c self is NULL or result callback is not provided.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | No message buffer available.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
  *           UCS_RET_ERR_INVALID_SHADOW  | Missing internal proxy for this node. \see Ucs_Ns_SynchronizeNode() 
  *  \ingroup G_UCS_NET
  */
 extern Ucs_Return_t Ucs_Network_SetPacketFilterMode(Ucs_Inst_t *self, uint16_t node_address, uint16_t mode, Ucs_StdNodeResultCb_t result_fptr);
-
-/*------------------------------------------------------------------------------------------------*/
-/* Node Discovery                                                                                 */
-/*------------------------------------------------------------------------------------------------*/
-
-/*! \brief Starts the Node Discovery service
- *
- *  \param self The instance
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NODE_DISCOVERY
- */
-extern Ucs_Return_t Ucs_Nd_Start(Ucs_Inst_t *self);
-
-
-/*! \brief Stops the Node Discovery service
- *
- *  \param self The instance
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_AVAILABLE   | Node Discovery not running
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NODE_DISCOVERY
- */
-extern Ucs_Return_t Ucs_Nd_Stop(Ucs_Inst_t *self);
-
-
-/*! \brief Initializes all nodes.
- *  \note  <b>Must not be used when Node Discovery service is started.</b>
- *  \param self The instance
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_NODE_DISCOVERY
- */
-extern Ucs_Return_t Ucs_Nd_InitAll(Ucs_Inst_t *self);
-
 
 /*------------------------------------------------------------------------------------------------*/
 /*  Programming service                                                                           */
@@ -1164,160 +1036,53 @@ extern Ucs_Return_t Ucs_Nd_InitAll(Ucs_Inst_t *self);
  *                 Calling Ucs_Nd_InitAll() after getting a successful result
  *                 via result_fptr will set the new configuration active.
  *
- * \param self          The instance.
- * \param node_pos_addr The node position address of the node to be programmed.
- * \param signature     Signature of the node to be programmed.
- * \param command_list  List of programming tasks. It has to end with a NULL entry.
- * \param result_fptr   Result callback.
+ * \param self              The instance.
+ * \param node_pos_addr     The node position address of the node to be programmed.
+ * \param signature_ptr     The signature of the node to be programmed.
+ * \param command_list_ptr  List of programming tasks. It has to end with a NULL entry.
+ * \param result_fptr       Result callback.
  *
  * \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
+ *           UCS_RET_ERR_PARAM           | The parameter \c self is NULL.
+ *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
+ *           UCS_RET_ERR_NOT_SUPPORTED   | API is not supported in the current \ref P_UM_STARTED_SUPV "Network Supervisor Mode".
+ *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized.
  *
  * \ingroup G_UCS_PROG_MODE
  */
 extern Ucs_Return_t Ucs_Prog_Start(Ucs_Inst_t *self,
                             uint16_t node_pos_addr,
-                            Ucs_Signature_t *signature,
-                            Ucs_Prg_Command_t* command_list,
+                            Ucs_Signature_t *signature_ptr,
+                            Ucs_Prg_Command_t* command_list_ptr,
                             Ucs_Prg_ReportCb_t result_fptr);
 
-
-/*! Starts programming the IdentString to the Sonoma patch RAM.
+/*! \brief Creates a data string from an identification string which can be used as parameter data_ptr of a Ucs_Prg_Command_t variable.
  *
- *  **Attention:** This function does not send and an ENC.INIT Command at the end.
- *                 Calling Ucs_Nd_InitAll() after getting a successful result
- *                 via result_fptr will set the new configuration active.
+ *  This function creates a valid programming data string out of an identification string. The function
+ *  handles only identification strings of version ID 0x41. 
  *
- * \param self          The instance
- * \param signature     Signature of the node to be programmed
- * \param ident_string  The new IdentString to be programmed
- * \param result_fptr   Result callback
- *
- * \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
- *
- * \ingroup G_UCS_PROG_MODE
- */
-extern Ucs_Return_t Ucs_Prog_IS_RAM(Ucs_Inst_t        *self,
-                             Ucs_Signature_t   *signature,
-                             Ucs_IdentString_t *ident_string,
-                             Ucs_Prg_ReportCb_t result_fptr);
-
-/*! Starts programming the IdentString to the Vantage flash ROM.
- *
- *  **Attention:** This function does not send and an ENC.INIT Command at the end.
- *                 Calling Ucs_Nd_InitAll() after getting a successful result
- *                 via result_fptr will set the new configuration active.
- *
- * \param self          The instance
- * \param signature     Signature of the node to be programmed
- * \param ident_string  The new IdentString to be programmed
- * \param result_fptr   Result callback
+ * \param self              The instance.
+ * \param is_ptr            Reference to the identification string variable.
+ * \param data_ptr          Reference to the result. 
+ * \param data_size         Size of data_ptr (at least 14).
+ * \param used_size_ptr     Reference to used size of data_ptr. Will be 14 if function was successful.
  *
  * \return  Possible return values are shown in the table below.
  *           Value                       | Description
  *           --------------------------- | ------------------------------------
  *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked
+ *           UCS_RET_ERR_PARAM           | Either the parameter \c self is NULL, \c is_ptr is NULL, \c data_ptr is NULL, \c used_size_ptr is NULL or \c data_size is < 14.
  *
- * \ingroup G_UCS_PROG_MODE
+ * \ingroup G_UCS_SUPV
  */
-extern Ucs_Return_t Ucs_Prog_IS_ROM(Ucs_Inst_t        *self,
-                             Ucs_Signature_t   *signature,
-                             Ucs_IdentString_t *ident_string,
-                             Ucs_Prg_ReportCb_t result_fptr);
-
-
-
-
-
-/*------------------------------------------------------------------------------------------------*/
-/*  FullDuplex Diagnosis                                                                          */
-/*------------------------------------------------------------------------------------------------*/
-/*! \brief Starts the FullDuplex Diagnosis
- *
- * \param   self          The UNICENS instance
- * \param   result_fptr   Callback function which will be called when the INIC report the results
- * \return  Possible return values are shown in the table below. 
- *           Value                       | Description 
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_BUFFER_OVERFLOW | Invalid callback function
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
- *           UCS_RET_ERR_PARAM           | Parameter report_fptr equals NULL
- * \ingroup G_UCS_FDX_DIAGNOSIS
- */
-extern Ucs_Return_t Ucs_Diag_StartFdxDiagnosis(Ucs_Inst_t *self, Ucs_Diag_FdxReportCb_t result_fptr);
-
-/*------------------------------------------------------------------------------------------------*/
-/* HalfDuplex Diagnosis                                                                          */
-/*------------------------------------------------------------------------------------------------*/
-
-/*! \brief Starts the HalfDuplex Diagnosis
- *
- *  \param self The instance
- *  \param report_fptr Callback function presenting reports of the diagnosis
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_API_LOCKED      | API is currently locked.
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_HDX_DIAGNOSIS
- */
-extern Ucs_Return_t Ucs_Diag_StartHdxDiagnosis(Ucs_Inst_t* self, Ucs_Diag_HdxReportCb_t report_fptr);
-
-/*------------------------------------------------------------------------------------------------*/
-/* Fallback protection                                                                          */
-/*------------------------------------------------------------------------------------------------*/
-
-/*! \brief Starts the Fallback Protection Mode
- *
- *  \param self The instance
- *  \param duration Time until the nodes, which are not Fallback Protection master, finish the Fallback
- *                  Protection mode.  The unit is seconds. A value of 0xFFFF means that these nodes
- *                  never leave the Fallback Protection mode.
- *  \param report_fptr Callback function presenting reports of the Fallback Protection.
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_FALLBACK
- */
-extern Ucs_Return_t Ucs_Fbp_Start(Ucs_Inst_t* self, uint16_t duration, Ucs_Fbp_ReportCb_t report_fptr);
-
-
-
-/*! \brief Stops the Fallback Protection Mode
- *
- *  \param self The instance
- *  \return  Possible return values are shown in the table below.
- *           Value                       | Description
- *           --------------------------- | ------------------------------------
- *           UCS_RET_SUCCESS             | No error
- *           UCS_RET_ERR_NOT_INITIALIZED | UNICENS is not initialized
- *           UCS_RET_ERR_NOT_SUPPORTED   | API is not available if \c Ucs_InitData_t::mgr.enabled is \c true
- *  \ingroup G_UCS_FALLBACK
- */
-extern Ucs_Return_t Ucs_Fbp_Stop(Ucs_Inst_t* self);
+extern Ucs_Return_t Ucs_Supv_ProgramCreateIS(Ucs_Inst_t* self, Ucs_IdentString_t *is_ptr, uint8_t *data_ptr, uint8_t data_size, uint8_t *used_size_ptr);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Application Message Service                                                                    */
 /*------------------------------------------------------------------------------------------------*/
-
 /*! \brief   Allocates an application message object for transmission
  *  \details This function retrieves a Tx message object with a payload buffer of the given size.
  *           The application must take care that Ucs_AmsTx_Msg_t::data_size of the resulting message
@@ -1331,7 +1096,13 @@ extern Ucs_Return_t Ucs_Fbp_Stop(Ucs_Inst_t* self);
  *  \return  The allocated Tx message object or \c NULL if no Tx message object is available.
  *           If the function returns \c NULL the application can use
  *           \ref Ucs_AmsTx_InitData_t::message_freed_fptr "ams.tx.message_freed_fptr"
- *           as trigger to request a message object again.
+ *           as trigger to request a message object again.\n
+ *           Please note that the function also returns \c NULL if the current \ref P_UM_STARTED_SUPV 
+ *           "Supervisor Mode" does not allow the execution, or the AMS feature is disabled either by
+ *           defining \ref UCS_FOOTPRINT_DISABLE_AMS or by setting the initialization attribute 
+ *           \ref Ucs_Ams_InitData_t "ams.enabled" to \c false. In the first case it is recommended 
+ *           to re-trigger this function if the \ref P_UM_STARTED_SUPV "Supervisor Mode" alters to 
+ *           a valid one.
  *  \note    The application may also allocate a certain number of message objects without transmitting
  *           in one go. In this case the message object is handed over to the application which is now
  *           responsible to transmit or free the object. When UNICENS terminates it is
@@ -1375,6 +1146,12 @@ extern Ucs_AmsTx_Msg_t* Ucs_AmsTx_AllocMsg(Ucs_Inst_t *self, uint16_t data_size)
  *            <tr><td>UCS_RET_ERR_NOT_INITIALIZED</td><td>UNICENS is not initialized. \n Message
  *                objects that have been allocated during initialized state are no longer valid.</td>
  *            </tr>
+ *            <tr><td>UCS_RET_ERR_NOT_SUPPORTED</td><td>UNICENS is running in a Network Supervisor Mode which does not
+ *                allow to transmit messages.</td>
+ *            </tr>
+ *            <tr><td>UCS_RET_ERR_NOT_AVAILABLE</td><td>The AMS feature is disabled either by defining \ref UCS_FOOTPRINT_DISABLE_AMS
+ *                or by setting the initialization attribute \ref Ucs_Ams_InitData_t "ams.enabled" to \c false.</td>
+ *            </tr>
  *          </table>
  *  \ingroup G_UCS_AMS
  */
@@ -1385,6 +1162,9 @@ extern Ucs_Return_t Ucs_AmsTx_SendMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr
  *  \param   msg_ptr  Reference to the Tx message object
  *  \details It is important that the application is responsible to free external payload, which is
  *           associated with the message object.
+ *  \note    The function is not effectively executed if the AMS feature is disabled either by
+ *           defining \ref UCS_FOOTPRINT_DISABLE_AMS or by setting the initialization attribute 
+ *           \ref Ucs_Ams_InitData_t "ams.enabled" to \c false.
  *  \ingroup G_UCS_AMS
  */
 extern void Ucs_AmsTx_FreeUnusedMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr);
@@ -1399,7 +1179,7 @@ extern void Ucs_AmsTx_FreeUnusedMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr);
  *           must call Ucs_AmsRx_ReleaseMsg(). \n
  *           Typically, an application will process the front-most Rx message and call
  *           Ucs_AmsRx_ReleaseMsg(), which dequeues and frees the Rx message.
- *           Hence, the application must not access this this reference anymore.
+ *           Hence, the application must not access this reference anymore.
  *           The next call of Ucs_AmsRx_PeekMsg() returns a reference of the following
  *           Rx message, or \c NULL if no further message is available. \n
  *           However, it is possible that an application cannot process an Rx message.
@@ -1408,7 +1188,10 @@ extern void Ucs_AmsTx_FreeUnusedMsg(Ucs_Inst_t *self, Ucs_AmsTx_Msg_t *msg_ptr);
  *           un-processed message.
  *  \param   self       The instance
  *  \return  Reference to the front-most message in the Rx queue or \c NULL
- *           if the Rx queue is empty.
+ *           if the Rx queue is empty.\n
+ *           The function also returns \c NULL if the AMS feature is disabled either by
+ *           defining \ref UCS_FOOTPRINT_DISABLE_AMS or by setting the initialization attribute 
+ *           \ref Ucs_Ams_InitData_t "ams.enabled" to \c false.
  *  \warning It is important that the application takes care about the life time of the
  *           Rx message object. The returned reference is valid if the application
  *           performs the peek, processing and release operation in one go.
@@ -1421,6 +1204,9 @@ extern Ucs_AmsRx_Msg_t* Ucs_AmsRx_PeekMsg(Ucs_Inst_t *self);
 
 /*! \brief   Removes and frees the front-most message from the Rx queue
  *  \details The application must not access the removed message any longer.
+ *  \note    The function is not effectively executed if the AMS feature is disabled either by
+ *           defining \ref UCS_FOOTPRINT_DISABLE_AMS or by setting the initialization attribute 
+ *           \ref Ucs_Ams_InitData_t "ams.enabled" to \c false.
  *  \param   self       The instance
  *  \ingroup G_UCS_AMS
  */
@@ -1428,16 +1214,17 @@ extern void Ucs_AmsRx_ReleaseMsg(Ucs_Inst_t *self);
 
 /*! \brief   Retrieves the number of messages that are located in the Rx queue
  *  \param   self       The instance
- *  \return  The number of messages in the Rx queue
+ *  \return  The number of messages in the Rx queue.\n
+ *           The function returns zero if the AMS feature is disabled either by
+ *           defining \ref UCS_FOOTPRINT_DISABLE_AMS or by setting the initialization attribute 
+ *           \ref Ucs_Ams_InitData_t "ams.enabled" to \c false.
  *  \ingroup G_UCS_AMS
  */
 extern uint16_t Ucs_AmsRx_GetMsgCnt(Ucs_Inst_t *self);
 
-
 /*------------------------------------------------------------------------------------------------*/
 /* Command Interpreter                                                                            */
 /*------------------------------------------------------------------------------------------------*/
-
 /*! \brief  Add a MessageId Table to the Command Interpreter.
  *  \param   self           The Ucs instance
  *  \param   msg_id_tab_ptr   Reference to MessageId Table
@@ -1452,7 +1239,6 @@ extern uint16_t Ucs_AmsRx_GetMsgCnt(Ucs_Inst_t *self);
  *  \ingroup G_UCS_CMD
  */
 extern Ucs_Return_t Ucs_Cmd_AddMsgIdTable(Ucs_Inst_t *self, Ucs_Cmd_MsgId_t *msg_id_tab_ptr, uint16_t length);
-
 
 /*! \brief   Remove a MessageId Table from the Command Interpreter
  *
@@ -1479,6 +1265,32 @@ extern Ucs_Return_t Ucs_Cmd_RemoveMsgIdTable(Ucs_Inst_t *self);
 extern Ucs_Cmd_Handler_Function_t Ucs_Cmd_DecodeMsg(Ucs_Inst_t *self, Ucs_AmsRx_Msg_t *msg_rx_ptr);
 
 
+/*------------------------------------------------------------------------------------------------*/
+/* Fallback Protection                                                                            */
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief  Registers the alive message callback function.
+ *
+ *  Only one callback function can be registered at the same time.
+ *
+ *  \param  self         The instance
+ *  \param  report_fptr  Callback function presenting the alive message.
+ *  \return  Possible return values are shown in the table below.
+ *           Value                       | Description
+ *           --------------------------- | ------------------------------------
+ *           UCS_RET_SUCCESS             | No error
+ *           UCS_RET_ERR_BUFFER_OVERFLOW | A Callback function is already registered.
+ *
+ *  \ingroup G_UCS_NET
+ */
+extern Ucs_Return_t Ucs_Network_RegisterAliveCb(Ucs_Inst_t* self, Ucs_Network_AliveCb_t report_fptr);
+
+/*! \brief  Unregisters the alive message callback function.
+ *
+ *  \param  self    The instance
+ *
+ *  \ingroup G_UCS_NET
+ */
+extern void Ucs_Network_UnRegisterAliveCb(Ucs_Inst_t* self);
 
 
 #ifdef __cplusplus

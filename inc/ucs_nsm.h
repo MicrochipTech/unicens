@@ -140,6 +140,19 @@ typedef bool (*Nsm_RxFilterCb_t)(Ucs_Message_t *tel_ptr, void *user_ptr);
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
 
+/*! \brief  Structure for temporary cached values. */
+typedef struct Nsm_TempData_
+{
+    /*!< \brief Reference to the user instance */
+    void * user_ptr;
+    /*!< \brief Private result callback function pointer for current script */
+    Nsm_ResultCb_t pv_result_fptr;
+    /*!< \brief Public result callback function pointer for current script */
+    Ucs_Ns_ResultCb_t pb_result_fptr;
+  
+} Nsm_TempData_t;
+
+
 /*! \brief  Result structure of the Node Scripting Management for public node scripting. */
 typedef struct Nsm_PbResultData
 {

@@ -189,6 +189,11 @@ void Trcv_TxSendMsg(CTransceiver *self, Ucs_Message_t *tel_ptr)
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (tel_ptr != NULL));
     msg_ptr = (CMessage*)(void*)tel_ptr;
 
+    if (tel_ptr->destination_addr == UCS_ADDR_BROADCAST_BLOCKING)
+    {
+        tel_ptr->destination_addr = UCS_ADDR_BROADCAST_UNBLOCKING;
+    }
+
     TR_INFO((self->ucs_user_ptr, "[TRCV]", "Trcv_TxSendMsg(): FIFO: %u, MSG(tgt:0x%04X, id:%02X.%01X.%04X.%01X)", 6U, self->own_id, tel_ptr->destination_addr, tel_ptr->id.fblock_id, tel_ptr->id.instance_id, tel_ptr->id.function_id, tel_ptr->id.op_type));
     Msg_SetTxStatusHandler(msg_ptr, &Trcv_OnTxStatusInternal, self);        /* just release the message */
     Fifo_Tx(self->fifo_ptr, msg_ptr, false);
@@ -214,6 +219,11 @@ void Trcv_TxSendMsgExt(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStatusC
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (tel_ptr != NULL));
     msg_ptr = (CMessage*)(void*)tel_ptr;
 
+    if (tel_ptr->destination_addr == UCS_ADDR_BROADCAST_BLOCKING)
+    {
+        tel_ptr->destination_addr = UCS_ADDR_BROADCAST_UNBLOCKING;
+    }
+
     if (callback_fptr == NULL)
     {
         TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (inst_ptr == NULL));
@@ -225,6 +235,8 @@ void Trcv_TxSendMsgExt(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStatusC
     Msg_SetTxStatusHandler(msg_ptr, callback_fptr, inst_ptr);
     Fifo_Tx(self->fifo_ptr, msg_ptr, false);
 }
+
+
 
 /*! \brief  Transmits a given message object to the INIC bypassing all other messages in the FIFO
  *  \param  self          The instance
@@ -244,6 +256,11 @@ void Trcv_TxSendMsgBypass(CTransceiver *self, Ucs_Message_t *tel_ptr, Msg_TxStat
 
     TR_ASSERT(self->ucs_user_ptr, "[TRCV]", (tel_ptr != NULL));
     msg_ptr = (CMessage*)(void*)tel_ptr;
+
+    if (tel_ptr->destination_addr == UCS_ADDR_BROADCAST_BLOCKING)
+    {
+        tel_ptr->destination_addr = UCS_ADDR_BROADCAST_UNBLOCKING;
+    }
 
     if (callback_fptr == NULL)
     {

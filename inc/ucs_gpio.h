@@ -136,6 +136,8 @@ typedef struct CGpio_
     Gpio_Script_t curr_script;
     /*!< \brief Current reference to the result callback function */
     Gpio_ErrResultCb_t curr_res_cb;
+    /*!< \brief Reference to the current cached result message */
+    Ucs_Message_t *curr_res_msg_ptr;
 
 } CGpio;
 

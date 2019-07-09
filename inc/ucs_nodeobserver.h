@@ -59,6 +59,9 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Internal constants                                                                             */
 /*------------------------------------------------------------------------------------------------*/
+#define UCS_SUPV_MODE_LAST       (UCS_SUPV_MODE_PROGRAMMING) /*!< \brief Defines the highest public value of the enum. */
+#define UCS_SUPV_MODE_MANUAL     ((Ucs_Supv_Mode_t)0x80U)    /*!< \brief Set as Supervisor Mode to enable the Manual Mode. */
+#define UCS_SUPV_MODE_NONE       ((Ucs_Supv_Mode_t)0x00U)    /*!< \brief Set as Supervisor Mode during initialization. */
 
 /*------------------------------------------------------------------------------------------------*/
 /* Types                                                                                          */
@@ -87,19 +90,18 @@ typedef struct CNodeObserver_
     CNetworkManagement  *net_ptr;               /*!< \brief Reference to network management */
     CNodeManagement     *nm_ptr;                /*!< \brief Reference to node management */
 
-    Ucs_Mgr_InitData_t   init_data;             /*!< \brief Initialization data describing nodes and routes*/
+    Ucs_Supv_InitData_t  init_data;             /*!< \brief Initialization data describing nodes and routes*/
     CService             service;               /*!< \brief  Service object */
-    CMaskedObserver      event_observer;        /*!< \brief Observes init complete event */
-
     Ucs_Signature_t      eval_signature;
     Ucs_Nd_CheckResult_t eval_action;
     Ucs_Rm_Node_t       *eval_node_ptr;
     CTimer               wakeup_timer;          /*!< \brief Timer wakes up processing, sets current
                                                  *          node available and restarts NodeDiscovery
                                                  */
-    CObserver            mgr_obs;               /*!< \brief Observes CManager state changes */
+    CObserver            mgr_obs;               /*!< \brief Observes CNetStarter state changes */
     uint16_t             last_node_checked;     /*!< \brief Remembers node index for round robin execution */
     CTimer               guard_timer;           /*!< \brief Timer to check for invalid node states */
+    bool                 started;               /*!< \brief Remembers if the node discovery was started */
 
 } CNodeObserver;
 
@@ -108,9 +110,9 @@ typedef struct CNodeObserver_
 /*------------------------------------------------------------------------------------------------*/
 extern void Nobs_Ctor(CNodeObserver *self, CBase *base_ptr, CNetStarter *nts_ptr, CNodeDiscovery *nd_ptr,
                       CRouteManagement *rtm_ptr, CNetworkManagement  *net_ptr, CNodeManagement *nm_ptr,
-                      Ucs_Mgr_InitData_t *init_ptr);
-extern Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(void *self, Ucs_Signature_t *signature_ptr);
-extern void Nobs_OnNdReport(void *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr);
+                      Ucs_Supv_InitData_t *init_ptr);
+extern Ucs_Nd_CheckResult_t Nobs_OnNdEvaluate(CNodeObserver *self, Ucs_Signature_t *signature_ptr);
+extern void Nobs_OnNdReport(CNodeObserver *self, Ucs_Nd_ResCode_t code, Ucs_Signature_t *signature_ptr);
 extern uint8_t Nobs_GetSuspiciousNodesCnt(CNodeObserver *self);
 
 #ifdef __cplusplus

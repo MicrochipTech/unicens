@@ -269,22 +269,17 @@ bool Nsm_OnRcmRxFilter(void *self, Ucs_Message_t *tel_ptr)
                     uint8_t k = 0U;
                     ret_val = true;
 
-                    if (tmp_exp_res->data_size != NSM_DATASZ_IS_WILDCARD)
+                    if ((tmp_exp_res->data_size != NSM_DATASZ_IS_WILDCARD) && (tmp_exp_res->data_ptr != NULL))
                     {
-                        if (((tmp_exp_res->data_ptr == NULL) && (tmp_exp_res->data_size > 0U)) ||
-                            (tmp_exp_res->data_size > tel_ptr->tel.tel_len))
+                        /* Compare the result with expectation */
+                        for (; k < tmp_exp_res->data_size; k++)
                         {
-                            ret_val = false;
-                            trigger_error = true;
-                        }
-
-                        for (; ((k < tmp_exp_res->data_size) && (ret_val != false)); k++)
-                        {
-                            if (tmp_exp_res->data_ptr[k] != tel_ptr->tel.tel_data_ptr[k])
+                            if ((tmp_exp_res->data_ptr[k] != tel_ptr->tel.tel_data_ptr[k]) || (tmp_exp_res->data_size > tel_ptr->tel.tel_len))
                             {
                                 trigger_error = true;
                                 self_->curr_internal_result.code = UCS_NS_RES_ERR_PAYLOAD;
                                 TR_ERROR((self_->base_ptr->ucs_user_ptr, "[NSM]", "Nsm_OnRcmRxFilter: Received message for script [0x%X], does not fit to the expected message.", 1U, self_->curr_sript_ptr));
+                                break;
                             }
                         }
                     }
@@ -586,32 +581,39 @@ static void Nsm_Finished(CNodeScriptManagement *self)
  *  \param  self    Reference to the NSM instance
  */
 static void Nsm_SendScriptResult(CNodeScriptManagement *self)
-{
+{   
+    Nsm_TempData_t temp;
+    
     Nsm_ApiLocking(self, false);
+
+    temp.pv_result_fptr = self->curr_pv_result_fptr;
+    temp.pb_result_fptr = self->curr_pb_result_fptr;
+    temp.user_ptr = self->curr_user_ptr;
+
     self->curr_rxfilter_fptr = NULL;
     self->curr_sript_ptr     = NULL;
     self->curr_sript_size    = 0U;
+    self->curr_pv_result_fptr = NULL;
+    self->curr_pb_result_fptr = NULL;
+    self->curr_user_ptr       = 0U;
+
     if (self->is_private_api_used != false)
     {
-        if (self->curr_pv_result_fptr != NULL)
+        if (temp.pv_result_fptr != NULL)
         {
-            self->curr_pv_result_fptr(self->curr_user_ptr, self->curr_internal_result);
+            temp.pv_result_fptr(temp.user_ptr, self->curr_internal_result);
         }
     }
     else
     {
-        if (self->curr_pb_result_fptr != NULL)
+        if (temp.pb_result_fptr != NULL)
         {
-            self->curr_pb_result_fptr(Addr_ReplaceLocalAddrApi(&self->base_ptr->addr, self->target_address),
+            temp.pb_result_fptr(Addr_ReplaceLocalAddrApi(&self->base_ptr->addr, self->target_address),
                                       self->curr_internal_result.code,
                                       self->curr_internal_result.error_info,
                                       self->base_ptr->ucs_user_ptr);
         }
     }
-
-    self->curr_pv_result_fptr = NULL;
-    self->curr_pb_result_fptr = NULL;
-    self->curr_user_ptr       = 0U;
 }
 
 /*! \brief Starts the timer for pausing the script.

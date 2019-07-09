@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -89,8 +89,9 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___f_d_x___d_i_a_g_n_
 
 <div class="header">
   <div class="summary">
-<a href="#groups">Topics</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#typedef-members">Callback Functions</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
 <div class="title">FullDuplex Diagnosis</div>  </div>
 <div class="ingroups"><a class="el" href="group___g___u_c_s___n_e_t_w_o_r_k___d_i_a_g_n_o_s_i_s.html">Network Diagnosis</a></div></div><!--header-->
@@ -99,17 +100,53 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___f_d_x___d_i_a_g_n_
 <p>FullDuplex Diagnosis.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
-Topics</h2></td></tr>
-<tr class="memitem:group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s.html">Referred Types</a></td></tr>
-<tr class="memdesc:group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s"><td class="mdescLeft">&#160;</td><td class="mdescRight">Referred Types used by the FullDuplex Diagnosis. <br/></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___fdx___segment__t.html">Ucs_Fdx_Segment_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This structure holds the segment information of the FullDuplex Diagnosis.  <a href="struct_ucs___fdx___segment__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___fdx___report__t.html">Ucs_Fdx_Report_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This structure holds the results of the FullDuplex Diagnosis.  <a href="struct_ucs___fdx___report__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ga096ca43d72b57ee3a5982e4ea1faa234"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_ga096ca43d72b57ee3a5982e4ea1faa234.html#ga096ca43d72b57ee3a5982e4ea1faa234">Ucs_Diag_StartFdxDiagnosis</a> (<a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga074c04d40d00986e0c869adaec8fadda.html#ga074c04d40d00986e0c869adaec8fadda">Ucs_Inst_t</a> *self, <a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s_ga1a9c84deb26ccaeb90a222a9ca5c174a.html#ga1a9c84deb26ccaeb90a222a9ca5c174a">Ucs_Diag_FdxReportCb_t</a> result_fptr)</td></tr>
-<tr class="memdesc:ga096ca43d72b57ee3a5982e4ea1faa234"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the FullDuplex Diagnosis.  <a href="#ga096ca43d72b57ee3a5982e4ea1faa234"></a><br/></td></tr>
-<tr class="separator:ga096ca43d72b57ee3a5982e4ea1faa234"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Callback Functions</h2></td></tr>
+<tr class="memitem:ga96524ea8aeca4c546cd931a36c1ff5e1"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_ga96524ea8aeca4c546cd931a36c1ff5e1.html#ga96524ea8aeca4c546cd931a36c1ff5e1">Ucs_Diag_FdxReportCb_t</a> )(<a class="el" href="struct_ucs___fdx___report__t.html">Ucs_Fdx_Report_t</a> *result_ptr, void *user_ptr)</td></tr>
+<tr class="memdesc:ga96524ea8aeca4c546cd931a36c1ff5e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function signature of result callback used by FullDuplex Diagnosis().  <a href="#ga96524ea8aeca4c546cd931a36c1ff5e1"></a><br/></td></tr>
+<tr class="separator:ga96524ea8aeca4c546cd931a36c1ff5e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gade200d3118516ec58f95a373b770ac6f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#gade200d3118516ec58f95a373b770ac6f">Ucs_Fdx_ResCode_t</a> { <br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#ggade200d3118516ec58f95a373b770ac6fa17d754fe087bce120dbed529e298432c">UCS_FDX_TARGET_FOUND</a> = 0x01U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#ggade200d3118516ec58f95a373b770ac6facdfe9c9fd695714ab613ae64cbaf59c7">UCS_FDX_FINISHED</a> = 0x02U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#ggade200d3118516ec58f95a373b770ac6fa4f9d532b470f05199b382412a7edea0c">UCS_FDX_CABLE_LINK_RES</a> = 0x03U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#ggade200d3118516ec58f95a373b770ac6fab8e22d72dcc771ee115e8fee05f3acb5">UCS_FDX_ABORTED</a> = 0x04U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#ggade200d3118516ec58f95a373b770ac6fa67087ff6b73867a88366f0e3205b2cd2">UCS_FDX_ERROR</a> = 0x05U
+<br/>
+ }</td></tr>
+<tr class="memdesc:gade200d3118516ec58f95a373b770ac6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of FullDuplex Diagnosis Report.  <a href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gade200d3118516ec58f95a373b770ac6f.html#gade200d3118516ec58f95a373b770ac6f">More...</a><br/></td></tr>
+<tr class="separator:gade200d3118516ec58f95a373b770ac6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad0c7f23a8e2cb6a9ed5cff73adced17d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#gad0c7f23a8e2cb6a9ed5cff73adced17d">Ucs_Fdx_ErrCode_t</a> { <br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17da371744601e3ef72bdc88369334f2e8db">UCS_FDX_ERR_UNSPECIFIED</a> = 0x01U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17da6b8aaa30aa6da3cce6f6fe154af0a6ff">UCS_FDX_ERR_WELCOME_NO_SUCCESS</a> = 0x02U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17da15be9efc6a37acab4e5124fc6b80f9cd">UCS_FDX_ERR_STOP_DIAG_FAILED</a> = 0x03U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17daa41f6fa9168705103ee21307ce98d53d">UCS_FDX_ERR_PORT_NOT_USED</a> = 0x04U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17da9275e732b113e0f5b639988e8c2a95cf">UCS_FDX_ERR_NO_FDX_MODE</a> = 0x05U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#ggad0c7f23a8e2cb6a9ed5cff73adced17da770bbbeab2246816b5a7f9dde030bc8a">UCS_FDX_ERR_TERMINATED</a> = 0x06U
+<br/>
+ }</td></tr>
+<tr class="memdesc:gad0c7f23a8e2cb6a9ed5cff73adced17d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of FullDuplex Diagnosis Error Codes.  <a href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_gad0c7f23a8e2cb6a9ed5cff73adced17d.html#gad0c7f23a8e2cb6a9ed5cff73adced17d">More...</a><br/></td></tr>
+<tr class="separator:gad0c7f23a8e2cb6a9ed5cff73adced17d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>FullDuplex Diagnosis. </p>
@@ -118,12 +155,12 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

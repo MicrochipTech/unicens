@@ -43,6 +43,7 @@
 /*------------------------------------------------------------------------------------------------*/
 #include "ucs_nm.h"
 #include "ucs_addr.h"
+#include "ucs_epm.h"
 
 /*------------------------------------------------------------------------------------------------*/
 /* Internal Prototypes                                                                            */
@@ -94,7 +95,7 @@ extern CNode *Nm_CreateNode(CNodeManagement *self, uint16_t address, uint16_t no
             node_init_data.pb_node_ptr = node_ptr;
             node_init_data.nsm_ptr = Fac_GetNsm(self->init_data.factory_ptr, address);
             node_init_data.inic_ptr = Fac_GetInic(self->init_data.factory_ptr, address);
-            node_init_data.xrm_ptr = Fac_GetXrm(self->init_data.factory_ptr, address, NULL, self->init_data.check_unmute_fptr);
+            node_init_data.xrm_ptr = Fac_GetXrm(self->init_data.factory_ptr, address, &Epm_XrmResDebugCb, self->init_data.check_unmute_fptr);
             node_init_data.rsm_ptr = Fac_GetRsm(self->init_data.factory_ptr, address);
             node_init_data.gpio_ptr = Fac_GetGpio(self->init_data.factory_ptr, address, self->init_data.trigger_event_status_fptr);
             node_init_data.i2c_ptr = Fac_GetI2c(self->init_data.factory_ptr, address, self->init_data.i2c_interrupt_report_fptr);

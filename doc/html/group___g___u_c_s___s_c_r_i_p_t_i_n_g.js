@@ -27,6 +27,5 @@ var group___g___u_c_s___s_c_r_i_p_t_i_n_g =
       [ "UCS_NS_SYNC_SUCCESS", "group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#ggacb147466c11c1f0be23c0c61bd3c493baf12b4380625931c1540b0b63b986b92c", null ],
       [ "UCS_NS_SYNC_ERROR", "group___g___u_c_s___s_c_r_i_p_t_i_n_g_gacb147466c11c1f0be23c0c61bd3c493b.html#ggacb147466c11c1f0be23c0c61bd3c493baf7a7628676344ac3b363f96a6e26b653", null ]
     ] ],
-    [ "Ucs_Ns_Run", "group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305", null ],
-    [ "Ucs_Ns_SynchronizeNode", "group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga8ba4ce1e1d69ead54e8a3e1c052575c5.html#ga8ba4ce1e1d69ead54e8a3e1c052575c5", null ]
+    [ "Ucs_Ns_Run", "group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305", null ]
 ];

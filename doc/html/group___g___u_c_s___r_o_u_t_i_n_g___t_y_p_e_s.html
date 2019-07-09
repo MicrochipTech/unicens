@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -107,6 +107,15 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___end_point__t.html">Ucs_Rm_EndPoint_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a Connection EndPoint.  <a href="struct_ucs___rm___end_point__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___d_c___end_point__t.html">Ucs_Rm_DC_EndPoint_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a default created EndPoint.  <a href="struct_ucs___rm___d_c___end_point__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___atd__t.html">Ucs_Rm_Atd_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure to enable and setup the ATD module.  <a href="struct_ucs___rm___atd__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___static_connection__t.html">Ucs_Rm_StaticConnection_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure to enable the route for proxy channel use.  <a href="struct_ucs___rm___static_connection__t.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ucs___rm___route__t.html">Ucs_Rm_Route_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure of a Route.  <a href="struct_ucs___rm___route__t.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,7 +125,11 @@ Enumerations</h2></td></tr>
 <tr class="memitem:ga127a72f023d3c0289ab74b001f6edc25"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#ga127a72f023d3c0289ab74b001f6edc25">Ucs_Rm_EndPointType_t</a> { <br/>
 &#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25ac1244d5bc6a569137f6f9132b8b0a3da">UCS_RM_EP_SOURCE</a> = 0x00U, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a63c4dfa3683ce8122d760c4e2d580138">UCS_RM_EP_SINK</a> = 0x01U
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a63c4dfa3683ce8122d760c4e2d580138">UCS_RM_EP_SINK</a> = 0x01U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a5e01bf5f88a0e612cc1e7c1cb25df8a0">UCS_RM_EP_DC_SOURCE</a> = 0x02U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a0eff3c819cf39f17abb9029b7139d899">UCS_RM_EP_DC_SINK</a> = 0x03U
 <br/>
  }</td></tr>
 <tr class="memdesc:ga127a72f023d3c0289ab74b001f6edc25"><td class="mdescLeft">&#160;</td><td class="mdescRight">This enumerator specifies the type of an EndPoint object.  <a href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#ga127a72f023d3c0289ab74b001f6edc25">More...</a><br/></td></tr>
@@ -128,10 +141,14 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9ba0a444b476e91de5d0954a007a78a387b">UCS_RM_ROUTE_INFOS_SUSPENDED</a> = 0x02U, 
 <br/>
-&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9bace1ac2f05b198d3d223baa33ca71493a">UCS_RM_ROUTE_INFOS_PROCESS_STOP</a> = 0x03U
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9bace1ac2f05b198d3d223baa33ca71493a">UCS_RM_ROUTE_INFOS_PROCESS_STOP</a> = 0x03U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9badb63fb6363ebb3ae51d0bf8e3892138e">UCS_RM_ROUTE_INFOS_ATD_UPDATE</a> = 0x04U, 
+<br/>
+&#160;&#160;<a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#gga75ffbf28e4afc99a6abdbff0887baf9ba1026c9d7cd077ef0938ca6984442f514">UCS_RM_ROUTE_INFOS_ATD_ERROR</a> = 0x05U
 <br/>
  }</td></tr>
-<tr class="memdesc:ga75ffbf28e4afc99a6abdbff0887baf9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This enumerator specifies the possible route information returned via User callback function of <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gaaa23aca8279da197192210fe11889452.html#gaaa23aca8279da197192210fe11889452">Ucs_Rm_Start()</a>.  <a href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b">More...</a><br/></td></tr>
+<tr class="memdesc:ga75ffbf28e4afc99a6abdbff0887baf9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This enumerator specifies the possible route information.  <a href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga75ffbf28e4afc99a6abdbff0887baf9b.html#ga75ffbf28e4afc99a6abdbff0887baf9b">More...</a><br/></td></tr>
 <tr class="separator:ga75ffbf28e4afc99a6abdbff0887baf9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -141,12 +158,12 @@ Enumerations</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

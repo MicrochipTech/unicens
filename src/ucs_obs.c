@@ -141,6 +141,7 @@ Sub_Ret_t Sub_RemoveObserver(CSubject *self, CObserver *obs_ptr)
             (Dl_Remove(&self->list, &obs_ptr->node) == DL_OK))
     {
         TR_ASSERT(self->ucs_user_ptr, "[OBS]", (self->num_observers > 0U));
+        obs_ptr->valid = false;
         self->num_observers--;
         ret_val = SUB_OK;
     }

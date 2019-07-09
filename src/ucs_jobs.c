@@ -299,7 +299,9 @@ void Job_SetResult(CJob *self, Job_Result_t result)
     }
     else
     {
-        TR_ERROR((0U, "[JOB]", "Job_SetResult(): called in ambiguous state=%d", 1U, self->state));
+        /* It is possible that a job result is notified after the job/jobQ is stopped.
+         * The result must not trigger further events. Just ignore. */
+        TR_INFO((0U, "[JOB]", "Job_SetResult(): called in unexpected state=%d", 1U, self->state));
     }
 }
 
@@ -312,60 +314,6 @@ Job_Result_t Job_GetResult(CJob *self)
 {
     return self->result;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-/*------------------------------------------------------------------------------------------------*/
-/* Initialization Methods                                                                         */
-/*------------------------------------------------------------------------------------------------*/
-
-/*! \brief Constructor of Manager class
- *  \param self         The instance
- *  \param base_ptr     Reference to base component
- *  \param inic_ptr     Reference to INIC component
- *  \param net_ptr      Reference to net component
- *  \param packet_bw    Desired packet bandwidth
- */
-void Mgr_Ctor(CManager *self, CBase *base_ptr, CInic *inic_ptr, CNetworkManagement *net_ptr, uint16_t packet_bw)
-{
-    MISC_MEM_SET(self, 0, sizeof(*self));
-
-    self->base_ptr = base_ptr;
-    self->inic_ptr = inic_ptr;
-    self->net_ptr = net_ptr;
-    self->packet_bw = packet_bw;
-
-    Srv_Ctor(&self->service, MGR_SRV_PRIO, self, &Mgr_Service);             /* register service */
-    (void)Scd_AddService(&self->base_ptr->scd, &self->service);
-
-    Mobs_Ctor(&self->event_observer, self, EH_E_INIT_SUCCEEDED, &Mgr_OnInitComplete);
-    Eh_AddObsrvInternalEvent(&self->base_ptr->eh, &self->event_observer);
-
-    Sobs_Ctor(&self->startup_obs, self, &Mgr_OnNwStartupResult);
-    Sobs_Ctor(&self->shutdown_obs, self, &Mgr_OnNwShutdownResult);
-    Mobs_Ctor(&self->nwstatus_mobs, self, MGR_NWSTATUS_MASK, &Mgr_OnNwStatus);
-    Fsm_Ctor(&self->fsm, self, &(mgr_state_tbl[0][0]), (uint8_t)MGR_EV_MAX_NUM_EVENTS, MGR_EV_NIL/*init.event*/);
-}
-
-#endif
-
-
 
 /*!
  * @}

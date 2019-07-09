@@ -89,6 +89,7 @@ void Fac_Ctor(CFactory *self, Fac_InitData_t *init_ptr)
     MISC_MEM_SET(self, 0, sizeof(CFactory));
 
     /* set base and net instances */
+    self->debug_message_enable = init_ptr->debug_msg_enable;
     self->base_ptr = init_ptr->base_ptr;
     self->net_ptr  = init_ptr->net_ptr;
     self->xrmp_ptr = init_ptr->xrmp_ptr;
@@ -870,10 +871,20 @@ static void Fac_ConstructFbi(CFactory *self, CInic *fbi, uint16_t address)
     if (address == UCS_ADDR_LOCAL_NODE)
     {
         inic_init_data.xcvr_ptr = self->icm_transceiver;
+        if (self->debug_message_enable != false)
+        {
+            inic_init_data.xcvr_debug_ptr = self->rcm_transceiver; /* additional transceiver for debug messages */
+        }
+        else
+        {
+            inic_init_data.xcvr_debug_ptr = NULL;
+        }
+
     }
     else
     {
         inic_init_data.xcvr_ptr = self->rcm_transceiver;
+        inic_init_data.xcvr_debug_ptr = NULL;
     }
 
     inic_init_data.base_ptr = self->base_ptr;

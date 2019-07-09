@@ -132,35 +132,6 @@ uint16_t Xrmp_GetResourceHandle(CXrmPool *self, Xrm_Job_t *job_ptr, UCS_XRM_CONS
     return ret_val;
 }
 
-/*! \brief  Retrieves the resource handle identified by the given resource object reference and the given
- *          connection label.
- * \details Goes through the resource handle list of XRMP and seeks for the resource handle matching to the connection label and resource object.
- *  \param  self                Instance pointer of XRMP
- *  \param  conn_lab            Connection label belonging to the seeked resource handle
- *  \param  resource_object_ptr Reference to the resource object belonging to the seeked resource handle
- *  \return Resource handle if handle was found, otherwise XRM_INVALID_RESOURCE_HANDLE.
- */
-uint16_t Xrmp_GetResourceHandleForAtd(CXrmPool * self, uint16_t conn_lab, UCS_XRM_CONST Ucs_Xrm_ResObject_t * resource_object_ptr)
-{
-    uint16_t ret_val = XRM_INVALID_RESOURCE_HANDLE;
-    uint16_t i;
-
-    for (i=0U; i<XRM_NUM_RESOURCE_HANDLES; i++)
-    {
-        if (self->resource_handle_list[i].job_ptr != NULL)
-        {
-            if ((self->resource_handle_list[i].job_ptr->connection_label == conn_lab) &&
-               (self->resource_handle_list[i].resource_object_ptr == resource_object_ptr))
-            {
-                ret_val = self->resource_handle_list[i].resource_handle;
-                break;
-            }
-        }
-    }
-
-    return ret_val;
-}
-
 /*! \brief  Returns the table index of the given resource object.
  *  \param  self        XrmPool Instance pointer
  *  \param  job_ptr     Reference to the job

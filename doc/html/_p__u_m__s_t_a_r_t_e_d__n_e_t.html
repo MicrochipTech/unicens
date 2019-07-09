@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -94,18 +94,18 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_e_t.html',''
 <div class="contents">
 <div class="textblock"><p>The UNICENS API provides functions that are used to startup and to shutdown the network. It also provides callback functions to observe network parameters.</p>
 <h1>Starting Up the Network</h1>
-<p>For starting up the network out of the off state, function <a class="el" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459" title="Starts up the Network.">Ucs_Network_Startup()</a> must be called. An optional callback function can be used, to monitor the result of the startup command. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a>. In the following example, the result callback is not used.</p>
-<div class="fragment"><div class="line"><span class="keywordflow">if</span> (<a class="code" href="group___g___u_c_s___n_e_t_ga83c2e74a4cc216aa10d7c6a1a517d459.html#ga83c2e74a4cc216aa10d7c6a1a517d459" title="Starts up the Network.">Ucs_Network_Startup</a>(ucs_inst_ptr, 52U, 0xFFFFU, NULL) != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
+<p>For starting up the network out of the off state, function Ucs_Network_Startup() must be called. An optional callback function can be used, to monitor the result of the startup command. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a>. In the following example, the result callback is not used.</p>
+<div class="fragment"><div class="line"><span class="keywordflow">if</span> (Ucs_Network_Startup(ucs_inst_ptr, 52U, 0xFFFFU, NULL) != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">{</div>
 <div class="line">    <span class="comment">/* Handle synchronous error here... */</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><h1>Shutting Down the Network</h1>
-<p>For shutting down the network, function <a class="el" href="group___g___u_c_s___n_e_t_ga1e49ce81a42f09bcecc2202edc2b93fc.html#ga1e49ce81a42f09bcecc2202edc2b93fc" title="Switches the Network off.">Ucs_Network_Shutdown()</a> must be called. It also provides an optional callback function to monitor the result of the shutdown command. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a>. The following example uses <a class="el" href="group___g___u_c_s___n_e_t_ga1e49ce81a42f09bcecc2202edc2b93fc.html#ga1e49ce81a42f09bcecc2202edc2b93fc" title="Switches the Network off.">Ucs_Network_Shutdown()</a> in combination with the optional result callback.</p>
+<p>For shutting down the network, function Ucs_Network_Shutdown() must be called. It also provides an optional callback function to monitor the result of the shutdown command. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_gaa573fbe79f76f263a17e51d6de99036d.html#gaa573fbe79f76f263a17e51d6de99036d">Ucs_StdResultCb_t</a>. The following example uses Ucs_Network_Shutdown() in combination with the optional result callback.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> foo(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    ...</div>
 <div class="line"></div>
-<div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___g___u_c_s___n_e_t_ga1e49ce81a42f09bcecc2202edc2b93fc.html#ga1e49ce81a42f09bcecc2202edc2b93fc" title="Switches the Network off.">Ucs_Network_Shutdown</a>(ucs_inst_ptr, &amp;App_OnNwShutdownResult) != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
+<div class="line">    <span class="keywordflow">if</span> (Ucs_Network_Shutdown(ucs_inst_ptr, &amp;App_OnNwShutdownResult) != <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda3fb51656e17ee4802f23706f35e349bc" title="Operation successfully completed.">UCS_RET_SUCCESS</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="comment">/* Handle synchronous error here... */</span></div>
 <div class="line">    }</div>
@@ -177,21 +177,21 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__n_e_t.html',''
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_aa220785601aa16c0e0aff52f44380719.html#aa220785601aa16c0e0aff52f44380719" title="Network initialization data.">network</a>.<a class="code" href="struct_ucs___network___init_data__t_ae9d2b9f86bdd3a9667a348eb2b75da12.html#ae9d2b9f86bdd3a9667a348eb2b75da12" title="Network Status.">status</a>.<a class="code" href="struct_ucs___network___status__t_a08f6acd8566e419c7017fc1874720223.html#a08f6acd8566e419c7017fc1874720223" title="Network Status callback function. This function reports information on the whole network.">cb_fptr</a> = &amp;App_OnUcsNetworkStatus;</div>
 <div class="line"><span class="comment">/* Notifications are enabled for parameters &quot;availability&quot; and &quot;node_position&quot; */</span></div>
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_aa220785601aa16c0e0aff52f44380719.html#aa220785601aa16c0e0aff52f44380719" title="Network initialization data.">network</a>.<a class="code" href="struct_ucs___network___init_data__t_ae9d2b9f86bdd3a9667a348eb2b75da12.html#ae9d2b9f86bdd3a9667a348eb2b75da12" title="Network Status.">status</a>.<a class="code" href="struct_ucs___network___status__t_ae7a618bc7852c52001d0756913c545c8.html#ae7a618bc7852c52001d0756913c545c8" title="Notification mask (optional parameter; default value: 0xFFFF) Indicates for which parameters the noti...">notification_mask</a> = (<a class="code" href="group___g___u_c_s___n_e_t___t_y_p_e_s_ga779e730fce488874146678e0971f52a8.html#gga779e730fce488874146678e0971f52a8a707f78e3b7a58f4ce21f31da38e00573" title="Flag for notification of availability changes.">UCS_NW_M_AVAIL</a>) | (<a class="code" href="group___g___u_c_s___n_e_t___t_y_p_e_s_ga779e730fce488874146678e0971f52a8.html#gga779e730fce488874146678e0971f52a8a89bb7ec3c55087159a8a19b5e9cc7fa0" title="Flag for notification of node position changes.">UCS_NW_M_NODE_POS</a>);</div>
-</div><!-- fragment --><table  class="mns_ic_table">
+</div><!-- fragment --><table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="struct_ucs___network___status__t.html" title="Structure holds parameters for the notification of the Network Status.">Ucs_Network_Status_t</a>. </td></tr>
+<td id="dox_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="struct_ucs___network___status__t.html" title="Structure holds parameters for the notification of the Network Status.">Ucs_Network_Status_t</a>. </td></tr>
 </table>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

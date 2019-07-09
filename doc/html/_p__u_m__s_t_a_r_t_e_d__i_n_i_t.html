@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -130,9 +130,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html',
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_ad8f7d021075e06672a999eb02da1d2e4.html#ad8f7d021075e06672a999eb02da1d2e4" title="Mandatory callback function to transmit one or multiple messages to the INIC.">tx_transmit_fptr</a> = &amp;Lld_TxTransmit;</div>
 <div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9" title="Comprises assignment to low-level driver communication interfaces.">lld</a>.<a class="code" href="struct_ucs___lld___callbacks__t_a90fa6db664734c2446327b71c51f5b52.html#a90fa6db664734c2446327b71c51f5b52" title="Optional callback function which is invoked as soon as Rx message objects are available again...">rx_available_fptr</a> = &amp;Lld_RxMsgAvailable;</div>
 <div class="line"></div>
-<div class="line"><span class="comment">/* Node Discovery Section */</span></div>
-<div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_a97b13c03602cc54884ae1765c518bd7b.html#a97b13c03602cc54884ae1765c518bd7b" title="The initialization data of the Node Discovery.">nd</a>.<a class="code" href="struct_ucs___nd___init_data__t_a98b9ccad2c6c5fa2edaf472151ee853c.html#a98b9ccad2c6c5fa2edaf472151ee853c" title="Callback function reporting the results of the Node Discovery service.">report_fptr</a> = &amp;App_OnNodeDiscoveryResult;</div>
-<div class="line">init_data.<a class="code" href="struct_ucs___init_data__t_a97b13c03602cc54884ae1765c518bd7b.html#a97b13c03602cc54884ae1765c518bd7b" title="The initialization data of the Node Discovery.">nd</a>.<a class="code" href="struct_ucs___nd___init_data__t_ab9bc02a84c7daeff234344541d41be62.html#ab9bc02a84c7daeff234344541d41be62" title="Callback function asking for evaluation of the found signature.">eval_fptr</a>   = &amp;App_OnNodeDiscoveryEval;</div>
+<div class="line"><span class="comment">/* ... additional initializers ... */</span></div>
 </div><!-- fragment --><h2>User References</h2>
 <p>By assigning <a class="el" href="struct_ucs___init_data__t.html">init_data.user_ptr</a> and <a class="el" href="struct_ucs___lld___callbacks__t.html">init_data.lld.lld_user_ptr</a> the application is able assign references of own objects to a certain UNICENS API instance. E.g., when driving 2 API instances the application can assign 2 different LLD objects. When UNICENS invokes LLD callback functions then one argument will provide the assigned lld_user_ptr. The application can simply forward the call to the actual LLD object.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> Lld_TxTransmit(<a class="code" href="struct_ucs___lld___tx_msg__t.html" title="Tx message object providing the raw port message byte stream.">Ucs_Lld_TxMsg_t</a> *msg_ptr, <span class="keywordtype">void</span> *lld_user_ptr)</div>
@@ -141,7 +139,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html',
 <div class="line">    my_lld-&gt;Transmit(msg_ptr);</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2>General Configuration</h2>
-<p>The callback <code>general.error_fptr()</code> is called if a general error occurs. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64926a6a194cfb06703835e3d06475c6.html#ga64926a6a194cfb06703835e3d06475c6">Ucs_ErrorCb_t</a>. If a general error occurs the application must trigger a re-initialization of UNICENS. A simple example implementation is shown below.</p>
+<p>The callback <code>general.error_fptr()</code> is called if a general error occurs. The callback must adhere to function signature <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga64926a6a194cfb06703835e3d06475c6.html#ga64926a6a194cfb06703835e3d06475c6">Ucs_ErrorCb_t</a>. If a general error occurs the UNICENS library is terminated and the application may trigger a re-initialization of UNICENS. A simple example implementation is shown below.</p>
 <dl class="section note"><dt>Note</dt><dd><a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init()</a> must not be called within <code>general.error_fptr()</code>!</dd></dl>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> App_OnGeneralError(<a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga9551cd80ce8a13fa6cce717cbc13e499.html#ga9551cd80ce8a13fa6cce717cbc13e499" title="UNICENS general error codes.">Ucs_Error_t</a> error_code, <span class="keywordtype">void</span> *user_ptr)</div>
 <div class="line">{</div>
@@ -156,7 +154,7 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html',
 <div class="line">    <span class="keywordflow">return</span> (uint16_t)tc;</div>
 <div class="line">}</div>
 </div><!-- fragment --><h1>Initialization</h1>
-<p>The function <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init()</a> must be called by the application to initialize one UNICENS API instance. library. The first argument is the reference to the API instance. The second argument is the reference to the initialization structure. The third argument is optional and can provide the reference to a result callback function. It is highly recommended to use the result callback to be able to handle possible errors during the initialization.</p>
+<p>The function <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init()</a> must be called by the application to initialize one UNICENS API instance. The first argument is the reference to the API instance. The second argument is the reference to the initialization structure. The third argument is optional and can provide the reference to a result callback function. It is highly recommended to use the result callback to be able to handle possible errors during the initialization.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> App_Init(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    ...</div>
@@ -180,12 +178,12 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html',
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

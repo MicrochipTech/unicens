@@ -110,12 +110,12 @@ typedef enum Ucs_Diag_RbdType_
 
 
 /*! \brief Function signature of result callback used by Ucs_Diag_GetRbdResult().
- *  \mns_res_inic{NetworkRBDResult,MNSH3-NetworkRBDResult527}
- *  \mns_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
- *  \param rbd_result   The result type.\mns_name_inic{RBDResult}
- *  \param rbd_position Relative position in the ring.\mns_name_inic{RBDPosition}
- *  \param rbd_status   Status of the RBD result after the ring break.\mns_name_inic{RBDStatus}
- *  \param rbd_diag_id  Diagnostic identifier of the device located after the ring break.\mns_name_inic{RBDDiagID}
+ *  \dox_res_inic{NetworkRBDResult,MNSH3-NetworkRBDResult527}
+ *  \dox_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
+ *  \param rbd_result   The result type.\dox_name_inic{RBDResult}
+ *  \param rbd_position Relative position in the ring.\dox_name_inic{RBDPosition}
+ *  \param rbd_status   Status of the RBD result after the ring break.\dox_name_inic{RBDStatus}
+ *  \param rbd_diag_id  Diagnostic identifier of the device located after the ring break.\dox_name_inic{RBDDiagID}
  *  \param result       Returned result of the operation
  *  \param user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr"
  *  \ingroup G_UCS_DIAG_TYPES
@@ -192,40 +192,6 @@ typedef enum Inic_Bist_
     INIC_BIST_OK         = 0x02U
 
 } Inic_Bist_t;
-
-/*! \brief Data type which descibes the resources of an INIC.
- */
-typedef enum Ucs_Resource_InfoId_
-{
-    UCS_INIC_RES_INFO_NETWORK_PORT           = 0x0DU,  /*!< \brief Network Port */
-    UCS_INIC_RES_INFO_MEDIALB_PORT           = 0x0AU,  /*!< \brief MediaLB Port */
-    UCS_INIC_RES_INFO_SPI_PORT               = 0x10U,  /*!< \brief SPI Port */
-    UCS_INIC_RES_INFO_USB_PORT               = 0x12U,  /*!< \brief USB Port */
-    UCS_INIC_RES_INFO_STREAM_PORT            = 0x16U,  /*!< \brief Streaming Port */
-    UCS_INIC_RES_INFO_RMCK_PORT              = 0x1AU,  /*!< \brief RMCK Port */
-    UCS_INIC_RES_INFO_I2C_PORT               = 0x0FU,  /*!< \brief I2C Port */
-    UCS_INIC_RES_INFO_I2CSOFT_PORT           = 0x14U,  /*!< \brief I2C Soft Port */
-    UCS_INIC_RES_INFO_GPIO_PORT              = 0x1DU,  /*!< \brief GPIO Port */
-    
-    UCS_INIC_RES_INFO_NETWORK_SOC            = 0x0EU,  /*!< \brief Network socket */
-    UCS_INIC_RES_INFO_MEDIALB_SOC            = 0x0BU,  /*!< \brief MediaLB Socket */
-    UCS_INIC_RES_INFO_SPI_SOC                = 0x11U,  /*!< \brief SPI socket */
-    UCS_INIC_RES_INFO_USB_SOC                = 0x13U,  /*!< \brief USB socket */
-    UCS_INIC_RES_INFO_STREAM_SOC             = 0x17U,  /*!< \brief Streaming socket */
-    
-    UCS_INIC_RES_INFO_SYNC_CON               = 0x02U,  /*!< \brief Synchronous connection */
-    UCS_INIC_RES_INFO_PACKET_CON             = 0x01U,  /*!< \brief Packet connection */
-    UCS_INIC_RES_INFO_CONTROL_CON            = 0x00U,  /*!< \brief Control connection */
-    UCS_INIC_RES_INFO_AVP_CON                = 0x04U,  /*!< \brief A/V Packetized Isochronous Streaming connection */
-    UCS_INIC_RES_INFO_QOS_CON                = 0x05U,  /*!< \brief Quality of Service packet connection */
-    UCS_INIC_RES_INFO_DFI_CON                = 0x09U,  /*!< \brief DiscreteFrame Isochronous Streaming, phase connection */
-
-    UCS_INIC_RES_INFO_COMBINER               = 0x07U,  /*!< \brief Combiner */
-    UCS_INIC_RES_INFO_SPLITTER               = 0x08U,  /*!< \brief Splitter */
-    UCS_INIC_RES_INFO_PMPCHANNEL             = 0x03U,  /*!< \brief PMP channel */
-    UCS_INIC_RES_INFO_TRANSCEIVER            = 0x19U   /*!< \brief Transceiver */
-
-} Ucs_Resource_InfoId_t;
 
 /*------------------------------------------------------------------------------------------------*/
 /* INIC FunctionIDs                                                                               */
@@ -329,9 +295,10 @@ typedef enum Ucs_Resource_InfoId_
 #define INIC_SSUB_NW_FALLBACK_END                  26U
 #define INIC_SSUB_NW_INFO                          27U
 #define INIC_SSUB_RES_INFO                         28U
-#define INIC_SSUB_NET_INFO                         29U 
+#define INIC_SSUB_NET_INFO                         29U
+#define INIC_SSUB_RES_BUILDER                      30U
 
-#define INIC_NUM_SSUB                              30U  /* Total number of SingleSubjects */
+#define INIC_NUM_SSUB                              31U  /* Total number of SingleSubjects */
 
 /*------------------------------------------------------------------------------------------------*/
 /* Indexes of Subjects                                                                            */
@@ -349,10 +316,23 @@ typedef enum Ucs_Resource_InfoId_
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
+
+/*! \brief   Structure used for the result of ResourceBuilder function. */
+typedef struct Inic_ResourceData_
+{
+    uint16_t node_address;          /*!< \brief Address of target node */
+    uint16_t collection_handle;     /*!< \brief Collection handle of the built resources */
+    uint16_t res_handle_1 ;         /*!< \brief resource handle 1 */
+    uint16_t res_handle_2 ;         /*!< \brief resource handle 2 */
+    uint16_t res_handle_3 ;         /*!< \brief resource handle 3 */
+
+} Inic_ResourceData_t;
+
 /*! \brief  Initialization structure of the INIC module. */
 typedef struct Inic_InitData_
 {
     CTransceiver *xcvr_ptr;     /*!< \brief Reference to a Transceiver instance */
+    CTransceiver *xcvr_debug_ptr;     /*!< \brief Reference to a optional debug Transceiver instance for the local node */
     CBase        *base_ptr;     /*!< \brief Reference to UCS base instance */
     uint16_t      tgt_addr;     /*!< \brief Address of the target device */
 
@@ -604,6 +584,7 @@ typedef struct CInic_
     Dec_FktOpIcm_t const *fkt_op_list_ptr;      /*!< \brief pointer to the FktID/OPType list  */
     CBase                *base_ptr;             /*!< \brief Reference to UCS base instance */
     CTransceiver         *xcvr_ptr;             /*!< \brief Reference to a Transceiver instance */
+    CTransceiver         *xcvr_debug_ptr;       /*!< \brief Reference to a debug Transceiver instance */
     CMaskedObserver       internal_error_obs;   /*!< \brief Error observer to handle internal
                                                             errors and events */
     uint16_t              target_address;       /*!< \brief Address of the target device  */
@@ -724,8 +705,9 @@ extern Ucs_Return_t Inic_ResourceInvalidList_Get(CInic *self,
                                                  CSingleObserver *obs_ptr);
 extern Ucs_Return_t Inic_ResourceMonitor_Set(CInic *self,
                                              Ucs_Resource_MonitorCtrl_t control);
-extern Ucs_Return_t Inic_ResourceInfo_Get(CInic *self,
-                                          uint16_t resource_handle, CSingleObserver *obs_ptr);
+extern Ucs_Return_t Inic_ResourceBuilder(CInic *self,
+                                         uint8_t index,
+                                         CSingleObserver *obs_ptr);
 extern Ucs_Return_t Inic_NetworkInfo_Get(CInic *self,
                                          CSingleObserver *obs_ptr);
 extern Ucs_Return_t Inic_Notification_Set(CInic *self,
@@ -921,12 +903,12 @@ extern void Inic_NetworkRbdResult_Status(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_NetworkRbdResult_Error(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceDestroy_Error(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceDestroy_Result(void *self, Ucs_Message_t *msg_ptr);
+extern void Inic_ResourceBuilder_Error(void *self, Ucs_Message_t *msg_ptr);
+extern void Inic_ResourceBuilder_Result(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceInvalidList_Status(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceInvalidList_Error(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceMonitor_Status(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_ResourceMonitor_Error(void *self, Ucs_Message_t *msg_ptr);
-extern void Inic_ResourceInfo_Status(void *self, Ucs_Message_t *msg_ptr);
-extern void Inic_ResourceInfo_Error(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_AttachSockets_Error(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_AttachSockets_Result(void *self, Ucs_Message_t *msg_ptr);
 extern void Inic_DetachSockets_Error(void *self, Ucs_Message_t *msg_ptr);

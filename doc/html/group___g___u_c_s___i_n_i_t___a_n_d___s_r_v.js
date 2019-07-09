@@ -9,10 +9,9 @@ var group___g___u_c_s___i_n_i_t___a_n_d___s_r_v =
       [ "i2c", "struct_ucs___init_data__t_a1b49223d94d385d1229b6864ad7fa053.html#a1b49223d94d385d1229b6864ad7fa053", null ],
       [ "inic", "struct_ucs___init_data__t_a6788f8bea24665769ce00897162f84d4.html#a6788f8bea24665769ce00897162f84d4", null ],
       [ "lld", "struct_ucs___init_data__t_ac0b0a4478bafe6e81ed3c3e2c72f4fc9.html#ac0b0a4478bafe6e81ed3c3e2c72f4fc9", null ],
-      [ "mgr", "struct_ucs___init_data__t_a517c2ec800639c8a91183e70189b1875.html#a517c2ec800639c8a91183e70189b1875", null ],
-      [ "nd", "struct_ucs___init_data__t_a97b13c03602cc54884ae1765c518bd7b.html#a97b13c03602cc54884ae1765c518bd7b", null ],
       [ "network", "struct_ucs___init_data__t_aa220785601aa16c0e0aff52f44380719.html#aa220785601aa16c0e0aff52f44380719", null ],
       [ "rm", "struct_ucs___init_data__t_a8619aaf795810b7508046fbfef6d6907.html#a8619aaf795810b7508046fbfef6d6907", null ],
+      [ "supv", "struct_ucs___init_data__t_a5745357c34d0d5332f027f179d85ec7f.html#a5745357c34d0d5332f027f179d85ec7f", null ],
       [ "user_ptr", "struct_ucs___init_data__t_a41f828ebbe67a574ee39abd6c054bb6c.html#a41f828ebbe67a574ee39abd6c054bb6c", null ]
     ] ],
     [ "UCS_NUM_INSTANCES", "group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga750688e4ce10e995d802e288540d19c4.html#ga750688e4ce10e995d802e288540d19c4", null ],

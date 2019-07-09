@@ -213,8 +213,11 @@ static void Rsm_Service (void *self)
     if ((event_mask & RSM_EVENT_SIG_SYNCLOST) == RSM_EVENT_SIG_SYNCLOST)
     {
         Srv_ClearEvent(&self_->rsm_srv, (RSM_EVENT_SIG_SYNCLOST | RSM_EVENT_PROCESS_DEV));
-        event_mask = 0U;
-        Rsm_SignalSyncLost(self_);
+        if (Rsm_IsLocal(self_) == false)
+        {
+            event_mask = 0U;
+            Rsm_SignalSyncLost(self_);
+        }
     }    
     
     /* Handle event to process jobs within devices */
@@ -249,11 +252,6 @@ static void Rsm_ProcessJob (CRemoteSyncManagement *self)
             /* abort & signal sync result and sync lost if pre-conditions met  */
             Rsm_SignalSyncLost(self);
         }
-        /* OR RETRY THE PROCESS 
-        else
-        {
-            Srv_SetEvent(&self->rsm_srv, RSM_EVENT_PROCESS_DEV);
-        } */
     }
 }
 

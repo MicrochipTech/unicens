@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -125,9 +125,9 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___g_p_i_o.html','');
 </div><div class="memdoc">
 
 <p>Reads the pin state of the given GPIO port. </p>
-<table  class="mns_ic_table">
+<table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_inic">&#160;</td><td>This function corresponds with the INIC function <a href="_p__u_m__i_i_s.html#MNSH3-GPIOPortPinState704">INIC.GPIOPortPinState</a>.</td></tr>
+<td id="dox_ic_inic">&#160;</td><td>This function corresponds with the INIC function <a href="_p__u_m__i_i_s.html#MNSH3-GPIOPortPinState704">INIC.GPIOPortPinState</a>.</td></tr>
 </table>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -139,9 +139,9 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___g_p_i_o.html','');
 <li>UCS_ADDR_LOCAL_NODE </li>
 </ul>
 </td></tr>
-    <tr><td class="paramname">gpio_port_handle</td><td>The GPIO Port resource handle. <table  class="mns_param_table">
+    <tr><td class="paramname">gpio_port_handle</td><td>The GPIO Port resource handle. <table  class="dox_param_table">
 <tr>
-<td id="mns_param_small">&#160;</td><td><code>GPIOPortHandle</code></td></tr>
+<td id="dox_param_small">&#160;</td><td><code>GPIOPortHandle</code></td></tr>
 </table>
 </td></tr>
     <tr><td class="paramname">result_fptr</td><td>Required result callback function pointer. </td></tr>
@@ -154,18 +154,20 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___g_p_i_o.html','');
 <tr>
 <td>UCS_RET_SUCCESS </td><td>No error </td></tr>
 <tr>
-<td>UCS_RET_ERR_PARAM </td><td>At least one parameter is wrong </td></tr>
+<td>UCS_RET_ERR_PARAM </td><td>At least one parameter is wrong. </td></tr>
 <tr>
-<td>UCS_RET_ERR_BUFFER_OVERFLOW </td><td>No message buffer available </td></tr>
+<td>UCS_RET_ERR_BUFFER_OVERFLOW </td><td>No message buffer is available. </td></tr>
 <tr>
-<td>UCS_RET_ERR_API_LOCKED </td><td>API is currently locked </td></tr>
+<td>UCS_RET_ERR_API_LOCKED </td><td>API is currently locked. </td></tr>
 <tr>
-<td>UCS_RET_ERR_NOT_INITIALIZED </td><td>UNICENS is not initialized </td></tr>
+<td>UCS_RET_ERR_NOT_SUPPORTED </td><td>API is not supported in the current <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Network Supervisor Mode</a>. </td></tr>
+<tr>
+<td>UCS_RET_ERR_NOT_INITIALIZED </td><td>UNICENS is not initialized. </td></tr>
 </table>
 </dd></dl>
-<table  class="mns_ic_table">
+<table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_started">&#160;</td><td>See also section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__p_b_i__e.html#GPIO_RP_Ex">Example for Ucs_Gpio_ReadPort</a> for an example implementation. </td></tr>
+<td id="dox_ic_started">&#160;</td><td>See also section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__p_b_i__e.html#GPIO_RP_Ex">Example for Ucs_Gpio_ReadPort</a> for an example implementation. </td></tr>
 </table>
 
 </div>
@@ -176,12 +178,12 @@ $(document).ready(function(){initNavTree('group___g___u_c_s___g_p_i_o.html','');
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="group___g___u_c_s___g_p_i_o.html">GPIO</a></li>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:38 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:17 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

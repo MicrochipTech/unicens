@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -92,7 +92,115 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <div class="title">Release History </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1>V2.2.0</h1>
+<div class="textblock"><h1>V2.3.0</h1>
+<table  style="border:none;">
+<tr style="border:none;">
+<td style="padding-right:15px;"><b>Release Date:</b> </td><td>2019-06-28  </td></tr>
+<tr style="border:none;">
+<td style="padding-right:15px;"><b>Supported INICs:</b> </td><td>See conformity table (Package and Document information)  </td></tr>
+</table>
+<h2>Resolved Items</h2>
+<table class="doxtable">
+<tr>
+<th>Type </th><th>Description</th></tr>
+<tr>
+<td>Feature </td><td>Added new attribute <code>debug_message_enable</code> to structure <a class="el" href="struct_ucs___rm___init_data__t.html">Ucs_Rm_InitData_t</a> which allows to make local resource building commands and responses visible to the network. </td></tr>
+<tr>
+<td>Feature </td><td>Introduced the new feature <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Network Supervisor</a> which is replacing the previous <code>Manager</code> feature. The Network Supervisor introduces the following new API functions:<br/>
+ <a class="el" href="group___g___u_c_s___s_u_p_v_ga4b0d0925415cb934500bf71a53d5a5be.html#ga4b0d0925415cb934500bf71a53d5a5be" title="Sets the Network Supervisor to a new operation mode.">Ucs_Supv_SetMode()</a>, <a class="el" href="group___g___u_c_s___s_u_p_v_ga9edc576abeefea451eb58e4d00684615.html#ga9edc576abeefea451eb58e4d00684615" title="Starts the programming sequence for a remote node.">Ucs_Supv_ProgramNode()</a>, <a class="el" href="group___g___u_c_s___s_u_p_v_ga0d09f5fda03cb09bae5784194498a58f.html#ga0d09f5fda03cb09bae5784194498a58f" title="Exits the Supervisor Programming Mode.">Ucs_Supv_ProgramExit()</a><br/>
+<br/>
+ The Network Supervisor introduces the following new attributes in the initialization structure:<br/>
+ <code>supv.report_mode_fptr, supv.diag_type, supv.diag_fdx_fptr, supv.diag_hdx_fptr, supv.prog_local_fptr, supv.prog_signature_fptr, supv.prog_event_fptr</code>. </td></tr>
+<tr>
+<td>Feature </td><td>Added new function <a class="el" href="group___g___u_c_s___s_u_p_v_gacc59f75232f809ae670b66c33eb8f3db.html#gacc59f75232f809ae670b66c33eb8f3db" title="Creates a data string from an identification string which can be used as parameter data_ptr of a Ucs_...">Ucs_Supv_ProgramCreateIS()</a> to build binary data of INIC identification string. </td></tr>
+<tr>
+<td>Feature </td><td>Added new functions <a class="el" href="group___g___u_c_s___n_e_t_ga926ad005ebd2a96e0687006108a7fbfa.html#ga926ad005ebd2a96e0687006108a7fbfa" title="Registers the alive message callback function.">Ucs_Network_RegisterAliveCb()</a> and <a class="el" href="group___g___u_c_s___n_e_t_gaa0866bd695c73780b7e41184b6652da2.html#gaa0866bd695c73780b7e41184b6652da2" title="Unregisters the alive message callback function.">Ucs_Network_UnRegisterAliveCb()</a> to support the reception of alive messages. </td></tr>
+<tr>
+<td>Feature </td><td>Added new symbol <a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#ggad5ed0387c3c156602826d50ce94c9df7ad75bbe8bacd545ea3e11c537c8f5af36">UCS_NW_AVAIL_INFO_FALLBACK</a> to structure <a class="el" href="group___g___u_c_s___n_e_t___t_y_p_e_s_gad5ed0387c3c156602826d50ce94c9df7.html#gad5ed0387c3c156602826d50ce94c9df7">Ucs_Network_AvailInfo_t</a>. </td></tr>
+<tr>
+<td>Feature </td><td>Added new symbols <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a5e01bf5f88a0e612cc1e7c1cb25df8a0">UCS_RM_EP_DC_SOURCE</a> and <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a0eff3c819cf39f17abb9029b7139d899">UCS_RM_EP_DC_SINK</a> to structure <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#ga127a72f023d3c0289ab74b001f6edc25">Ucs_Rm_EndPointType_t</a>. </td></tr>
+<tr>
+<td>Feature </td><td>Added new structure <a class="el" href="struct_ucs___rm___d_c___end_point__t.html">Ucs_Rm_DC_EndPoint_t</a>. </td></tr>
+<tr>
+<td>Feature </td><td>Added new attribute <a class="el" href="struct_ucs___rm___route__t.html">static_connection</a> in structure <a class="el" href="struct_ucs___rm___route__t.html">Ucs_Rm_Route_t</a>. </td></tr>
+<tr>
+<td>Feature </td><td>Added new symbols <a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca8e825407e437df508c2e7d3567354d2d">UCS_XRM_RC_TYPE_DC_SOCKET</a> and <a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_gac238d98be8f9df6340eb4ee72de36ccc.html#ggac238d98be8f9df6340eb4ee72de36ccca7abfa3e945fbef047b0a89db4db59874">UCS_XRM_RC_TYPE_DC_CON</a> in enum Ucs_Xrm_ResourceType_t. </td></tr>
+<tr>
+<td>Feature </td><td>Added new structure <a class="el" href="group___g___u_c_s___x_r_m___t_y_p_e_s_ga6f9842e71997684b6f117e6fba2f14bf.html#ga6f9842e71997684b6f117e6fba2f14bf">Ucs_Xrm_SocketType_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Renamed attribute <code>atd_enabled</code> into <a class="el" href="struct_ucs___rm___route__t.html">atd</a> in structure <a class="el" href="struct_ucs___rm___route__t.html">Ucs_Rm_Route_t</a>. The attribute <a class="el" href="struct_ucs___rm___route__t.html">atd</a> now comprises <code>enabled</code> and <code>clk_config</code> as own attributes. </td></tr>
+<tr>
+<td>Change </td><td>Due to the introduction of the Network Supervisor the attribute <code>mgr</code> was renamed to <a class="el" href="struct_ucs___init_data__t.html">supv</a> within the structure <a class="el" href="struct_ucs___init_data__t.html">Ucs_InitData_t</a>.<br/>
+ Replaced the attribute <code>mgr.enabled</code> by <a class="el" href="struct_ucs___supv___init_data__t.html">supv.mode</a> in the initialization structure. </td></tr>
+<tr>
+<td>Change </td><td>Due to the introduction of the Network Supervisor some API functions may return <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cda8820168a0730173889011958189733e2">UCS_RET_ERR_NOT_SUPPORTED</a> during a certain Network Supervisor Mode. Please refer to the chapter <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Network Supervisor - Getting Started</a>. </td></tr>
+<tr>
+<td>Change </td><td>Due to the introduction of the Network Supervisor the application does no longer need to call certain API functions. The following API functions are removed:<br/>
+ <code>Ucs_Rm_Start(), Ucs_Rm_SetNodeAvailable(), Ucs_Rm_GetAttachedRoutes(), Ucs_Network_Startup(), Ucs_Network_Shutdown(), Ucs_Network_ForceNotAvailable(), Ucs_Ns_SynchronizeNode(), Ucs_Nd_Start(), Ucs_Nd_Stop(), Ucs_Nd_InitAll(), Ucs_Diag_StartFdxDiagnosis(), Ucs_Diag_StartHdxDiagnosis()</code> </td></tr>
+<tr>
+<td>Change </td><td>Due to the introduction of the Network Supervisor the application does no longer need to assign certain callback functions. The following callback functions are removed from the initialization structure:<br/>
+ <code>nd.report_fptr</code>, <code>nd.eval_fptr</code> </td></tr>
+<tr>
+<td>Change </td><td>Due to the introduction of the Network Supervisor the following types are removed from API:<br/>
+ <code>Ucs_Nd_ResCode_t, Ucs_Nd_CheckResult_t, Ucs_Nd_EvalCb_t, Ucs_Nd_ReportCb_t</code> </td></tr>
+<tr>
+<td>Change </td><td>Removed symbols <code>UCS_PRG_ST_CS_IS</code>, <code>UCS_PRG_ST_ERASE_EM</code> and <code>UCS_PRG_ST_CFG_READ</code> in enum <a class="el" href="group___g___u_c_s___s_u_p_v___t_y_p_e_s_gab29d4eadce18cb68209671a44c1eaa3a.html#gab29d4eadce18cb68209671a44c1eaa3a">Ucs_Prg_SessionType_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Renamed attribute <code>data_length</code> to <a class="el" href="struct_ucs___prg___command__t.html">data_size</a> in structure <a class="el" href="struct_ucs___prg___command__t.html">Ucs_Prg_Command_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Renamed attribute <code>data</code> to <a class="el" href="struct_ucs___prg___command__t.html">data_ptr</a> in structure <a class="el" href="struct_ucs___prg___command__t.html">Ucs_Prg_Command_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Changed signature of function <a class="el" href="group___g___u_c_s___n_e_t_ga1aefb4a6532869a1e6e576701daa671c.html#ga1aefb4a6532869a1e6e576701daa671c" title="Retrieves the number of nodes within the network.">Ucs_Network_GetNodesCount()</a> to return a standard error type <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#ga886138f5d13e84ffaa3df5769830e1cd">Ucs_Return_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Changed signature of callback function type <a class="el" href="group___g___u_c_s___s_u_p_v___t_y_p_e_s_ga325bd16a73c18bf2a70dbba45a15b818.html#ga325bd16a73c18bf2a70dbba45a15b818">Ucs_Prg_ReportCb_t</a>. Added new structure <a class="el" href="struct_ucs___prg___report__t.html">Ucs_Prg_Report_t</a> to report programming result. </td></tr>
+<tr>
+<td>Change </td><td>Renamed attribute <code>signature</code> to <a class="el" href="struct_ucs___hdx___report__t.html">signature_ptr</a> in structure <a class="el" href="struct_ucs___hdx___report__t.html">Ucs_Hdx_Report_t</a>. </td></tr>
+<tr>
+<td>Change </td><td>Removed symbol <code>UCS_FBP_RES_ALIVE</code> in enum <a class="el" href="group___g___u_c_s___s_u_p_v___t_y_p_e_s_ga9e2a960fb89e5ee0a21f595664be5d2e.html#ga9e2a960fb89e5ee0a21f595664be5d2e">Ucs_Fbp_ResCode_t</a>. Use the new function <a class="el" href="group___g___u_c_s___n_e_t_ga926ad005ebd2a96e0687006108a7fbfa.html#ga926ad005ebd2a96e0687006108a7fbfa" title="Registers the alive message callback function.">Ucs_Network_RegisterAliveCb()</a> to receive alive messages. </td></tr>
+<tr>
+<td>Change </td><td>Removed parameters UCS_STREAM_PORT_CLK_CFG_8FS and UCS_STREAM_PORT_CLK_CFG_16FS in <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#ga0e856884fa1c7908c59718da0f396484">Ucs_Stream_PortClockConfig_t</a> and added <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga0e856884fa1c7908c59718da0f396484.html#gga0e856884fa1c7908c59718da0f396484aa53335fc0c6c50903c76cdbb050e6c11">UCS_STREAM_PORT_CLK_CFG_NONE</a>, which can be used as default for the ATD feature. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Disabling route activity leads to destruction of resources at local node in loop forever. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Callback function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a> is not invoked whenever <code>NULL</code> value is given to the data pointer of expected result in the script. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Undefined behavior during asynchronous calls of the ATD feature. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Route build is started when only one node is available. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Callback function <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga91d851f4665839e2aac982565b007805.html#ga91d851f4665839e2aac982565b007805">Ucs_Rm_ReportCb_t</a> is not invoked when route is set to inactive by using API <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_gabb9185254132bb29ee0af137c36f50b8.html#gabb9185254132bb29ee0af137c36f50b8" title="Sets the given route to active respectively inactive and triggers the routing process to handle the r...">Ucs_Rm_SetRouteActive()</a>. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Synchronous error <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s_ga886138f5d13e84ffaa3df5769830e1cd.html#gga886138f5d13e84ffaa3df5769830e1cdad4a30091202638c890abbdb682ca4fe5">UCS_RET_ERR_API_LOCKED</a> occurs if application calls <a class="el" href="group___g___u_c_s___g_p_i_o_gaf4f73584f8e7070f74dfce863ccbdf35.html#gaf4f73584f8e7070f74dfce863ccbdf35" title="Creates the GPIO port with its associated port instance identifier.">Ucs_Gpio_CreatePort()</a> back to back. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: UCS_RES_ERR_TIMEOUT is returned as an asynchronous response of <a class="el" href="group___g___u_c_s___x_r_m___s_t_r_e_a_m_ga8fbfe64d0c67ade39e1823ee8e60a399.html#ga8fbfe64d0c67ade39e1823ee8e60a399" title="This function is used to configure a Streaming Port.">Ucs_Xrm_Stream_SetPortConfig()</a>. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Programming the local node does not work as intended. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Not possible to program more than 255 bytes </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: When ENC.Welcome.Result from a node is lost the node will be invisible for UNICENS. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Node discovery stop is not happening after NET_OFF. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Identification String of OS8121x Rev.B1A was not supported. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Undefined behavior when terminating Management Library during full-duplex diagnosis. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Missing range check for node position address in Ucs_Prog_Start(). </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Callback function <a class="el" href="struct_ucs___rm___init_data__t_a68590d8712353f94f2e9ccec1e21baa5.html#a68590d8712353f94f2e9ccec1e21baa5">debug_resource_status_fptr</a> is not invoked. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Node initialization scripts may be aborted unintentionally and might fail the next retry attempt. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Documentation of function <a class="el" href="group___g___u_c_s___n_e_t_ga0819e9713eb9be900330f4c38e26b38e.html#ga0819e9713eb9be900330f4c38e26b38e" title="Sets the packet filter mode of an available node.">Ucs_Network_SetPacketFilterMode()</a> states a restriction which is not true. </td></tr>
+<tr>
+<td>Defect </td><td>Fixed issue: Documentation of Protocol Library declares macros <code>UCS_FOOTPRINT_DISABLE_AMS</code> and <code>UCS_NS_CONST</code> that are not valid in Protocol Library. </td></tr>
+</table>
+<h2>Known Issues</h2>
+<ul>
+<li>Application messages sent to the target address <a class="el" href="group___g___u_c_s___t_r_a_c_e___t_y_p_e_s_ga3d9b0fe84140fbc49ba03b685f6c0443.html#ga3d9b0fe84140fbc49ba03b685f6c0443">UCS_ADDR_BROADCAST_BLOCKING</a> will be sent to the target address <a class="el" href="group___g___u_c_s___t_r_a_c_e___t_y_p_e_s_gaed7f13e95bb2324327de175834aa02ff.html#gaed7f13e95bb2324327de175834aa02ff">UCS_ADDR_BROADCAST_UNBLOCKING</a>. I.e., the blocking broadcast feature is disabled in this release.</li>
+</ul>
+<h1>V2.2.0</h1>
 <table  style="border:none;">
 <tr style="border:none;">
 <td style="padding-right:15px;"><b>Release Date:</b> </td><td>2018-10-08  </td></tr>
@@ -108,21 +216,21 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <tr>
 <td>Feature </td><td>Added new symbol <a class="el" href="group___g___u_c_s___x_r_m___e_n_u_m_ga16d6cd08e925676dfade13e980f460b0.html#ga16d6cd08e925676dfade13e980f460b0">UCS_STREAM_PORT_CLK_DLY_BDO</a> to support TDM. </td></tr>
 <tr>
-<td>Feature </td><td>Added new function <a class="el" href="group___g___u_c_s___f_d_x___d_i_a_g_n_o_s_i_s_ga096ca43d72b57ee3a5982e4ea1faa234.html#ga096ca43d72b57ee3a5982e4ea1faa234" title="Starts the FullDuplex Diagnosis.">Ucs_Diag_StartFdxDiagnosis()</a> to start the FullDuplexDiagnosis. </td></tr>
+<td>Feature </td><td>Added new function Ucs_Diag_StartFdxDiagnosis() to start the FullDuplexDiagnosis. </td></tr>
 <tr>
 <td>Feature </td><td>Added new function <a class="el" href="group___g___u_c_s___n_e_t_ga0819e9713eb9be900330f4c38e26b38e.html#ga0819e9713eb9be900330f4c38e26b38e" title="Sets the packet filter mode of an available node.">Ucs_Network_SetPacketFilterMode()</a>. </td></tr>
 <tr>
-<td>Feature </td><td>Added new function <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga8ba4ce1e1d69ead54e8a3e1c052575c5.html#ga8ba4ce1e1d69ead54e8a3e1c052575c5" title="Synchronizes a node which is required to use RoutingManagement, Scripting and GPIO/I2C functionality...">Ucs_Ns_SynchronizeNode()</a> which is available if <a class="el" href="struct_ucs___mgr___init_data__t.html">mgr.enabled</a> is <code>false</code>. </td></tr>
+<td>Feature </td><td>Added new function Ucs_Ns_SynchronizeNode() which is available if <a class="el" href="struct_ucs___supv___init_data__t.html">mgr.enabled</a> is <code>false</code>. </td></tr>
 <tr>
 <td>Feature </td><td>Added new configuration macro <a class="el" href="group___g___u_c_s___m_i_s_c_ga0922091e9a1dd367834936f40a4d477c.html#ga0922091e9a1dd367834936f40a4d477c">UCS_FOOTPRINT_DISABLE_AMS</a> to disable AMS related code sections and data for a smaller memory footprint. </td></tr>
 <tr>
-<td>Feature </td><td>Added automatic script execution of <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t::init_script_list_ptr</a> if <a class="el" href="struct_ucs___mgr___init_data__t.html">mgr.enabled</a> is <code>true</code>.<br/>
- Added new report codes <a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a29c43b0166bf133487a1974e58446fd0">UCS_MGR_REP_SCRIPT_FAILURE</a>, <a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445ae4c09559ccf1f0cc07be49b22039a16d">UCS_MGR_REP_SCRIPT_SUCCESS</a> and <a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a3e7c555348e09c9552de9e03cb7e4d43">UCS_MGR_REP_IRRECOVERABLE</a> notified in callback function <a class="el" href="struct_ucs___mgr___init_data__t.html">mgr.report_fptr</a>. </td></tr>
+<td>Feature </td><td>Added automatic script execution of <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t::init_script_list_ptr</a> if <a class="el" href="struct_ucs___supv___init_data__t.html">mgr.enabled</a> is <code>true</code>.<br/>
+ Added new report codes <code>UCS_MGR_REP_SCRIPT_FAILURE</code>, <code>UCS_MGR_REP_SCRIPT_SUCCESS</code> and <code>UCS_MGR_REP_IRRECOVERABLE</code> notified in callback function <a class="el" href="struct_ucs___supv___init_data__t.html">mgr.report_fptr</a>. </td></tr>
 <tr>
-<td>Feature </td><td>Added new enum symbol <a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a6741e96bfa9a2938e579005da31fc2f2">UCS_MGR_REP_WELCOMED</a> notified as parameter <code>code</code> in callback function <a class="el" href="struct_ucs___mgr___init_data__t.html">mgr.report_fptr</a>. <br/>
- The parameter <code>node_ptr</code> now is only valid of the code <a class="el" href="group___g___u_c_s___m_g_r_gab85aa9ce377050505124af5e9549e445.html#ggab85aa9ce377050505124af5e9549e445a6741e96bfa9a2938e579005da31fc2f2">UCS_MGR_REP_WELCOMED</a> is notified. Otherwise it is <code>NULL</code>. </td></tr>
+<td>Feature </td><td>Added new enum symbol <code>UCS_MGR_REP_WELCOMED</code> notified as parameter <code>code</code> in callback function <a class="el" href="struct_ucs___supv___init_data__t.html">mgr.report_fptr</a>. <br/>
+ The parameter <code>node_ptr</code> now is only valid of the code <code>UCS_MGR_REP_WELCOMED</code> is notified. Otherwise it is <code>NULL</code>. </td></tr>
 <tr>
-<td>Feature </td><td>Replaced attribute <code>node_address</code> by <code>signature_ptr</code> in <a class="el" href="group___g___u_c_s___m_g_r_ga185e277bb05f92c58e7e005128805c6f.html#ga185e277bb05f92c58e7e005128805c6f">mgr.report_fptr</a>. The callback function now provides the full signature of the node. </td></tr>
+<td>Feature </td><td>Replaced attribute <code>node_address</code> by <code>signature_ptr</code> in <a class="el" href="group___g___u_c_s___s_u_p_v___t_y_p_e_s_gaa46122c2034804e753faed5e88cab76e.html#gaa46122c2034804e753faed5e88cab76e">mgr.report_fptr</a>. The callback function now provides the full signature of the node. </td></tr>
 <tr>
 <td>Feature </td><td>Added more detailed information in node scripting <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">result callback</a> function. Replaced result code <code>UCS_NS_RES_ERROR</code> by several more detailed codes in <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gabd3ecc8ab539f3b9de3fc8045c083b60.html#gabd3ecc8ab539f3b9de3fc8045c083b60">Ucs_Ns_ResultCode_t</a>. Added new parameter <a class="el" href="struct_ucs___ns___error_info__t.html">error_info</a> in <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">result callback</a> function. </td></tr>
 <tr>
@@ -130,19 +238,25 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <tr>
 <td>Feature </td><td>Added new configuration macro <a class="el" href="group___g___u_c_s___m_i_s_c_ga0f98f94a438e5b2e7a28c49025b99954.html#ga0f98f94a438e5b2e7a28c49025b99954">UCS_NS_CONST</a> to reduce the RAM footprint. The configuration allows to store node scripts in ROM. </td></tr>
 <tr>
-<td>Change </td><td>Renamed BackChannelDiagnosis to HalfDuplexDiagnosis. API functions are <a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_ga150a5a45c252c3fa1419796e229f8069.html#ga150a5a45c252c3fa1419796e229f8069" title="Starts the HalfDuplex Diagnosis.">Ucs_Diag_StartHdxDiagnosis()</a> and <a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s___t_y_p_e_s_ga90d69a55d9619d758608f8904f74c643.html#ga90d69a55d9619d758608f8904f74c643">Ucs_Diag_HdxReportCb_t</a>. </td></tr>
+<td>Feature </td><td>Added <a class="el" href="struct_ucs___rm___atd__t.html">Ucs_Rm_Atd_t</a> structure to <a class="el" href="struct_ucs___rm___route__t.html" title="Configuration structure of a Route.">Ucs_Rm_Route_t</a> structure which needs to be filled for ATD calculation. </td></tr>
+<tr>
+<td>Feature </td><td>Added <a class="el" href="struct_ucs___rm___static_connection__t.html">Ucs_Rm_StaticConnection_t</a> structure to <a class="el" href="struct_ucs___rm___route__t.html" title="Configuration structure of a Route.">Ucs_Rm_Route_t</a> structure which is needed for proxy channel usage and hidden Fallback mode enable parameter. </td></tr>
+<tr>
+<td>Feature </td><td>Added <a class="el" href="struct_ucs___rm___d_c___end_point__t.html">Ucs_Rm_DC_EndPoint_t</a> structure , <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a5e01bf5f88a0e612cc1e7c1cb25df8a0">Ucs_Rm_EndPointType_t::UCS_RM_EP_DC_SOURCE</a> and <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g___t_y_p_e_s_ga127a72f023d3c0289ab74b001f6edc25.html#gga127a72f023d3c0289ab74b001f6edc25a0eff3c819cf39f17abb9029b7139d899">Ucs_Rm_EndPointType_t::UCS_RM_EP_DC_SINK</a> to enable the build of half default created routes. </td></tr>
+<tr>
+<td>Change </td><td>Renamed BackChannelDiagnosis to HalfDuplexDiagnosis. API functions are Ucs_Diag_StartHdxDiagnosis() and <a class="el" href="group___g___u_c_s___h_d_x___d_i_a_g_n_o_s_i_s_gacd6a8c13ce11adc741188d1d14841fc8.html#gacd6a8c13ce11adc741188d1d14841fc8">Ucs_Diag_HdxReportCb_t</a>. </td></tr>
 <tr>
 <td>Change </td><td>Added new callback function <a class="el" href="struct_ucs___lld___callbacks__t.html">lld.reset_fptr</a> which is mandatory for the Low-Level Driver. N.B., <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init()</a> will fail if this function is not assigned. </td></tr>
 <tr>
 <td>Change </td><td>Removed superfluous parameter <code>node_position</code> in callback function <a class="el" href="group___g___u_c_s___n_e_t_ga7ef0f374202a3e8b69aba643c37d4c28.html#ga7ef0f374202a3e8b69aba643c37d4c28">network.status.cb_fptr</a>. <br/>
  Removed <code>bit 5</code> in related <a class="el" href="struct_ucs___network___status__t.html">notification_mask</a> and <a class="el" href="group___g___u_c_s___n_e_t_ga7ef0f374202a3e8b69aba643c37d4c28.html#ga7ef0f374202a3e8b69aba643c37d4c28">change_mask</a>. </td></tr>
 <tr>
-<td>Change </td><td>Replaced the parameter <code>node_ptr</code> by <code>node_address</code> in the following functions and callback types: <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a>, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a>, <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable()</a>, <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga05817aefb6c3970eb41f9cc37db5df09.html#ga05817aefb6c3970eb41f9cc37db5df09" title="Retrieves the &quot;available&quot; flag information of the given node.">Ucs_Rm_GetNodeAvailable()</a>. </td></tr>
+<td>Change </td><td>Replaced the parameter <code>node_ptr</code> by <code>node_address</code> in the following functions and callback types: <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a>, <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_gaa0c2347a83519e47decea0f5288ec5d1.html#gaa0c2347a83519e47decea0f5288ec5d1">Ucs_Ns_ResultCb_t</a>, Ucs_Rm_SetNodeAvailable(), <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga05817aefb6c3970eb41f9cc37db5df09.html#ga05817aefb6c3970eb41f9cc37db5df09" title="Retrieves the &quot;available&quot; flag information of the given node.">Ucs_Rm_GetNodeAvailable()</a>. </td></tr>
 <tr>
 <td>Change </td><td>Renamed <code>Ucs_Rm_Node_t::script_list_ptr</code> to <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t::init_script_list_ptr</a>. Renamed <code>Ucs_Rm_Node_t::script_list_size</code> to <a class="el" href="struct_ucs___rm___node__t.html">Ucs_Rm_Node_t::init_script_list_size</a>. </td></tr>
 <tr>
-<td>Change </td><td>If <a class="el" href="struct_ucs___mgr___init_data__t.html">mgr.enabled</a> is <code>false</code> and a node is "welcomed", it is now required to call <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga8ba4ce1e1d69ead54e8a3e1c052575c5.html#ga8ba4ce1e1d69ead54e8a3e1c052575c5" title="Synchronizes a node which is required to use RoutingManagement, Scripting and GPIO/I2C functionality...">Ucs_Ns_SynchronizeNode()</a> and wait for the result callback before calling one of the following functions for the related <code>node_address:</code> <br/>
- <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a>, <a class="el" href="group___g___u_c_s___n_e_t_ga0819e9713eb9be900330f4c38e26b38e.html#ga0819e9713eb9be900330f4c38e26b38e" title="Sets the packet filter mode of an available node.">Ucs_Network_SetPacketFilterMode()</a>, <a class="el" href="group___g___u_c_s___r_o_u_t_i_n_g_ga29e8b10fef8396b1826d6c10c07f9bac.html#ga29e8b10fef8396b1826d6c10c07f9bac" title="Sets the availability attribute (available or not available) of the given node and triggers the routi...">Ucs_Rm_SetNodeAvailable()</a>, <a class="el" href="group___g___u_c_s___g_p_i_o.html">Ucs_Gpio_xxx()</a>, <a class="el" href="group___g___u_c_s___i2_c.html">Ucs_I2c_xxx()</a>. </td></tr>
+<td>Change </td><td>If <a class="el" href="struct_ucs___supv___init_data__t.html">mgr.enabled</a> is <code>false</code> and a node is "welcomed", it is now required to call Ucs_Ns_SynchronizeNode() and wait for the result callback before calling one of the following functions for the related <code>node_address:</code> <br/>
+ <a class="el" href="group___g___u_c_s___s_c_r_i_p_t_i_n_g_ga50eef4fd71e3e818d27db40a85458305.html#ga50eef4fd71e3e818d27db40a85458305" title="Runs a given script list on the given node.">Ucs_Ns_Run()</a>, <a class="el" href="group___g___u_c_s___n_e_t_ga0819e9713eb9be900330f4c38e26b38e.html#ga0819e9713eb9be900330f4c38e26b38e" title="Sets the packet filter mode of an available node.">Ucs_Network_SetPacketFilterMode()</a>, Ucs_Rm_SetNodeAvailable(), <a class="el" href="group___g___u_c_s___g_p_i_o.html">Ucs_Gpio_xxx()</a>, <a class="el" href="group___g___u_c_s___i2_c.html">Ucs_I2c_xxx()</a>. </td></tr>
 <tr>
 <td>Change </td><td>Renamed all attributes of <a class="el" href="struct_ucs___ns___config_msg__t.html">Ucs_Ns_ConfigMsg_t</a> structure to match the "lower case with underscore" style. </td></tr>
 <tr>
@@ -200,8 +314,8 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <tr>
 <td>Feature </td><td>Product released under BSD 3-Clause License. </td></tr>
 <tr>
-<td>Feature </td><td>Introduced so called "Manager" that forces the network to available, handles NodeDiscovery events and notifies the availibility of nodes to the RoutingManagement.<br/>
- See related sections in <a class="el" href="group___g___u_c_s___m_g_r.html">API Reference</a> or <a class="el" href="_p__u_m__s_t_a_r_t_e_d__m_g_r.html">Getting Started</a>. </td></tr>
+<td>Feature </td><td>Introduced so called "Manager" that forces the network to available, handles NodeDiscovery events and notifies the availability of nodes to the RoutingManagement.<br/>
+ See related sections in <a class="el" href="group___g___u_c_s___s_u_p_v.html">API Reference</a> or <a class="el" href="_p__u_m__s_t_a_r_t_e_d__s_u_p_v.html">Getting Started</a>. </td></tr>
 <tr>
 <td>Feature </td><td>Added <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message API</a> into Management Library. Added option to disable the Application Message Service within the <a class="el" href="struct_ucs___ams___init_data__t.html">initialization stucture</a>. </td></tr>
 <tr>
@@ -217,7 +331,7 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <tr>
 <td>Feature </td><td>Added new API function <a class="el" href="group___g___u_c_s___n_e_t_ga3360b1585b5a9b54d24a934c22a44281.html#ga3360b1585b5a9b54d24a934c22a44281" title="Retrieves the Network Frame Counter, which is the number of frames since reset.">Ucs_Network_GetFrameCounter()</a>. </td></tr>
 <tr>
-<td>Feature </td><td>Added new API function <a class="el" href="group___g___u_c_s___n_e_t_gaf08bc0be54565e30143166d675866f87.html#gaf08bc0be54565e30143166d675866f87" title="Retrieves the number of nodes within the network.">Ucs_Network_GetNodesCount()</a>. </td></tr>
+<td>Feature </td><td>Added new API function <a class="el" href="group___g___u_c_s___n_e_t_ga1aefb4a6532869a1e6e576701daa671c.html#ga1aefb4a6532869a1e6e576701daa671c" title="Retrieves the number of nodes within the network.">Ucs_Network_GetNodesCount()</a>. </td></tr>
 <tr>
 <td>Feature </td><td>Added new configuration macro <a class="el" href="group___g___u_c_s___m_i_s_c_gaff7821fdddebc32a8a3f61a5eebc405a.html#gaff7821fdddebc32a8a3f61a5eebc405a">UCS_FOOTPRINT_TINY</a> that decreases RAM/ROM footprint for tiny controllers. </td></tr>
 <tr>
@@ -260,12 +374,12 @@ $(document).ready(function(){initNavTree('_p__u_m__h_i_s_t_o_r_y.html','');});
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

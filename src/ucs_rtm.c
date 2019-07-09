@@ -63,6 +63,8 @@ static const uint16_t RTM_JOB_CHECK_INTERVAL = 50U;   /* parasoft-suppress  MISR
 static const uint32_t RTM_MASK_NETWORK_AVAILABILITY = 0x0002U;
 /*! \brief Mask for the maximal node position Info */
 static const uint32_t RTM_MASK_MAX_POSITION         = 0x0040U;
+/*! \brief Mask for the FallBack Info */
+static const uint32_t RTM_MASK_FALL_BACK            = 0x0004U;
 
 /*------------------------------------------------------------------------------------------------*/
 /* Internal prototypes                                                                            */
@@ -99,8 +101,9 @@ static void Rtm_UcsInitSucceededCb(void *self, void *event_ptr);
 static void Rtm_MnsNwStatusInfosCb(void *self, void *event_ptr);
 static void Rtm_UninitializeService(void *self, void *error_code_ptr);
 static void Rtm_AtdResultCb(void *self, void *data_ptr);
-static bool Rtm_GetResourceHandle(CRouteManagement *self, Ucs_Rm_Route_t *route_ptr);
 static void Rtm_TriggerAtd(CRouteManagement *self);
+static void Rtm_BuildResourcesCb(void *self, void *data_ptr);
+static void Rtm_ResetInternalInfos(CRouteManagement *self);
 
 /*------------------------------------------------------------------------------------------------*/
 /* Implementation of class CRouteManagement                                                       */
@@ -177,10 +180,12 @@ Ucs_Return_t Rtm_StartProcess(CRouteManagement *self,  Ucs_Rm_Route_t routes_lis
             self->curr_route_index = 0U;
             self->routes_list_ptr  = &routes_list[0];
 
-            /* Initializes internal data structure */
+            /* Initializes internal data structures */
             for (; k < size; k++)
             {
                 MISC_MEM_SET(&routes_list[k].internal_infos, 0, sizeof(Ucs_Rm_RouteInt_t));
+                Epm_InitInternalInfos( self->epm_ptr, routes_list[k].sink_endpoint_ptr);
+                Epm_InitInternalInfos( self->epm_ptr, routes_list[k].source_endpoint_ptr);
             }
 
             Rtm_StartTmr4HandlingRoutes(self);
@@ -189,6 +194,62 @@ Ucs_Return_t Rtm_StartProcess(CRouteManagement *self,  Ucs_Rm_Route_t routes_lis
     }
 
     return result;
+}
+
+/*! \brief Activates the network observer for RTM.
+ *  \details This function is intended to deactivate RTM functionality while supervisor is in programming mode.
+ *           This function should only be triggered in inactive mode, since otherwise it will cause unwanted effects.
+ *  \param self           RTM instance pointer
+ *  \return Possible return values are:
+ *          - \c UCS_RET_ERR_PARAM Pointer to network instance is NULL
+ *          - \c UCS_RET_SUCCESS Activated observer successfully
+ */
+Ucs_Return_t Rtm_ActivateNetworkObserver(CRouteManagement *self)
+{
+    Ucs_Return_t ret = UCS_RET_ERR_PARAM;
+    if (self->net_ptr != NULL)
+    {
+        Net_AddObserverNetworkStatus(self->net_ptr, &self->nwstatus_observer);
+        ret = UCS_RET_SUCCESS;
+    }
+    return ret;
+}
+
+/*! \brief Resets the internal route and endpoint infos for all routes.
+ *  \param self           RTM instance pointer
+ */
+static void Rtm_ResetInternalInfos(CRouteManagement *self)
+{
+    uint8_t i = 0U;
+
+    if ((self != NULL)  && (self->routes_list_ptr != NULL) && (self->routes_list_size > 0U))
+    {
+        for (; i  < self->routes_list_size; i++)
+        {
+            MISC_MEM_SET(&self->routes_list_ptr[i].internal_infos, 0, sizeof(Ucs_Rm_RouteInt_t));
+            Epm_ResetInternalInfos( self->epm_ptr, self->routes_list_ptr[i].sink_endpoint_ptr);
+            Epm_ResetInternalInfos( self->epm_ptr, self->routes_list_ptr[i].source_endpoint_ptr);
+        }
+    }
+}
+
+/*! \brief Deactivates the network observer for RTM.
+ *  \details This function is intended to deactivate RTM functionality while supervisor is in programming mode.
+ *           This function should only be triggered in inactive mode, since otherwise it will cause unwanted effects.
+ *  \param self           RTM instance pointer
+ *  \return Possible return values are:
+ *          - \c UCS_RET_ERR_PARAM Pointer to network instance is NULL
+ *          - \c UCS_RET_SUCCESS Deactivated observer successfully
+ */
+Ucs_Return_t Rtm_DeactivateNetworkObserver(CRouteManagement *self)
+{
+    Ucs_Return_t ret = UCS_RET_ERR_PARAM;
+    if (self->net_ptr != NULL)
+    {
+        Net_DelObserverNetworkStatus(self->net_ptr, &self->nwstatus_observer);
+        ret = UCS_RET_SUCCESS;
+    }
+    return ret;
 }
 
 /*! \brief Deactivates respectively destroys the given route reference.
@@ -279,7 +340,7 @@ Ucs_Return_t Rtm_SetNodeAvailable(CRouteManagement *self, Ucs_Rm_Node_t *node_pt
             {
                 if (node_ptr->internal_infos.available == 0x00U)
                 {
-                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node with Addr {%X} is available", 1U, node_ptr->signature_ptr->node_address));
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node with Addr {0x%X} is available", 1U, node_ptr->signature_ptr->node_address));
                     node_ptr->internal_infos.available = 0x01U;
                     Rtm_StartRoutingTimer(self);
                     ret_val = UCS_RET_SUCCESS;
@@ -289,7 +350,7 @@ Ucs_Return_t Rtm_SetNodeAvailable(CRouteManagement *self, Ucs_Rm_Node_t *node_pt
             {
                 if (node_ptr->internal_infos.available == 0x01U)
                 {
-                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node with Addr {%X} is not available", 1U, node_ptr->signature_ptr->node_address));
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node with Addr {0x%X} is not available", 1U, node_ptr->signature_ptr->node_address));
                     node_ptr->internal_infos.available = 0x00U;
                     Rtm_ReleaseSuspendedRoutes(self, node_ptr);
                     Epm_ReportInvalidDevice (self->epm_ptr, node_ptr->signature_ptr->node_address);
@@ -298,7 +359,7 @@ Ucs_Return_t Rtm_SetNodeAvailable(CRouteManagement *self, Ucs_Rm_Node_t *node_pt
             }
         }
     }
-    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node addr {%X} node addr ptr 0x%p ", 2U, node_ptr->signature_ptr->node_address, node_ptr));
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNodeAvailable: Node addr {0x%X} node addr ptr 0x%p ", 2U, node_ptr->signature_ptr->node_address, node_ptr));
     return ret_val;
 }
 
@@ -411,23 +472,25 @@ static void Rtm_TriggerAtd(CRouteManagement *self)
     uint8_t i;
     Ucs_Return_t ret = UCS_RET_ERR_PARAM;
 
-    if (self->lock_atd_calc == false)
+    if ((self->lock_atd_calc == false) && (self->nw_available == true))
     {
         for (i = 0U; i < self->routes_list_size; i++)
         {
-            if ((self->routes_list_ptr[i].atd_enabled != 0U)&&
+            if ((self->routes_list_ptr[i].atd.enabled != 0U)&&
                 (self->routes_list_ptr[i].internal_infos.atd_up_to_date == false)&&
                 (self->routes_list_ptr[i].internal_infos.route_state == UCS_RM_ROUTE_BUILT))
             {
-                if (Rtm_GetResourceHandle(self, &self->routes_list_ptr[i]) != false)
+                ret = Atd_StartProcess(&self->atd.atd_inst, &self->routes_list_ptr[i], &self->atd.atd_obs);
+                if (ret == UCS_RET_SUCCESS)
                 {
-                    ret = Atd_StartProcess(&self->atd.atd_inst, &self->routes_list_ptr[i], &self->atd.atd_obs);
-                    if (ret == UCS_RET_SUCCESS)
-                    {
-                        self->lock_atd_calc = true;
-                        break;
-                    }
+                    self->lock_atd_calc = true;
                 }
+                else
+                {
+                    self->routes_list_ptr[i].internal_infos.atd_up_to_date = true;
+                    self->report_fptr(&self->routes_list_ptr[i], UCS_RM_ROUTE_INFOS_ATD_ERROR, self->base_ptr->ucs_user_ptr);
+                }
+                break;
             }
         }
     }
@@ -477,6 +540,33 @@ static void Rtm_StartRoutingTimer (CRouteManagement *self)
         Rtm_StartTmr4HandlingRoutes(self);
     }
 }
+
+/*! \brief  Triggers the build of resources defined in the INIC config string.
+ *  \param  self    Reference to the RTM instance
+ *  \param  node_address Address of the node
+ *  \param  index   Identifier of the build configuration
+ *  \param  result_fptr Pointer to the result callback function.
+ *  \return UCS_RET_SUCCESS               message was created
+ *  \return UCS_RET_ERR_BUFFER_OVERFLOW   no message buffer available
+ *  \return UCS_RET_ERR_API_LOCKED        Resource API is already used by another command
+ *  \return UCS_RET_ERR_PARAM             Wrong length of index
+ */
+Ucs_Return_t Rtm_BuildResources(CRouteManagement *self, uint16_t node_address, uint8_t index, Ucs_Rm_ReportCb_t result_fptr)
+{
+    CInic *inic_ptr;
+    Ucs_Return_t ret = UCS_RET_ERR_PARAM;
+
+    Sobs_Ctor(&self->resource_build_obs, self, &Rtm_BuildResourcesCb);
+    self->build_result_fptr = result_fptr;
+    inic_ptr = Fac_GetInic(self->fac_ptr, node_address); 
+    if (inic_ptr != NULL)
+    {
+        ret = Inic_ResourceBuilder(inic_ptr, index, &self->resource_build_obs);
+    }
+
+    return ret;
+}
+
 
 /*! \brief Handles the next route in the list.
  *  \param self    The routing management instance pointer
@@ -534,7 +624,9 @@ static bool Rtm_IsRouteBuildable(CRouteManagement *self)
         if ((self->curr_route_ptr->internal_infos.route_state == UCS_RM_ROUTE_IDLE) &&
             (self->curr_route_ptr->active == 0x01U) &&
             (self->curr_route_ptr->source_endpoint_ptr != NULL) &&
-            (self->curr_route_ptr->sink_endpoint_ptr != NULL))
+            (self->curr_route_ptr->sink_endpoint_ptr != NULL) &&
+            (((self->curr_route_ptr->static_connection.fallback_enabled == 0x01U) && (self->fb_active == true)) ||
+             ((self->curr_route_ptr->static_connection.fallback_enabled == 0x00U) && (self->fb_active == false))))
         {
             result_check = true;
         }
@@ -554,7 +646,7 @@ static bool Rtm_IsRouteDestructible(CRouteManagement *self, Ucs_Rm_Route_t *rout
     MISC_UNUSED (self);
 
     if ((route_ptr != NULL) && (route_ptr->active == 0x01U) && ((route_ptr->internal_infos.route_state == UCS_RM_ROUTE_BUILT) ||
-        (route_ptr->internal_infos.route_state == UCS_RM_ROUTE_SUSPENDED)))
+        (route_ptr->internal_infos.route_state == UCS_RM_ROUTE_SUSPENDED) || (route_ptr->internal_infos.route_state == UCS_RM_ROUTE_IDLE)))
     {
         result_check = true;
     }
@@ -626,9 +718,20 @@ static void Rtm_BuildRoute(CRouteManagement *self)
                 self->curr_route_ptr->internal_infos.src_obsvr_initialized = 1U;
                 Epm_DelObserver(self->curr_route_ptr->source_endpoint_ptr, &self->curr_route_ptr->internal_infos.source_ep_observer);
                 Obs_Ctor(&self->curr_route_ptr->internal_infos.source_ep_observer, self->curr_route_ptr, &Rtm_EndPointDeterioredCb);
-                /* Initializes source endpoint internal data */
+
                 Epm_InitInternalInfos (self->epm_ptr, self->curr_route_ptr->source_endpoint_ptr);
             }
+
+            if ((self->curr_route_ptr->static_connection.static_con_label >= 0x800CU) && (self->curr_route_ptr->static_connection.static_con_label <= 0x817FU))
+            {
+                Epm_SetConnectionLabel(self->epm_ptr, self->curr_route_ptr->source_endpoint_ptr, self->curr_route_ptr->static_connection.static_con_label );
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Sets static connection label for route id 0x%X.", 1U, self->curr_route_ptr->route_id ));
+            }
+            else if (self->curr_route_ptr->static_connection.static_con_label > 0U)
+            {
+                TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Couldn't set static connection label for route id {0x%X}.", 1U, self->curr_route_ptr->route_id ));
+            }
+
             (void)Rtm_BuildEndPoint(self, self->curr_route_ptr->source_endpoint_ptr);
         }
         break;
@@ -652,22 +755,35 @@ static void Rtm_BuildRoute(CRouteManagement *self)
                     if (self->curr_route_ptr->internal_infos.sink_obsvr_initialized == 0U)
                     {
                         self->curr_route_ptr->internal_infos.sink_obsvr_initialized = 1U;
+                        Epm_DelObserver(self->curr_route_ptr->sink_endpoint_ptr, &self->curr_route_ptr->internal_infos.sink_ep_observer);
                         Obs_Ctor(&self->curr_route_ptr->internal_infos.sink_ep_observer, self->curr_route_ptr, &Rtm_EndPointDeterioredCb);
-                        /* Initializes sink endpoint internal data */
                         Epm_InitInternalInfos (self->epm_ptr, self->curr_route_ptr->sink_endpoint_ptr);
                     }
-                    Epm_SetConnectionLabel(self->epm_ptr, self->curr_route_ptr->sink_endpoint_ptr, Epm_GetConnectionLabel(self->epm_ptr, self->curr_route_ptr->source_endpoint_ptr));
+
+                    if ((self->curr_route_ptr->static_connection.static_con_label >= 0x800CU) && (self->curr_route_ptr->static_connection.static_con_label <= 0x817FU))
+                    {
+                        Epm_SetConnectionLabel(self->epm_ptr, self->curr_route_ptr->sink_endpoint_ptr, self->curr_route_ptr->static_connection.static_con_label );
+                        TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Sets static connection label for route id 0x%X.", 1U, self->curr_route_ptr->route_id ));
+                    }
+                    else if (self->curr_route_ptr->static_connection.static_con_label > 0U)
+                    {
+                        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Couldn't set static connection label for route id {0x%X}.", 1U, self->curr_route_ptr->route_id ));
+                    }
+                    else
+                    {
+                        Epm_SetConnectionLabel(self->epm_ptr, self->curr_route_ptr->sink_endpoint_ptr, Epm_GetConnectionLabel(self->epm_ptr, self->curr_route_ptr->source_endpoint_ptr));
+                    }
+
                     (void)Rtm_BuildEndPoint(self, self->curr_route_ptr->sink_endpoint_ptr);
                 }
                 break;
 
             case UCS_RM_EP_BUILT:
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} is built", 1U, self->curr_route_ptr->route_id));
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} is built", 1U, self->curr_route_ptr->route_id));
                 self->curr_route_ptr->internal_infos.route_state = UCS_RM_ROUTE_BUILT;
                 if (self->report_fptr != NULL)
                 {
-                    /* Set ATD event after route build */
-                    if (self->curr_route_ptr->atd_enabled != 0U)
+                    if (self->curr_route_ptr->atd.enabled != 0U)
                     {
                         self->curr_route_ptr->internal_infos.atd_up_to_date = false;
                         Srv_SetEvent(&self->rtm_srv, RTM_EVENT_ATD_UPDATE);
@@ -719,13 +835,13 @@ static void Rtm_DestroyRoute(CRouteManagement *self)
                 if (Rtm_DeactivateRouteEndPoint(self, self->curr_route_ptr->source_endpoint_ptr) == UCS_RET_ERR_INVALID_SHADOW)
                 {
                     destruction_completed = true;
-                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Destroy sink of route %d", 1U, self->curr_route_ptr->route_id ));
+                    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Destroy sink of route 0x%X", 1U, self->curr_route_ptr->route_id ));
                 }
                 break;
 
             case UCS_RM_EP_IDLE:
                 destruction_completed = true;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Destroy sink of route %d", 1U, self->curr_route_ptr->route_id ));
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Destroy sink of route 0x%X", 1U, self->curr_route_ptr->route_id ));
                 break;
 
             case UCS_RM_EP_XRMPROCESSING:
@@ -747,7 +863,7 @@ static void Rtm_DestroyRoute(CRouteManagement *self)
     }
     else if (destruction_completed != false)
     {
-        TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} has been destroyed", 1U, self->curr_route_ptr->route_id));
+        TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} has been destroyed", 1U, self->curr_route_ptr->route_id));
         self->curr_route_ptr->internal_infos.route_state = UCS_RM_ROUTE_IDLE;
         self->curr_route_ptr->internal_infos.src_obsvr_initialized = 0U;
         if (self->report_fptr != NULL)
@@ -773,22 +889,31 @@ static Ucs_Return_t Rtm_BuildEndPoint(CRouteManagement *self, Ucs_Rm_EndPoint_t 
     if ((self != NULL)  && (endpoint_ptr != NULL))
     {
         result = Epm_SetBuildProcess(self->epm_ptr, endpoint_ptr);
+
         if (result == UCS_RET_SUCCESS)
         {
-            Epm_AddObserver(endpoint_ptr,  (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ?
+            Epm_AddObserver(endpoint_ptr, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ?
                             &self->curr_route_ptr->internal_infos.source_ep_observer: &self->curr_route_ptr->internal_infos.sink_ep_observer);
             self->curr_route_ptr->internal_infos.route_state = UCS_RM_ROUTE_CONSTRUCTION;
-            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Start Building Endpoint {%X}{0x%03X} of type %s for route id %X", 4U, endpoint_ptr,
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Start Building Endpoint {0x%X}{0x%03X} of type %s for route id 0x%X", 4U, endpoint_ptr,
                     endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", self->curr_route_ptr->route_id));
         }
         else if (result == UCS_RET_ERR_ALREADY_SET)
         {
-            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id %X has already been built", 4U, endpoint_ptr,
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id 0x%X has already been built", 4U, endpoint_ptr,
                     endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", self->curr_route_ptr->route_id));
         }
         else
         {
-            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Following XRM synchronous error [%d] returned when attempting build Endpoint {%X}{0x%03X} from type %s for route id %X", 5U, result,
+            if (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE)
+            {
+                self->curr_route_ptr->internal_infos.src_obsvr_initialized = 0U;
+            }
+            if (endpoint_ptr->endpoint_type == UCS_RM_EP_SINK)
+            {
+                self->curr_route_ptr->internal_infos.sink_obsvr_initialized = 0U;
+            }
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Following XRM synchronous error [%d] returned when attempting build Endpoint {%X}{0x%03X} from type %s for route id 0x%X", 5U, result,
                     endpoint_ptr, endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", self->curr_route_ptr->route_id));
         }
     }
@@ -815,37 +940,39 @@ static Ucs_Return_t Rtm_DeactivateRouteEndPoint(CRouteManagement *self, Ucs_Rm_E
         (endpoint_ptr->node_obj_ptr->signature_ptr != NULL))
     {
         if ((endpoint_ptr->node_obj_ptr->internal_infos.available == 1U) ||
-            (endpoint_ptr->node_obj_ptr->signature_ptr->node_address == UCS_ADDR_LOCAL_NODE))
+            (endpoint_ptr->node_obj_ptr->signature_ptr->node_address == UCS_ADDR_LOCAL_NODE) ||
+            (endpoint_ptr->endpoint_type == UCS_RM_EP_DC_SOURCE) ||
+            (endpoint_ptr->endpoint_type == UCS_RM_EP_DC_SINK))
         {
             result = Epm_SetDestroyProcess(self->epm_ptr, endpoint_ptr);
             if (result == UCS_RET_SUCCESS)
             {
                 self->curr_route_ptr->internal_infos.route_state = UCS_RM_ROUTE_DESTRUCTION;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Start Destroying Endpoint {%X}{0x%03X} of type %s for route id %X", 4U, endpoint_ptr,
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Start Destroying Endpoint {%X}{0x%03X} of type %s for route id 0x%X", 4U, endpoint_ptr,
                         endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", 
                         self->curr_route_ptr->route_id));
             }
             else if (result == UCS_RET_ERR_ALREADY_SET)
             {
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id %X has already been destroyed", 4U, endpoint_ptr,
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id 0x%X has already been destroyed", 4U, endpoint_ptr,
                         endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", 
                         self->curr_route_ptr->route_id));
             }
             else if (result == UCS_RET_ERR_INVALID_SHADOW)
             {
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id %X cannot be destroyed since it's still used", 4U, endpoint_ptr,
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id 0x%X cannot be destroyed since it's still used", 4U, endpoint_ptr,
                         endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink",
                         self->curr_route_ptr->route_id));
             }
             else if (result == UCS_RET_ERR_NOT_AVAILABLE)
             {
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {%X}{0x%03X} of type %s for route id %X is no more available", 4U, endpoint_ptr,
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Endpoint {0x%X}{0x%03X} of type %s for route id 0x%X is no more available", 4U, endpoint_ptr,
                         endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source" : "Sink",
                         self->curr_route_ptr->route_id));
             }
             else
             {
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Following XRM synchronous error [%d] returned when attempting destroy Endpoint {%X}{0x%03X} from type %s for route id %X", 5U, result,
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Following XRM synchronous error [%d] returned when attempting destroy Endpoint {0x%X}{0x%03X} from type %s for route id 0x%X", 5U, result,
                         endpoint_ptr, endpoint_ptr->node_obj_ptr->signature_ptr->node_address, (endpoint_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", self->curr_route_ptr->route_id));
             }
         }
@@ -872,6 +999,16 @@ static void Rtm_HandleRoutingError(CRouteManagement *self, Ucs_Rm_Route_t *route
     tmp_route->internal_infos.route_state = UCS_RM_ROUTE_IDLE;
     tmp_route->internal_infos.last_route_result = UCS_RM_ROUTE_NOERROR;
 
+    if (tmp_route->sink_endpoint_ptr->endpoint_type == UCS_RM_EP_DC_SINK)
+    {
+        (void) Epm_SetDestroyProcess( self->epm_ptr, tmp_route->sink_endpoint_ptr);
+    }
+    else if (tmp_route->source_endpoint_ptr->endpoint_type == UCS_RM_EP_DC_SOURCE)
+    {
+        (void) Epm_SetDestroyProcess( self->epm_ptr, tmp_route->source_endpoint_ptr);
+    }
+
+
     if (res_rt != UCS_RM_ROUTE_CRITICAL)
     {
         if (tmp_route->source_endpoint_ptr->internal_infos.endpoint_state == UCS_RM_EP_IDLE)
@@ -881,7 +1018,7 @@ static void Rtm_HandleRoutingError(CRouteManagement *self, Ucs_Rm_Route_t *route
                 Epm_ResetState(self->epm_ptr, tmp_route->source_endpoint_ptr);
                 tmp_route->internal_infos.route_state = UCS_RM_ROUTE_SUSPENDED;
                 result_route = UCS_RM_ROUTE_INFOS_SUSPENDED;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} is suspended", 1U, tmp_route->route_id));
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} is suspended", 1U, tmp_route->route_id));
             }
         }
         else if (tmp_route->sink_endpoint_ptr->internal_infos.endpoint_state == UCS_RM_EP_IDLE)
@@ -891,12 +1028,12 @@ static void Rtm_HandleRoutingError(CRouteManagement *self, Ucs_Rm_Route_t *route
                 Epm_ResetState(self->epm_ptr, tmp_route->sink_endpoint_ptr);
                 tmp_route->internal_infos.route_state = UCS_RM_ROUTE_SUSPENDED;
                 result_route = UCS_RM_ROUTE_INFOS_SUSPENDED;
-                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} is suspended", 1U, tmp_route->route_id));
+                TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} is suspended", 1U, tmp_route->route_id));
             }
         }
         else
         {
-            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} is destroyed", 1U, tmp_route->route_id));
+            TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} is destroyed", 1U, tmp_route->route_id));
         }
     }
     else
@@ -905,7 +1042,7 @@ static void Rtm_HandleRoutingError(CRouteManagement *self, Ucs_Rm_Route_t *route
         Epm_ResetState(self->epm_ptr, tmp_route->sink_endpoint_ptr);
         tmp_route->internal_infos.route_state = UCS_RM_ROUTE_SUSPENDED;
         result_route = UCS_RM_ROUTE_INFOS_SUSPENDED;
-        TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {%X} is suspended", 1U, tmp_route->route_id));
+        TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Route id {0x%X} is suspended", 1U, tmp_route->route_id));
     }
 
     if (self->report_fptr != NULL)
@@ -943,7 +1080,7 @@ static bool Rtm_CheckEpResultSeverity(CRouteManagement *self, Ucs_Rm_Route_t *tg
                     (endpoint_ptr->internal_infos.num_retries == RTM_MAX_NUM_RETRIES_IN_ERR))
                 {
                     result = UCS_RM_ROUTE_CRITICAL;
-                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {%X} due to the transmission error code {Ucs_MsgTxStatus_t:0x%02X} observed in XRM.", 2U,
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {0x%X} due to the transmission error code {Ucs_MsgTxStatus_t:0x%02X} observed in XRM.", 2U,
                         tgt_route_ptr->route_id, endpoint_ptr->internal_infos.xrm_result.details.tx_result));
                 }
                 else if ((UCS_MSG_STAT_ERROR_UNKNOWN == endpoint_ptr->internal_infos.xrm_result.details.tx_result)     ||
@@ -976,7 +1113,7 @@ static bool Rtm_CheckEpResultSeverity(CRouteManagement *self, Ucs_Rm_Route_t *tg
                     (endpoint_ptr->internal_infos.num_retries == RTM_MAX_NUM_RETRIES_IN_ERR))
                 {
                     result = UCS_RM_ROUTE_CRITICAL;
-                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {%X} due to the INIC result code {Ucs_Result_t:0x%02X} observed in XRM.", 2U,
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {0x%X} due to the INIC result code {Ucs_Result_t:0x%02X} observed in XRM.", 2U,
                         tgt_route_ptr->route_id, endpoint_ptr->internal_infos.xrm_result.details.inic_result.code));
                 }
                 else if ((UCS_RES_ERR_BUSY == endpoint_ptr->internal_infos.xrm_result.details.inic_result.code)       ||
@@ -996,7 +1133,7 @@ static bool Rtm_CheckEpResultSeverity(CRouteManagement *self, Ucs_Rm_Route_t *tg
                     (endpoint_ptr->internal_infos.num_retries == RTM_MAX_NUM_RETRIES_IN_ERR))
                 {
                     result = UCS_RM_ROUTE_CRITICAL;
-                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {%X} due to the internal error code {Ucs_Return_t:0x%02X} observed in XRM.", 2U,
+                    TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "Critical error occurred on route id {0x%X} due to the internal error code {Ucs_Return_t:0x%02X} observed in XRM.", 2U,
                         tgt_route_ptr->route_id, endpoint_ptr->internal_infos.xrm_result.details.int_result));
                 }
                 else if ((endpoint_ptr->internal_infos.xrm_result.details.int_result == UCS_RET_ERR_BUFFER_OVERFLOW) ||
@@ -1047,7 +1184,8 @@ static bool Rtm_SetNextRouteIndex(CRouteManagement *self)
 {
     bool found = false;
 
-    if ((self->routes_list_size > 0U) && (self->nw_available != false))
+    if (((self->routes_list_size > 0U) && (self->nw_available != false)) ||
+        ((self->routes_list_size > 0U) && (self->fb_active != false)))
     {
         uint16_t tmp_idx;
         self->curr_route_index++;
@@ -1056,27 +1194,44 @@ static bool Rtm_SetNextRouteIndex(CRouteManagement *self)
 
         do
         {
-            if  (((self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_SUSPENDED) &&
-                 (self->routes_list_ptr[self->curr_route_index].active  == 0x01U)) ||
-                 ((self->routes_list_ptr[self->curr_route_index].active == 0x01U)  &&
-                 (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_BUILT)) ||
-                 ((self->routes_list_ptr[self->curr_route_index].active == 0x00U) &&
-                 (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_IDLE)) ||
-                 ((Rtm_AreRouteNodesAvailable(self, &self->routes_list_ptr[self->curr_route_index]) == false) &&
-                 (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_IDLE)))
+            if (self->fb_active == false)
             {
-                self->curr_route_index++;
-                self->curr_route_index = self->curr_route_index%self->routes_list_size;
+                if ((((self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_SUSPENDED) &&
+                     (self->routes_list_ptr[self->curr_route_index].active  == 0x01U)) ||
+                     ((self->routes_list_ptr[self->curr_route_index].active == 0x01U) &&
+                     (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_BUILT)) ||
+                     ((self->routes_list_ptr[self->curr_route_index].active == 0x00U) &&
+                     (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_IDLE)) ||
+                     ((Rtm_AreRouteNodesAvailable(self, &self->routes_list_ptr[self->curr_route_index]) == false) &&
+                     (self->routes_list_ptr[self->curr_route_index].internal_infos.route_state == UCS_RM_ROUTE_IDLE))))
+                {
+                    self->curr_route_index++;
+                    self->curr_route_index = self->curr_route_index%self->routes_list_size;
+                }
+                else
+                {
+                    found = true;
+                }
             }
             else
             {
-                found = true;
+                if ((self->routes_list_ptr[self->curr_route_index].static_connection.fallback_enabled == 0x00U) &&
+                    (self->routes_list_ptr[self->curr_route_index].active  == 0x00U))
+                {
+                    self->curr_route_index++;
+                    self->curr_route_index = self->curr_route_index%self->routes_list_size;
+                }
+                else
+                {
+                    found = true;
+                }
             }
+          
         }
         while ((tmp_idx != self->curr_route_index) &&
                (found == false));
     }
-    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNextRouteIndex() returned %d, idx=%d, route ID = %d", 3U, found, self->curr_route_index, self->routes_list_ptr[self->curr_route_index].route_id));
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_SetNextRouteIndex() returned %d, idx=%d, route ID = 0x%02X", 3U, found, self->curr_route_index, self->routes_list_ptr[self->curr_route_index].route_id));
 
     return found;
 }
@@ -1155,9 +1310,10 @@ static bool Rtm_AreRouteNodesAvailable(CRouteManagement *self, Ucs_Rm_Route_t *r
     }
     else
     {
-        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "ERROR PARAMETER on route id {%X}: At least one endpoint is NULL.", 1U, route_ptr->route_id));
+        TR_ERROR((self->base_ptr->ucs_user_ptr, "[RTM]", "ERROR PARAMETER on route id {0x%X}: At least one endpoint is NULL.", 1U, route_ptr->route_id));
     }
-    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_AreRouteNodesAvailable returns %d.", 1U, result));
+
+    TR_INFO((self->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_AreRouteNodesAvailable on route id {0x%X}, returns %d.", 2U, route_ptr->route_id, result));
 
     return result;
 }
@@ -1318,7 +1474,7 @@ static void Rtm_ForcesRouteToIdle(CRouteManagement *self,  Ucs_Rm_Route_t *route
 }
 
 /*! \brief   Get function for the ATD value of route.
- *  \details Links the pointer2atd to the ATD value of the given route.
+ *  \details Links the atd_value_ptr to the ATD value of the given route.
  *  \param   route_ptr          Reference to the current route
  *  \param   atd_value_ptr      Given pointer which is linked to the ATD value
  *  \return  Possible return values are shown in the table below.
@@ -1332,7 +1488,7 @@ extern Ucs_Return_t Rtm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_va
 {
     Ucs_Return_t ret = UCS_RET_ERR_NOT_AVAILABLE; /* ATD was not enabled for the desired route*/
 
-    if (route_ptr->atd_enabled != 0U)
+    if (route_ptr->atd.enabled != 0U)
     {
         if (route_ptr->internal_infos.atd_up_to_date != false)
         {
@@ -1344,56 +1500,6 @@ extern Ucs_Return_t Rtm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_va
             *atd_value_ptr = route_ptr->internal_infos.atd_value;
             ret = UCS_RET_ERR_INVALID_SHADOW;
         }
-    }
-    return ret;
-}
-
-/*! \brief   Function is used to get the resource handles of the given route which are needed for ATD.
- *  \details To get the needed resource handles, the resource handles with matching connection label is
- *               searched in the resource_handle_list of fac_ptr->xrm_list. The corresponding resource handles
- *           are saved in the ATD structure of the given route.
- *  \param   self                    The routing instance pointer
- *  \param   route_ptr               Reference to the current route
- *  \return True if resource handles were retrieved successfully, otherwise false.
- */
-static bool Rtm_GetResourceHandle(CRouteManagement *self, Ucs_Rm_Route_t *route_ptr)
-{
-    uint16_t resource_handle[4] = {0U};
-    uint16_t conn_lab = Rtm_GetConnectionLabel(self, route_ptr);        /* The connection label of the route*/
-    bool ret = false;
-    CExtendedResourceManager *xrm_sink = Fac_GetXrmByJobList( self->fac_ptr, route_ptr->sink_endpoint_ptr->jobs_list_ptr);
-    CExtendedResourceManager *xrm_source = Fac_GetXrmByJobList( self->fac_ptr, route_ptr->source_endpoint_ptr->jobs_list_ptr);
-
-    /* Get resource handles for the source node*/
-    resource_handle[0] = Xrm_GetResourceHandleForAtd(xrm_source,
-                                                     conn_lab,
-                                                     route_ptr->source_endpoint_ptr,
-                                                     UCS_XRM_RC_TYPE_STRM_PORT);
-    resource_handle[2] = Xrm_GetResourceHandleForAtd(xrm_source,
-                                                     conn_lab,
-                                                     route_ptr->source_endpoint_ptr,
-                                                     UCS_XRM_RC_TYPE_SYNC_CON);
-    /* Get resource handles for the sink node*/
-    resource_handle[1] = Xrm_GetResourceHandleForAtd(xrm_sink,
-                                                     conn_lab,
-                                                     route_ptr->sink_endpoint_ptr,
-                                                     UCS_XRM_RC_TYPE_STRM_PORT);
-    resource_handle[3] = Xrm_GetResourceHandleForAtd(xrm_sink,
-                                                     conn_lab,
-                                                     route_ptr->sink_endpoint_ptr,
-                                                     UCS_XRM_RC_TYPE_SYNC_CON);
-
-    if ((resource_handle[0] != XRM_INVALID_RESOURCE_HANDLE) &&
-        (resource_handle[1] != XRM_INVALID_RESOURCE_HANDLE) &&
-        (resource_handle[2] != XRM_INVALID_RESOURCE_HANDLE) &&
-        (resource_handle[3] != XRM_INVALID_RESOURCE_HANDLE))
-    {
-        Atd_SetResourceHandles(&self->atd.atd_inst, resource_handle);
-        ret = true;
-    }
-    else
-    {
-        TR_ERROR((0U, "[RTM]", "Rtm_GetResourceHandle(): Resource handles couldn't retrieved for route %X", 1U, route_ptr->route_id));
     }
     return ret;
 }
@@ -1414,7 +1520,7 @@ static void Rtm_UcsInitSucceededCb(void *self, void *event_ptr)
     Eh_DelObsrvInternalEvent(&self_->base_ptr->eh, &self_->ucsinit_observer);
 
     /* Add network status observer */
-    Mobs_Ctor(&self_->nwstatus_observer, self, (RTM_MASK_NETWORK_AVAILABILITY | RTM_MASK_MAX_POSITION), &Rtm_MnsNwStatusInfosCb);
+    Mobs_Ctor(&self_->nwstatus_observer, self, (RTM_MASK_NETWORK_AVAILABILITY | RTM_MASK_MAX_POSITION | RTM_MASK_FALL_BACK), &Rtm_MnsNwStatusInfosCb);
     Net_AddObserverNetworkStatus(self_->net_ptr, &self_->nwstatus_observer);
 }
 
@@ -1451,24 +1557,39 @@ static void Rtm_MnsNwStatusInfosCb(void *self, void *event_ptr)
     CRouteManagement *self_ = (CRouteManagement *)self;
     Net_NetworkStatusParam_t *result_ptr_ = (Net_NetworkStatusParam_t *)event_ptr;
 
+    if (RTM_MASK_FALL_BACK == (RTM_MASK_FALL_BACK & result_ptr_->change_mask))
+    {
+        if (result_ptr_->avail_info == UCS_NW_AVAIL_INFO_FALLBACK)
+        {
+            self_->fb_active = true;
+            Rtm_StartRoutingTimer (self_);
+            TR_INFO((self_->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_MnsNwStatus: Network in Fallback mode",0U));
+        }
+        else
+        {
+            self_->fb_active = false;
+            Rtm_StartRoutingTimer (self_);
+        }
+    }
+
     if (RTM_MASK_NETWORK_AVAILABILITY == (RTM_MASK_NETWORK_AVAILABILITY & result_ptr_->change_mask))
     {
         if (UCS_NW_NOT_AVAILABLE == result_ptr_->availability)
         {
             self_->nw_available = false;
-            /* Resets Nodes availability flag */
             Rtm_ResetNodesAvailable(self_);
-            /* Reports Network Status "NotAvailabe" */
             Epm_ReportShutDown(self_->epm_ptr);
+            TR_INFO((self_->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_MnsNwStatus: Network not available", 0U));
         }
         else
         {
             self_->nw_available = true;
-            /* Check whether there are routes to be processed */
+            Rtm_ResetInternalInfos(self_);
             Rtm_StartRoutingTimer (self_);
+            TR_INFO((self_->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_MnsNwStatus: Network available", 0U));
         }
     }
-    /* Set ATD event after MPR change */
+
     if (RTM_MASK_MAX_POSITION == (RTM_MASK_MAX_POSITION & result_ptr_->change_mask))
     {
         uint8_t i = 0U;
@@ -1490,13 +1611,13 @@ static void Rtm_EndPointDeterioredCb(void *self, void *result_ptr)
 {
     Ucs_Rm_Route_t *route_ptr = (Ucs_Rm_Route_t *)self;
     Ucs_Rm_EndPoint_t *ep_ptr = (Ucs_Rm_EndPoint_t *)result_ptr;
-
+    TR_ERROR((((CRouteManagement *)(void *)route_ptr->internal_infos.rtm_inst)->base_ptr->ucs_user_ptr, "[RTM]", "Rtm_EndPointDeterioredCb",0U));
     if ((route_ptr->source_endpoint_ptr == ep_ptr) ||
         (route_ptr->sink_endpoint_ptr == ep_ptr))
     {
         if ((route_ptr->internal_infos.route_state == UCS_RM_ROUTE_BUILT) || (route_ptr->internal_infos.route_state == UCS_RM_ROUTE_CONSTRUCTION))
         {
-            TR_INFO((((CRouteManagement *)(void *)route_ptr->internal_infos.rtm_inst)->base_ptr->ucs_user_ptr, "[RTM]", "Route id %X is deteriorated", 1U, route_ptr->route_id));
+            TR_INFO((((CRouteManagement *)(void *)route_ptr->internal_infos.rtm_inst)->base_ptr->ucs_user_ptr, "[RTM]", "Route id 0x%X is deteriorated", 1U, route_ptr->route_id));
             if (ep_ptr->endpoint_type == UCS_RM_EP_SOURCE)
             {
                 route_ptr->internal_infos.src_obsvr_initialized = 0U;
@@ -1517,8 +1638,8 @@ static void Rtm_EndPointDeterioredCb(void *self, void *result_ptr)
     }
     else
     {
-        TR_ERROR((((CRouteManagement *)(void *)route_ptr->internal_infos.rtm_inst)->base_ptr->ucs_user_ptr, "[RTM]", "Wrong endpoint {%X} of type %s on route id {%X}.", 3U,
-            ep_ptr, (ep_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", route_ptr->route_id));
+        TR_ERROR((((CRouteManagement *)(void *)route_ptr->internal_infos.rtm_inst)->base_ptr->ucs_user_ptr, "[RTM]", "Wrong endpoint {0x%X} of type %s on route id {0x%X}.", 3U,
+                ep_ptr, (ep_ptr->endpoint_type == UCS_RM_EP_SOURCE) ? "Source":"Sink", route_ptr->route_id));
     }
 }
 
@@ -1572,6 +1693,22 @@ static void Rtm_AtdResultCb(void *self, void *data_ptr)
     self_->lock_atd_calc = false; /* Unlock ATD Class*/
     Srv_SetEvent(&self_->rtm_srv, RTM_EVENT_ATD_UPDATE); /* Set new ATD Update Event*/
 }
+
+
+static void Rtm_BuildResourcesCb(void *self, void *data_ptr)
+{
+        CRouteManagement *self_ = (CRouteManagement*)(void*)self;
+        Inic_StdResult_t *data_ptr_ = (Inic_StdResult_t*)(void*)data_ptr;
+        Rtm_ResourceData_t *data_info_ = (Rtm_ResourceData_t*)(void*)data_ptr_->data_info;
+
+        if (data_info_ != NULL)
+        {
+            self_->build_result_fptr(NULL, UCS_RM_ROUTE_INFOS_BUILT, data_info_);
+        }
+}
+
+
+
 
 /*!
  * @}

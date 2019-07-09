@@ -1353,12 +1353,12 @@ div.contents div.textblock ul li {
     margin-bottom: 20px;
 }
 
-.mns_param_table {
+.dox_param_table {
     border: none;
     border-spacing: 0px;
     min-height: 16px;
 }
-.mns_param_table #mns_param_small{
+.dox_param_table #dox_param_small{
     background-image:url(icon_inic_16x16.png);
     background-position: left top; 
     background-repeat:no-repeat;
@@ -1369,7 +1369,7 @@ div.contents div.textblock ul li {
     padding-bottom: 0px;
 }
 
-.mns_ic_table {
+.dox_ic_table {
     border: none;
     border-spacing: 0px;
     margin: 10px 0px 10px 0px;
@@ -1377,51 +1377,51 @@ div.contents div.textblock ul li {
     width: 100%;
 }
 
-    .mns_ic_table td {
+    .dox_ic_table td {
         vertical-align: bottom;
         min-height: 32px;
         height: 32px;
         padding-bottom: 0px;
     }
 
-    .mns_ic_table #mns_ic_overview,
-    .mns_ic_table #mns_ic_started,
-    .mns_ic_table #mns_ic_manual ,
-    .mns_ic_table #mns_ic_examples,
-    .mns_ic_table #mns_ic_api,
-    .mns_ic_table #mns_ic_design,
-    .mns_ic_table #mns_ic_inic {
+    .dox_ic_table #dox_ic_overview,
+    .dox_ic_table #dox_ic_started,
+    .dox_ic_table #dox_ic_manual ,
+    .dox_ic_table #dox_ic_examples,
+    .dox_ic_table #dox_ic_api,
+    .dox_ic_table #dox_ic_design,
+    .dox_ic_table #dox_ic_inic {
         background-position: left bottom; 
         background-repeat:no-repeat;
         height: 32px;
         width: 47px;
     }
 
-    .mns_ic_table #mns_ic_overview {
+    .dox_ic_table #dox_ic_overview {
         background-image:url(icon_overview_32x32.png);
     }
 
-    .mns_ic_table #mns_ic_overview {
+    .dox_ic_table #dox_ic_overview {
         background-image:url(icon_overview_32x32.png);
     }
 
-    .mns_ic_table #mns_ic_started {
+    .dox_ic_table #dox_ic_started {
         background-image:url(icon_started_32x32.png);
     }
 
-    .mns_ic_table #mns_ic_manual {
+    .dox_ic_table #dox_ic_manual {
         background-image:url(icon_manual_32x32.png);
     }
 
-    .mns_ic_table #mns_ic_examples {
+    .dox_ic_table #dox_ic_examples {
         background-image:url(icon_examples_32x32.png);
     }
 
-    .mns_ic_table #mns_ic_api {
+    .dox_ic_table #dox_ic_api {
         background-image:url(icon_api_ref_32x32.png);
     }
     
-    .mns_ic_table #mns_ic_inic{
+    .dox_ic_table #dox_ic_inic{
         background-image:url(icon_inic_32x32.png);
     }
 

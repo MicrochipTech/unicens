@@ -41,8 +41,8 @@
  *              During initialization UNICENS invokes the callback \ref Ucs_Lld_Callbacks_t "start_fptr" and
  *              passes the low-level driver \em API as pointer to \ref Ucs_Lld_Api_t.
  * <!--
- *              \mns_ic_started{ See also Getting Started with \ref P_UM_STARTED_LLD. }
- *              \mns_ic_examples{ See also <i>Examples</i>, section \ref P_UM_EXAMPLE_LLD_01, \ref P_UM_EXAMPLE_LLD_02 and \ref P_UM_EXAMPLE_LLD_03. }
+ *              \dox_ic_started{ See also Getting Started with \ref P_UM_STARTED_LLD. }
+ *              \dox_ic_examples{ See also <i>Examples</i>, section \ref P_UM_EXAMPLE_LLD_01, \ref P_UM_EXAMPLE_LLD_02 and \ref P_UM_EXAMPLE_LLD_03. }
  * -->
  * @}
  */

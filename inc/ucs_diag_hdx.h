@@ -41,19 +41,76 @@
 /*------------------------------------------------------------------------------------------------*/
 /* Includes                                                                                       */
 /*------------------------------------------------------------------------------------------------*/
+#include "ucs_diag_pb.h"
 #include "ucs_exc.h"
-#include "ucs_class_pb.h"
+#include "ucs_inic.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+/*------------------------------------------------------------------------------------------------*/
+/* Macros                                                                                         */
+/*------------------------------------------------------------------------------------------------*/
 
+/*! \brief No evaluable segment information available for HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define UCS_HDX_DUMMY_POS                       0xFFU
+
+/*! \brief No evaluable cable diagnosis information available for HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define UCS_HDX_DUMMY_CABLE_DIAG_RESULT         0xFFU
+
+
+/*! \brief Default time value for \ref Ucs_Hdx_Timers_t::t_switch. Time in [ms] for switching the message direction, after 
+ *         an ExtendedNetworkControl.ReverseRequest() has been received 
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define HDX_T_SWITCH            100U
+
+/*! \brief Default time value for \ref Ucs_Hdx_Timers_t::t_send. Time in [ms] the device has to wait with communication, after the message 
+ *         direction has been switched. 
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define HDX_T_SEND              100U
+
+/*! \brief Default time value for \ref Ucs_Hdx_Timers_t::t_back. Time in [ms] the device resides in opposite communication direction 
+ *         before it switches back to standard communication direction. 
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define HDX_T_BACK              500U
+
+/*! \brief Default time value for \ref Ucs_Hdx_Timers_t::t_wait. Time in  [ms]  the  tester device waits for the network signal from 
+ *         the DUT on its input before switching itself to TimingMaster mode.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+#define HDX_T_WAIT              300U
 
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
+
+/*! \brief Timer Values of the HalfDuplex Diagnosis.
+ *  \ingroup G_UCS_HDX_DIAGNOSIS
+ */
+typedef struct Ucs_Hdx_Timers_
+{
+    uint16_t t_switch;  /*!< \brief Time in [ms] for switching the message direction, 
+                                    after an ExtendedNetworkControl.ReverseRequest() has been received.
+                                    Default value is \ref HDX_T_SWITCH.*/
+    uint16_t t_send;    /*!< \brief Time in [ms] the device has to wait with communication, 
+                                    after the message direction has been switched. 
+                                    Default value is \ref HDX_T_SEND.*/  
+    uint16_t t_back;    /*!< \brief Time in [ms] the device resides in opposite communication 
+                                    direction before it switches back to standard communication direction. 
+                                    Default value is \ref HDX_T_BACK. */
+    uint16_t t_wait;    /*!< \brief Time  in  [ms]  the  tester device waits for the network signal  
+                                    from the DUT on its input before switching itself to TimingMaster mode. 
+                                    Default value is \ref HDX_T_WAIT. */
+} Ucs_Hdx_Timers_t;
 
 /*! \brief   Structure of class CHdx. */
 typedef struct CHdx_
@@ -62,6 +119,7 @@ typedef struct CHdx_
     CExc    *exc;                           /*!< \brief Reference to CExc object */
     CBase   *base;                          /*!< \brief Reference to CBase object */
 
+    CSingleSubject  ssub_diag_hdx;           /*!< \brief Subject for the HalfDuplex Diagnosis reports */
 
     CSingleObserver hdx_inic_start;         /*!< \brief Observes the INIC.NetworkDiagnosisHalfDuplex result */
     CSingleObserver hdx_inic_end;           /*!< \brief Observes the INIC.NetworkDiagnosisHalfDuplexEnd result*/
@@ -75,11 +133,13 @@ typedef struct CHdx_
     CService service;                       /*!< \brief Service instance for the scheduler */
     CTimer   timer;                         /*!< \brief timer for monitoring messages */
 
-    Ucs_Diag_HdxReportCb_t report_fptr;     /*!< \brief Report callback function */
+    Ucs_Hdx_Report_t  report;               /*!< \brief reports segment results */
 
     uint8_t current_position;               /*!< \brief Node position of the currently tested node, starts with 1. */
     Exc_ReverseReq0_Result_t hdx_result;    /*!< \brief Result of current tested segment. */
     bool first_error_reported;              /*!< \brief Indicates if an unexpected error was already reported. */
+    bool locked;                            /*!< \brief Indicates that HalfDuplex Diagnosis is running. */
+    Ucs_Hdx_Timers_t revreq_timer;          /*!< \brief Timer values for the ReverseRequest command. */
 
 }CHdx;
 
@@ -92,7 +152,8 @@ void Hdx_Ctor(CHdx *self,
               CBase *base,
               CExc *exc);
 
-extern Ucs_Return_t Hdx_Start(CHdx *self, Ucs_Diag_HdxReportCb_t report_fptr);
+extern Ucs_Return_t Hdx_StartDiag(CHdx *self, CSingleObserver *obs_ptr);
+extern Ucs_Return_t Hdx_SetTimers(CHdx *self, Ucs_Hdx_Timers_t timer);
 
 #ifdef __cplusplus
 }   /* extern "C" */

@@ -91,7 +91,7 @@ typedef enum Ucs_Ns_SyncResult_
  *  \param node_address The address of the node the operation was executed for.
  *  \param result       The result of the operation.
  *  \param user_ptr     User reference provided in \ref Ucs_InitData_t "Ucs_InitData_t::user_ptr".
- *  \mns_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
+ *  \dox_ic_manual{ See also <i>User Manual</i>, section \ref P_UM_SYNC_AND_ASYNC_RESULTS. }
  *  \ingroup G_UCS_SCRIPTING
  */
 typedef void (*Ucs_Ns_SynchronizeNodeCb_t)(uint16_t node_address, Ucs_Ns_SyncResult_t result, void *user_ptr);
@@ -102,7 +102,7 @@ typedef void (*Ucs_Ns_SynchronizeNodeCb_t)(uint16_t node_address, Ucs_Ns_SyncRes
 /*! \brief Structure of a ConfigMsg used in Node-Script. This structure is used for the transmitted messages which
     contains the command to execute as well as for the expected result which returns from the corresponding node.
  *
-  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
+  * \dox_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_SCRIPTING
  */
 typedef struct Ucs_Ns_ConfigMsg_
@@ -136,7 +136,7 @@ typedef struct Ucs_Ns_ConfigMsg_
  *             That is, using the Scripting for any other FBlock INIC commands
  *             (for example Network, MediaLB, USB, Streaming, Connections, etc.) is expressly \b prohibited.
  *
- * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
+ * \dox_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  * \ingroup G_UCS_SCRIPTING
  */
 typedef struct Ucs_Ns_Script_
@@ -160,7 +160,7 @@ typedef struct Ucs_Ns_Script_
  *                 - [0x500 ... 0xFEF]
  *                 - UCS_ADDR_LOCAL_NODE
  *
-  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
+  * \dox_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_ROUTING_TYPES
  */
 typedef struct Ucs_Rm_Node_
@@ -176,6 +176,8 @@ typedef struct Ucs_Rm_Node_
      *          The value must be \c 0 if no scripts shall be executed automatically.
      */
     uint8_t init_script_list_size;
+    /*! \brief  Reserved for future use. Must be set to "0". */
+    uint8_t remote_attach_disabled;
     /*! \brief  Internal information of this node object. */
     Ucs_Rm_NodeInt_t internal_infos;
 
@@ -189,7 +191,7 @@ typedef struct Ucs_Rm_Node_
  *  \param  result            The result of the scripting operation
  *  \param  ucs_user_ptr      User reference for API callback functions
  *
-  * \mns_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
+  * \dox_ic_started{ See also section \ref P_UM_STARTED_NODE_SCRIPT for more description and an example implementation. }
  *  \ingroup G_UCS_SCRIPTING
  */
 typedef void (*Ucs_Ns_ResultCb_t)(uint16_t node_address, Ucs_Ns_ResultCode_t result, Ucs_Ns_ErrorInfo_t error_info, void *ucs_user_ptr);

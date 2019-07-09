@@ -130,7 +130,6 @@ extern uint16_t Xrm_GetResourceObjectIndex(CExtendedResourceManager *self,
                                           Xrm_Job_t *job_ptr,
                                           UCS_XRM_CONST Ucs_Xrm_ResObject_t **obj_pptr);
 extern bool Xrm_SearchNextResourceObject(CExtendedResourceManager *self);
-extern bool Xrm_IsCurrDeviceAlreadyAttached(CExtendedResourceManager *self);
 extern void Xrm_ProcessJob(CExtendedResourceManager *self);
 extern bool Xrm_IsPartOfJobList (void * job_ptr, void * resrc_obj_ptr);
 extern bool Xrm_IsDefaultCreatedPort(CExtendedResourceManager *self,
@@ -166,14 +165,9 @@ extern void Xrm_ReleaseResrcHandles(CExtendedResourceManager *self);
 extern void Xrm_HandleError(CExtendedResourceManager *self);
 extern void Xrm_ReportAutoDestructionResult(CExtendedResourceManager *self);
 extern void Xrm_MarkResrcAndJobsAsInvalid (CExtendedResourceManager *self);
-extern void Xrm_MarkRemoteDevicesAsUnsync(CExtendedResourceManager *self);
 extern void Xrm_ReportJobDestructionResult(CExtendedResourceManager *self);
 extern void Xrm_FinishJob(CExtendedResourceManager *self);
 extern void Xrm_NotifyInvalidJobs(CExtendedResourceManager *self);
-extern uint16_t Xrm_GetResourceHandleForAtd(CExtendedResourceManager *self,
-                                            uint16_t conn_lab,
-                                            Ucs_Rm_EndPoint_t *end_point_ptr,
-                                            Ucs_Xrm_ResourceType_t resource_type);
 
 /* INIC Resource Management API */
 extern void Xrm_CreateNetworkSocket(CExtendedResourceManager *self);
@@ -199,8 +193,6 @@ extern void Xrm_DestroyResourcesResultCb(void *self, void *result_ptr);
 extern void Xrm_DestroyJobResourcesResultCb(void *self, void *result_ptr);
 extern void Xrm_StdResultCb(void *self, void *result_ptr);
 extern void Xrm_Stream_PortConfigResult(void *self, void *result_ptr);
-extern Ucs_Return_t Xrm_RemoteDeviceAttach (CExtendedResourceManager *self, Srv_Event_t next_set_event);
-extern void Xrm_RmtDevAttachResultCb(void *self, Rsm_Result_t result);
 extern Ucs_Return_t Xrm_SetStreamPortConfiguration (CExtendedResourceManager *self);
 extern Ucs_Return_t Xrm_GetStreamPortConfiguration (CExtendedResourceManager *self);
 

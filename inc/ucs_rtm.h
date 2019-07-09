@@ -78,6 +78,8 @@ typedef struct Rtm_InitData_
 
 } Rtm_InitData_t;
 
+
+
 /*! \brief  Class structure of the Route Management. */
 typedef struct CRouteManagement_
 {
@@ -111,12 +113,18 @@ typedef struct CRouteManagement_
     CMaskedObserver nwstatus_observer;
     /*! \brief Observer used to monitor UCS initialization result */
     CMaskedObserver ucsinit_observer;
+    /*! \brief Result observer used for Resource builder function */
+    CSingleObserver resource_build_obs;
+    /*! \brief Report callback of resource builder */
+    Ucs_Rm_ReportCb_t build_result_fptr;
     /*! \brief Observer used to monitor UCS termination event */
     CMaskedObserver ucstermination_observer;
     /*! \brief Specifies used to monitor UCS termination event */
     bool ucs_is_stopping;
-    /*! \brief specifies whether the network status is available or not */
+    /*! \brief Specifies whether the network status is available or not */
     bool nw_available;
+    /*! \brief Specifies if network is in fallback mode */
+    bool fb_active;
     /*! \brief Flag to lock the API */
     bool lock_api;
     /*! \brief Flag to lock the ATD module, while a calculation is processed */
@@ -129,6 +137,8 @@ typedef struct CRouteManagement_
 /*------------------------------------------------------------------------------------------------*/
 extern void Rtm_Ctor(CRouteManagement * self, Rtm_InitData_t * init_ptr);
 extern Ucs_Return_t Rtm_StartProcess(CRouteManagement * self,  Ucs_Rm_Route_t routes_list[], uint16_t size);
+extern Ucs_Return_t Rtm_ActivateNetworkObserver(CRouteManagement *self);
+extern Ucs_Return_t Rtm_DeactivateNetworkObserver(CRouteManagement *self);
 extern Ucs_Return_t Rtm_DeactivateRoute(CRouteManagement * self, Ucs_Rm_Route_t * route_ptr);
 extern Ucs_Return_t Rtm_ActivateRoute(CRouteManagement * self, Ucs_Rm_Route_t * route_ptr);
 extern Ucs_Return_t Rtm_SetNodeAvailable(CRouteManagement * self, Ucs_Rm_Node_t *node_ptr, bool available);
@@ -136,6 +146,8 @@ extern bool Rtm_GetNodeAvailable(CRouteManagement * self, Ucs_Rm_Node_t *node_pt
 extern Ucs_Return_t Rtm_GetAttachedRoutes(CRouteManagement * self, Ucs_Rm_EndPoint_t * ep_inst, Ucs_Rm_Route_t * ext_routes_list[], uint16_t size_list);
 extern uint16_t Rtm_GetConnectionLabel(CRouteManagement * self, Ucs_Rm_Route_t * route_ptr);
 extern Ucs_Return_t Rtm_GetAtdValue(Ucs_Rm_Route_t * route_ptr, uint16_t *atd_value_ptr);
+extern Ucs_Return_t Rtm_BuildResources(CRouteManagement *self, uint16_t node_address, uint8_t index, Ucs_Rm_ReportCb_t result_fptr);
+
 
 #ifdef __cplusplus
 }   /* extern "C" */

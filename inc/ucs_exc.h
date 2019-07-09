@@ -109,7 +109,6 @@ typedef struct Exc_Ssubjects_
     CSingleSubject welcome;             /*!< \brief Subject for the Welcome.ResultAck and Welcome.ErrorAck messages */
     CSingleSubject signature;           /*!< \brief Subject for the Signature.Status and Signature.Error messages */
     CSingleSubject init;                /*!< \brief Subject for the Init.Error message */
-    CSingleSubject alivemessage;        /*!< \brief Subject fir the AliveMessage.Status and AliveMessage.Error messages */
     CSingleSubject enableport;          /*!< \brief Subject for the EnablePort.ResultAck  and EnablePort.ErrorAck messages */
     CSingleSubject cablelinkdiag;       /*!< \brief Subject for the CableLinkDiagnosis.ResultAck and CableLinkDiagnosis.ErrorAck messages */
     CSingleSubject phylaytest;          /*!< \brief Subject for the PhysicalLayerTestResult.Status and PhysicalLayerTest.Error messages */
@@ -123,7 +122,10 @@ typedef struct Exc_Ssubjects_
 
 } Exc_Ssubjects_t;
 
-
+typedef struct Exc_Subjects_
+{
+    CSubject alivemessage;              /*!< \brief Subject for the AliveMessage.Status and AliveMessage.Error messages */
+} Exc_Subjects_t;
 
 
 /*! \brief   Structure of class CExc. */
@@ -131,6 +133,9 @@ typedef struct CExc_
 {
     /*! \brief pointer to the FktID/OPType list */
     Dec_FktOpIsh_t const *fkt_op_list_ptr;
+
+    /*! \brief Subjects for observer */
+    Exc_Subjects_t        subs;
 
     /*! \brief Subjects for single-observer */
     Exc_Ssubjects_t       ssubs;
@@ -176,7 +181,7 @@ typedef struct Exc_PhyTestResult_
 /*! \brief Request Identifier values of the ReverseRequest command.
  *         Each identifer has its own type for the RequestList parameter.
  */
-typedef enum Exc_ReverseReq_ID_t_
+typedef enum Exc_ReverseReq_ID_   
 {
     EXC_REV_REQ_HDX     = 0U,        /*!< \brief Identifier for HalfDuplex Diagnosis */
     EXC_REV_REQ_FBP     = 1U         /*!< \brief Identifier for FallBack Protection */
@@ -185,7 +190,7 @@ typedef enum Exc_ReverseReq_ID_t_
 
 /*! \brief Type definition of the HalfDuplex Diagnosis RequestList.
  */
-typedef struct Exc_ReverseReq0_List_t_
+typedef struct Exc_ReverseReq0_List_
 {
     uint16_t t_wait;                /*!< \brief t_wait */
     uint16_t admin_node_address;    /*!< \brief Admin Node Address */
@@ -195,7 +200,7 @@ typedef struct Exc_ReverseReq0_List_t_
 
 /*! \brief Type definition of the FBP RequestList.
  */
-typedef struct Exc_ReverseReq1_List_t_
+typedef struct Exc_ReverseReq1_List_
 {
     uint16_t t_neg_guard;
     uint16_t t_neg_initiator;
@@ -204,7 +209,7 @@ typedef struct Exc_ReverseReq1_List_t_
 
 /*! \brief Tester Result values of the HalfDuplex Diagnosis.
  */
-typedef enum Exc_ReverseReq0_ResID_t_
+typedef enum Exc_ReverseReq0_ResID_
 {
     EXC_REVREQ0_RES_SLAVE_OK        = 0x00U,       /*!< \brief SlaveOK */
     EXC_REVREQ0_RES_SLAVE_WRONG_POS = 0x01U,       /*!< \brief SlaveWrongNodePosition */
@@ -218,7 +223,7 @@ typedef enum Exc_ReverseReq0_ResID_t_
 
 /*! \brief Type definition of the HalfDuplex Diagnosis ResultList.
  */
-typedef struct Exc_ReverseReq0_ResultList_t_
+typedef struct Exc_ReverseReq0_ResultList_
 {
     Exc_ReverseReq0_ResID_t tester_result;
     uint8_t                 cable_diag_result;
@@ -230,7 +235,7 @@ typedef struct Exc_ReverseReq0_ResultList_t_
 
 
 /*! \brief  Provides HalfDuplex Diagnosis result */
-typedef struct Exc_ReverseReq0_Result_t_
+typedef struct Exc_ReverseReq0_Result_
 {
     Exc_ReverseReq_ID_t     req_id;
     Exc_ReverseReq0_ResultList_t  result_list;
@@ -240,7 +245,7 @@ typedef struct Exc_ReverseReq0_Result_t_
 
 /*! \brief Result values of the Fallback Protection Mode
  */
-typedef enum Exc_ReverseReq1_ResID_t_
+typedef enum Exc_ReverseReq1_ResID_
 {
     EXC_REVREQ1_RES_SUCCESS         = 0x00U,       /*!< \brief Success */
     EXC_REVREQ1_RES_NOSUCCESS       = 0x01U        /*!< \brief NoSuccess */
@@ -250,7 +255,7 @@ typedef enum Exc_ReverseReq1_ResID_t_
 
 /*! \brief Type definition of the Fallback Protection  ResultList.
  */
-typedef struct Exc_ReverseReq1_ResultList_t_
+typedef struct Exc_ReverseReq1_ResultList_
 {
     Exc_ReverseReq1_ResID_t           result;  
 
@@ -260,7 +265,7 @@ typedef struct Exc_ReverseReq1_ResultList_t_
 
 
 /*! \brief  Provides FBP Diagnosis result */
-typedef struct Exc_ReverseReq1_Result_t_
+typedef struct Exc_ReverseReq1_Result_
 {
     Exc_ReverseReq_ID_t req_id;
     Exc_ReverseReq1_ResultList_t    result_list;
@@ -278,7 +283,7 @@ typedef struct Exc_CableLinkDiagResult_
 
 
 /*! \brief   This structure provides information on the Hello.Status message */
-typedef struct Exc_HelloStatus_t_
+typedef struct Exc_HelloStatus_
 {
     uint8_t version;
     Ucs_Signature_t signature;
@@ -286,7 +291,7 @@ typedef struct Exc_HelloStatus_t_
 } Exc_HelloStatus_t;
 
 /*! \brief   This structure provides information on the Welcome.Result message */
-typedef struct Exc_WelcomeResult_t_
+typedef struct Exc_WelcomeResult_
 {
     uint8_t res;
     uint8_t version;
@@ -295,12 +300,23 @@ typedef struct Exc_WelcomeResult_t_
 } Exc_WelcomeResult_t;
 
 /*! \brief   This structure provides information on the Signature.Status message */
-typedef struct Exc_SignatureStatus_t_
+typedef struct Exc_SignatureStatus_
 {
     uint8_t version;
     Ucs_Signature_t signature;
 
 } Exc_SignatureStatus_t;
+
+/*! \brief   This structure provides information on the AliveMessage.Status message */
+typedef struct Exc_AliveMessageStatus_
+{
+    uint8_t         alive_version;
+    Ucs_Welcomed_t  welcomed;
+    uint16_t        alive_status;
+    uint8_t         signature_version;
+    Ucs_Signature_t signature;
+
+} Exc_AliveMessageStatus_t;
 
 /*! \brief   This structure provides information on the MemoryRead.Result message */
 typedef struct Exc_MemReadResult_
@@ -345,6 +361,11 @@ extern Ucs_Return_t Exc_Signature_Get(CExc *self,
 extern Ucs_Return_t Exc_Init_Start(CExc *self,
                                    uint16_t target_address,
                                    CSingleObserver *obs_ptr);
+
+extern Ucs_Return_t Exc_RegisterAliveObserver(CExc* self, 
+                                              CObserver* obs_ptr);
+extern Ucs_Return_t Exc_UnRegisterAliveObserver(CExc* self, 
+                                                CObserver* obs_ptr);
 extern Ucs_Return_t Exc_EnablePort_Sr(CExc *self,
                                       uint16_t target_address,
                                       uint8_t port_number,
@@ -376,8 +397,7 @@ extern Ucs_Return_t Exc_ReverseRequest1_Start(CExc *self,
                                               uint16_t t_send,
                                               uint16_t t_back,
                                               Exc_ReverseReq1_List_t req_list,
-                                              CSingleObserver *obs_ptr,
-                                              CSingleObserver *alive_obs_ptr);
+                                              CSingleObserver *obs_ptr);
 extern Ucs_Return_t Exc_EnableTx_StartResult(CExc *self,
                                              uint8_t port,
                                              CSingleObserver *obs_ptr);

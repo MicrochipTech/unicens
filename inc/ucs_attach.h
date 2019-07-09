@@ -49,6 +49,7 @@
 #include "ucs_pmfifos.h"
 #include "ucs_pmevent.h"
 #include "ucs_inic.h"
+#include "ucs_exc.h"
 #include "ucs_ret_pb.h"
 
 #ifdef __cplusplus
@@ -66,6 +67,7 @@ typedef struct Ats_InitData_
     CPmFifos *fifos_ptr;                /*!< \brief Reference to PMS FIFOs */
     CPmEventHandler *pme_ptr;           /*!< \brief Reference to PMS Event Handler */
     CInic *inic_ptr;                    /*!< \brief Reference to INIC Management instance */
+    CExc *exc_ptr;                      /*!< \brief Reference to FBlock ENC */
 
 } Ats_InitData_t;
 

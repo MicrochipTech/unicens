@@ -110,6 +110,17 @@ typedef struct Ucs_Rm_RouteInt_
 
 } Ucs_Rm_RouteInt_t;
 
+/* \brief Resource Builder return structure. */
+typedef struct Rtm_ResourceData_
+{
+    uint16_t node_address;      /*!< \brief Address of the target node */
+    uint16_t collection_handle; /*!< \brief Collection handle of the built resources */
+    uint16_t res_handle_1;      /*!< \brief Resource handle 1 */
+    uint16_t res_handle_2;      /*!< \brief Resource handle 2 */
+    uint16_t res_handle_3;      /*!< \brief Resource handle 3 */
+
+} Rtm_ResourceData_t;
+
 #ifdef __cplusplus
 }   /* extern "C" */
 #endif

@@ -57,7 +57,7 @@ extern "C"
 /*------------------------------------------------------------------------------------------------*/
 /* Structures                                                                                     */
 /*------------------------------------------------------------------------------------------------*/
-/*!< \brief  Stores data required by EPM during initialization. */
+/*! \brief  Stores data required by EPM during initialization. */
 typedef struct Epm_InitData_
 {
     CBase * base_ptr;                               /*!< \brief Reference to a base instance */
@@ -70,14 +70,11 @@ typedef struct Epm_InitData_
 /*! \brief  Class structure of the EndPoint Management. */
 typedef struct CEndpointManagement_
 {
-    /*!< \brief Reference to a base instance */
-    CBase *base_ptr;
-    /*!< \brief Reference to factory instance */
-    CFactory * fac_ptr;
-    /*!< \brief Reference to the application debugging callback function for XRM resources */
-    Ucs_Rm_XrmResDebugCb_t res_debugging_fptr;
-    /*!< \brief Reference to the callback function pointer to signal "check unmute" of devices */
-    Ucs_Xrm_CheckUnmuteCb_t check_unmute_fptr;
+   
+    CBase *base_ptr;                            /*!< \brief Reference to a base instance */
+    CFactory * fac_ptr;                         /*!< \brief Reference to factory instance */
+    Ucs_Rm_XrmResDebugCb_t res_debugging_fptr;  /*!< \brief Reference to the application debugging callback function for XRM resources */
+    Ucs_Xrm_CheckUnmuteCb_t check_unmute_fptr;  /*!< \brief Reference to the callback function pointer to signal "check unmute" of devices */
 
 } CEndpointManagement;
 
@@ -99,6 +96,8 @@ extern void Epm_ReportShutDown(CEndpointManagement * self);
 extern void Epm_ReportInvalidDevice(CEndpointManagement *self, uint16_t node_address);
 extern void Epm_XrmResDebugCb(Ucs_Xrm_ResourceType_t resource_type, Ucs_Xrm_ResObject_t *resource_ptr,
                               Ucs_Xrm_ResourceInfos_t resource_infos, void *endpoint_inst_ptr, void *user_ptr);
+extern Ucs_Return_t Epm_ResetDefaultCreatedEp(CEndpointManagement *self, Ucs_Rm_EndPoint_t *ep_ptr);
+extern void Epm_ResetInternalInfos(CEndpointManagement *self, Ucs_Rm_EndPoint_t *ep_ptr);
 
 #ifdef __cplusplus
 }   /* extern "C" */

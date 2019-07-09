@@ -35,7 +35,6 @@
  * \cond UCS_INTERNAL_DOC
  * \addtogroup G_NODE_DIS
  * @{
-
  */
 
 /*------------------------------------------------------------------------------------------------*/
@@ -317,7 +316,7 @@ static void Nd_Service(void *self)
  *
  * \param  self     Reference to Node Discovery object
  * \return UCS_RET_SUCCESS              Operation successful
- * \return UCS_RET_ERR_API_LOCKED       Node Discovery was already started
+ * \return UCS_RET_ERR_API_LOCKED       Required INIC API is already in use by another task.
  */
 Ucs_Return_t Nd_Start(CNodeDiscovery *self)
 {
@@ -627,14 +626,42 @@ static void Nd_A_WelcomeNoSuccess(void *self)
 
 /*! \brief Reaction on a timeout for the Welcome message
  *
- * \param self  Reference to Node Discovery object
+ *  Initializes the respective node.
+ *
+ *  \param self  Reference to Node Discovery object
  */
 static void Nd_A_WelcomeTimeout(void *self)
 {
     CNodeDiscovery *self_ = (CNodeDiscovery *)self;
+    Ucs_Return_t    result;
+    uint16_t        target_address;
+
+
+    if (self_->current_sig.node_pos_addr == 0x0400U)
+    {
+        target_address = 0x0001U;
+    }
+    else
+    {
+        target_address = self_->current_sig.node_pos_addr;
+    }
+
+    result = Exc_Init_Start(self_->exc, target_address, NULL);
+    if (result == UCS_RET_SUCCESS)
+    {
+        TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeTimeout: Init", 0U));
+    }
+    else
+    {
+        TR_INFO((self_->base->ucs_user_ptr, "[ND]", "Nd_WelcomeTimeout: Init failed", 0U));
+    }
 
     /* same reaction as for MPR event */
     self_->hello_mpr_request = true;
+
+    /* Prevent that Hello.Get is sent before EXC.Init is finished. */
+    Nd_Start_Debounce_Timer(self_);
+
 
     Fsm_SetEvent(&self_->fsm, ND_E_CHECK);
     Srv_SetEvent(&self_->service, ND_EVENT_SERVICE);
@@ -963,7 +990,7 @@ static void Nd_Send_Hello_Get(CNodeDiscovery *self)
 
     ret_val = Exc_Hello_Get(self->exc, UCS_ADDR_BROADCAST_BLOCKING,
                             ND_SIGNATURE_VERSION, &self->nd_hello);
-    self->debounce_flag = true;
+    
     Nd_Start_Debounce_Timer(self);
     Nd_Start_Periodic_Timer(self);
 
@@ -1058,6 +1085,7 @@ static void Nd_Stop_Periodic_Timer(CNodeDiscovery *self)
  */
 static void Nd_Start_Debounce_Timer(CNodeDiscovery *self)
 {
+    self->debounce_flag = true;
     Tm_SetTimer(&self->base->tm,
                 &self->debounce_timer,
                 &Nd_DebounceTimerCb,

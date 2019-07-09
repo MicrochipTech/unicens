@@ -31,7 +31,7 @@
  <tr>
   <td><a href="index.html"><img alt="Logo" src="logo.png"/></a></td>
   <td>
-   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.2.0-4073</span></div>
+   <div id="projectname">UNICENS&#160;<span id="projectnumber">V2.3.0-4567</span></div>
    <div id="projectbrief">User Manual and API Reference</div>
     <div id="searchbox">        <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -94,9 +94,9 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="contents">
 <div class="textblock"><h1>Introduction</h1>
 <p>The Application Message Service (AMS) provides a central interface to transmit and receive application messages via the Control Channel of the network. The so called application messages can have a payload size of up to 65535 bytes. Since the payload size of a single control message is limited to 45 bytes, an application messages with larger payload is transmitted via segmented transfer. The Application Message Service provides a common interface for single and segmented transfer and automatically performs segmentation.</p>
-<table  class="mns_ic_table">
+<table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a>. </td></tr>
+<td id="dox_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a>. </td></tr>
 </table>
 <h1>Configuration</h1>
 <p>Any message which is received or transmitted via the Application Message Service requires a certain amount of memory. The UNICENS Library reserves an amount of memory which can be adjusted by defining the number und payload of AMS Tx and Rx messages. The configuration file ucs_cfg.h can be modified to your specific needs. A possible configuration might be:</p>
@@ -136,9 +136,9 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line"></div>
 <div class="line">    <a class="code" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_gaea8d7735d41853167a2befdc06febe43.html#gaea8d7735d41853167a2befdc06febe43" title="UNICENS initialization function.">Ucs_Init</a>(&amp;init_data, &amp;App_OnInitResult);</div>
 <div class="line">}</div>
-</div><!-- fragment --><table  class="mns_ic_table">
+</div><!-- fragment --><table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_started">&#160;</td><td>See also <em>Getting Started</em>, section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html">Initialization</a>. </td></tr>
+<td id="dox_ic_started">&#160;</td><td>See also <em>Getting Started</em>, section <a class="el" href="_p__u_m__s_t_a_r_t_e_d__i_n_i_t.html">Initialization</a>. </td></tr>
 </table>
 <h1>Transmission of Messages</h1>
 <p>In order to transmit an application message you haves to process the following steps.</p>
@@ -291,21 +291,21 @@ $(document).ready(function(){initNavTree('_p__u_m__s_t_a_r_t_e_d__a_m_s.html',''
 <div class="line">}</div>
 </div><!-- fragment --><p>The asynchronous processing of the AMS Rx queue provides a comfortable way to process messages at the best moment for the application. During high message load it is possible that the application is not able to respond to a message immediately. In that case the application shall not call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a>. Later, when it is able to process the message it can retrieve the same Rx message object by calling <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a>.</p>
 <dl class="section note"><dt>Note</dt><dd>It is possible that <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga649fb9128df6f634fc86aa03b374d822.html#ga649fb9128df6f634fc86aa03b374d822" title="The application must call this function cyclically to drive UNICENS.">Ucs_Service()</a> flushes the AMS Rx queue. Hence, a reference returned by <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> may become invalid during the call of <a class="el" href="group___g___u_c_s___i_n_i_t___a_n_d___s_r_v_ga649fb9128df6f634fc86aa03b374d822.html#ga649fb9128df6f634fc86aa03b374d822" title="The application must call this function cyclically to drive UNICENS.">Ucs_Service()</a>. It is recommended to call <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a>, do the Rx message processing and call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a> in one go. If the application does not call <a class="el" href="group___g___u_c_s___a_m_s_ga6f571e2e15fac1e4be068cdf0ccac44d.html#ga6f571e2e15fac1e4be068cdf0ccac44d" title="Removes and frees the front-most message from the Rx queue.">Ucs_AmsRx_ReleaseMsg()</a> because it cannot finish the message processing, it is recommended to retry <a class="el" href="group___g___u_c_s___a_m_s_gab096e481474195cc57d4d801f1d295f2.html#gab096e481474195cc57d4d801f1d295f2" title="Retrieves a reference to the front-most message in the Rx queue.">Ucs_AmsRx_PeekMsg()</a> when message processing is possible again.</dd></dl>
-<table  class="mns_ic_table">
+<table  class="dox_ic_table">
 <tr>
-<td id="mns_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a>. </td></tr>
+<td id="dox_ic_api">&#160;</td><td>See also <em>API Reference</em>, section <a class="el" href="group___g___u_c_s___a_m_s.html">Application Message Service</a>. </td></tr>
 </table>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">&copy; 2018 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
+    <li class="footer">&copy; 2019 Microchip Technology Inc. All rights reserved. <a href="http://www.microchip.com" target="_blank">www.microchip.com</a></li>
   </ul>
 </div>
 </body>
 <!--
-Generated on Mon Oct 8 2018 13:57:37 for UNICENS by
+Generated on Wed Jun 19 2019 16:18:16 for UNICENS by
 Doxygen 1.8.2
 -->
 <script language="javascript">

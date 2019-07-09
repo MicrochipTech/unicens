@@ -8,10 +8,6 @@ var group___g___u_c_s___i_n_i_t___a_n_d___s_r_v___t_y_p_e_s =
       [ "request_service_fptr", "struct_ucs___general___init_data__t_a7d2541cf63dfcea750c0d0ec2ef563c0.html#a7d2541cf63dfcea750c0d0ec2ef563c0", null ],
       [ "set_application_timer_fptr", "struct_ucs___general___init_data__t_a9de73ec82699e45173702e9b0ccc917a.html#a9de73ec82699e45173702e9b0ccc917a", null ]
     ] ],
-    [ "Ucs_Nd_InitData_t", "struct_ucs___nd___init_data__t.html", [
-      [ "eval_fptr", "struct_ucs___nd___init_data__t_ab9bc02a84c7daeff234344541d41be62.html#ab9bc02a84c7daeff234344541d41be62", null ],
-      [ "report_fptr", "struct_ucs___nd___init_data__t_a98b9ccad2c6c5fa2edaf472151ee853c.html#a98b9ccad2c6c5fa2edaf472151ee853c", null ]
-    ] ],
     [ "Ucs_StdResult_t", "struct_ucs___std_result__t.html", [
       [ "code", "struct_ucs___std_result__t_a02d8eefc721a797ac87f5030774972ef.html#a02d8eefc721a797ac87f5030774972ef", null ],
       [ "info_ptr", "struct_ucs___std_result__t_ab89f4871a6526d4d409fca9ee58ce176.html#ab89f4871a6526d4d409fca9ee58ce176", null ],
