@@ -13,7 +13,7 @@ UNICENS is a source code library written in C. It is a platform independent
 library that can be integrated into a bare-metal/mainloop-architecture as well as 
 into any operating system.
 <br><br>
-UNICENS allows to startup and configure a MOST&reg; Network from one central node.
+UNICENS allows to startup and configure an INICnet&trade; technology Network from one central node.
 This means that only one node within the network must run UNICENS. It is able
 to configure the shared Ethernet bandwidth and establishes the dedicated audio and 
 video channels without the necessity of an application interaction.
@@ -22,7 +22,7 @@ in a transparent way without having to care about the details *how* network rela
 tasks are solved.
 <br><br>
 A UNICENS driven network allows the following ways of application communication:
-* IP communication via MOST Ethernet Channel
+* IP communication via Ethernet Channel
 * Remote communication via RemoteI2C or RemoteGPIO
 
 <br>
@@ -43,8 +43,8 @@ You can find the latest documentation [here](https://rawgit.com/MicrochipTech/un
 ## Related Projects
 * [UNICENS Linux Daemon](https://github.com/MicrochipTech/unicens-linux-daemon)
 * [UNICENS Example for Atmel SAM V71](https://github.com/MicrochipTech/unicens-bare-metal-sam-v71)
-* [MOST Linux Driver](https://github.com/microchip-ais/linux)
 * [UNICENS Binding for Automotive Grade Linux (AGL - Framework)](https://git.automotivelinux.org/apps/agl-service-unicens/)
+* [Linux Driver](https://github.com/microchip-ais/linux)
 
 ## Hardware
 * The [Microchip Slim Board Family](https://www.k2l.de/products/34/MOST150%20Slim%20Board%20Family/) is supported by the projects mentioned above.
