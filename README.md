@@ -34,7 +34,7 @@ on the central node may modify codec specific values of a microphone node withou
 <img src="https://c1.staticflickr.com/5/4247/34717065806_08347db3b4_b.jpg">
 </p>
 
-Please find further information on [www.microchip.com](http://www.microchip.com/unicens).
+Please find further information on [www.microchip.com/unicens](http://www.microchip.com/unicens) and [www.microchip.com/inicnet](http://www.microchip.com/inicnet).
 
 ## Documentation
 Please download the related version and find the documentation in `/doc/ucs.html` or `/doc/ucs.chm`.
