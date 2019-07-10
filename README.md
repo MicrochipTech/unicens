@@ -13,7 +13,7 @@ UNICENS is a source code library written in C. It is a platform independent
 library that can be integrated into a bare-metal/mainloop-architecture as well as 
 into any operating system.
 <br><br>
-UNICENS allows to startup and configure an INICnet&trade; technology Network from one central node.
+UNICENS allows to startup and configure an INICnet&trade; technology network from one central node.
 This means that only one node within the network must run UNICENS. It is able
 to configure the shared Ethernet bandwidth and establishes the dedicated audio and 
 video channels without the necessity of an application interaction.
